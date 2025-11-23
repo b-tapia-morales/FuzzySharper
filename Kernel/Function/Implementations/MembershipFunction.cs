@@ -1,0 +1,195 @@
+﻿using Kernel.Function.Abstractions;
+using Kernel.Number;
+using Shared.Approx;
+using Shared.Intervals.Implementations;
+using Shared.Options.Factory;
+using Shared.Options.Implementations;
+
+namespace Kernel.Function.Implementations;
+
+public abstract class MembershipFunction : IMembershipFunction
+{
+    protected MembershipFunction(string name, Interval universe, double uMax = 1)
+    {
+        CheckName(name);
+        CheckHeight(uMax);
+        Name = name;
+        UMax = uMax.SnapTo(1);
+        UniverseOfDiscourse = universe;
+    }
+
+    public string Name { get; }
+    public double UMax { get; }
+    public Interval UniverseOfDiscourse { get; }
+
+    public Func<double, double> PureFunction =>
+        LarsenProduct(UMax);
+
+    public Func<double, double> PureFunctionClipped =>
+        LarsenProductClipped(UMax);
+
+    public abstract bool IsVerticallySymmetric { get; }
+
+    public virtual bool HasGlobalMaximum =>
+        Peak.IsSome;
+
+    public virtual bool IsBoundedLeft =>
+        !double.IsNegativeInfinity(SupportLeft);
+
+    public virtual bool IsBoundedRight =>
+        !double.IsPositiveInfinity(SupportRight);
+
+    public abstract bool FloorsLeft { get; }
+
+    public abstract bool FloorsRight { get; }
+
+    public abstract bool SaturatesLeft { get; }
+
+    public abstract bool SaturatesRight { get; }
+
+    public virtual bool IsZeroConvergent =>
+        (IsBoundedLeft || FloorsLeft) && (IsBoundedRight || FloorsRight);
+
+    public virtual bool IsStrictlyUnimodal =>
+        Peak.IsSomeVal(out var interval) && interval.IsSingleton;
+
+    public virtual bool IsOpenLeft =>
+        UMax.IsRoughlyOne() && SaturatesLeft;
+
+    public virtual bool IsOpenRight =>
+        UMax.IsRoughlyOne() && SaturatesRight;
+
+    public virtual bool IsClosed =>
+        IsZeroConvergent;
+
+    public virtual bool IsNormal =>
+        UMax.IsRoughlyOne() && Peak.IsSome;
+
+    public virtual bool IsPrototypical =>
+        UMax.IsRoughlyOne() && Peak.IsSomeVal(out var interval) && interval.IsSingleton;
+
+    public abstract Option<double> PeakLeft { get; }
+
+    public abstract Option<double> PeakRight { get; }
+
+    public virtual Option<Interval> Peak =>
+        HasGlobalMaximum ? new Interval(PeakLeft.Get, PeakRight.Get) : OptionFactory.None<Interval>();
+
+    public abstract double SupportLeft { get; }
+
+    public abstract double SupportRight { get; }
+
+    public virtual Interval Support =>
+        new(SupportLeft, SupportRight);
+
+    public virtual double EffectiveSupportLeft =>
+        SupportLeft;
+
+    public virtual double EffectiveSupportRight =>
+        SupportRight;
+
+    public virtual Interval EffectiveSupport =>
+        new(EffectiveSupportLeft, EffectiveSupportRight);
+
+    public virtual double SupportLeftClipped =>
+        Math.Max(EffectiveSupportLeft, UniverseOfDiscourse.LowerBound);
+
+    public virtual double SupportRightClipped =>
+        Math.Min(EffectiveSupportRight, UniverseOfDiscourse.UpperBound);
+
+    public virtual Interval SupportClipped =>
+        new(SupportLeftClipped, SupportRightClipped);
+
+    public abstract Option<double> CoreLeft { get; }
+
+    public abstract Option<double> CoreRight { get; }
+
+    public virtual Option<Interval> Core =>
+        IsNormal ? new Interval(CoreLeft.Get, CoreRight.Get) : OptionFactory.None<Interval>();
+
+    public Option<double> CrossoverLeft =>
+        AlphaCutLeft(0.5);
+
+    public Option<double> CrossoverRight =>
+        AlphaCutRight(0.5);
+
+    public Option<Interval> Crossover =>
+        UMax.IsRoughlyGreaterOrEqualTo(0.5) ? new Interval(CrossoverLeft.Get, CrossoverRight.Get) : OptionFactory.None<Interval>();
+
+    public abstract Option<double> AlphaCutLeft(FuzzyNumber alpha);
+
+    public abstract Option<double> AlphaCutRight(FuzzyNumber alpha);
+
+    public virtual Option<Interval> AlphaCut(FuzzyNumber alpha) =>
+        alpha.Value.IsRoughlyLesserOrEqualTo(UMax) ? new Interval(AlphaCutLeft(alpha).Get, AlphaCutRight(alpha).Get) : OptionFactory.None<Interval>();
+
+    public virtual Option<double> AlphaCutLeftClipped(FuzzyNumber alpha)
+    {
+        var option = AlphaCutLeft(alpha);
+        if (option.IsNone)
+            return option;
+        var xi = option.Get;
+        return UniverseOfDiscourse.IsBoundedLeft ? Math.Max(xi, SupportLeftClipped) : xi;
+    }
+
+    public virtual Option<double> AlphaCutRightClipped(FuzzyNumber alpha)
+    {
+        var option = AlphaCutRight(alpha);
+        if (option.IsNone)
+            return option;
+        var xj = option.Get;
+        return UniverseOfDiscourse.IsBoundedRight ? Math.Min(xj, SupportRightClipped) : xj;
+    }
+
+    public virtual Option<Interval> AlphaCutClipped(FuzzyNumber alpha) =>
+        alpha.Value.IsRoughlyLesserOrEqualTo(UMax) ? new Interval(AlphaCutLeftClipped(alpha).Get, AlphaCutRightClipped(alpha).Get) : OptionFactory.None<Interval>();
+
+    public abstract Func<double, double> LarsenProduct(FuzzyNumber lambda);
+
+    public Func<double, double> LarsenProductClipped(FuzzyNumber lambda) => x =>
+    {
+        var (x0, x1) = SupportClipped.ToTuple();
+        return x.IsRoughlyLesserOrEqualTo(x0) || x.IsRoughlyGreaterOrEqualTo(x1) ? 0 : LarsenProduct(lambda)(x);
+    };
+
+    public Func<double, double> MamdaniMinimum(FuzzyNumber alpha) =>
+        PrecomputedMamdani(this, alpha);
+
+    public Func<double, double> MamdaniMinimumClipped(FuzzyNumber alpha) =>
+        PrecomputedMamdani(this, alpha, true);
+
+    public FuzzyNumber MembershipDegree(double x) =>
+        PureFunction(x);
+
+    public (double x, FuzzyNumber Y) ToPoint(double x) =>
+        (x, MembershipDegree(x));
+
+    public abstract IMembershipFunction DeepCopy();
+
+    public abstract IMembershipFunction DeepCopy(string name);
+
+    private static void CheckHeight(double h)
+    {
+        if (h.IsRoughlyZero() || h.IsRoughlyGreaterThan(1))
+            throw new ArgumentException(
+                $"The height “h” of the function must be in the range [0, 1] (Provided value was: {h})");
+    }
+
+    private static void CheckName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException(
+                "The name of the function cannot be null or contain only whitespaces");
+    }
+
+    private static Func<double, double> PrecomputedMamdani(MembershipFunction function, FuzzyNumber alpha, bool clipToUniverse = false)
+    {
+        if (alpha.Value.IsRoughlyZero())
+            return _ => 0;
+        var func = clipToUniverse ? function.PureFunctionClipped : function.PureFunction;
+        if (alpha.Value.IsRoughlyGreaterOrEqualTo(function.UMax))
+            return func;
+        var (a0, a1) = (clipToUniverse ? function.AlphaCutClipped(alpha) : function.AlphaCut(alpha)).Get.ToTuple();
+        return x => x.IsRoughlyGreaterOrEqualTo(a0) && x.IsRoughlyLesserOrEqualTo(a1) ? alpha.Value : func(x);
+    }
+}
