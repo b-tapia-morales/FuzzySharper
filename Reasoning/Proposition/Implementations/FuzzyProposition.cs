@@ -56,7 +56,7 @@ public class FuzzyProposition(string variable, Connective connective, Literal li
 
     public FuzzyNumber Evaluate(double crispValue, INegation negation)
     {
-        var membershipFunction = Function.PureFunction;
+        var membershipFunction = Function.PureFunctionClipped;
         var hedgeFunction = LinguisticHedge.Function;
         var fuzzyNumber = hedgeFunction(membershipFunction(crispValue));
         return Literal == Literal.IsNot ? negation.Complement(fuzzyNumber) : fuzzyNumber;

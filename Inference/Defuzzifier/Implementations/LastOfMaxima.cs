@@ -1,8 +1,9 @@
-﻿using Inference.Defuzzifier.Abstractions;
-using Kernel.Function.Extensions;
-using Kernel.Operator.Conorm.Abstractions;
-using Kernel.Operator.Negation.Abstractions;
-using Kernel.Operator.Norm.Abstractions;
+﻿using Inference.Aggregator.Abstractions;
+using Inference.Aggregator.Components;
+using Inference.Aggregator.Extensions;
+using Inference.Defuzzifier.Abstractions;
+using Kernel.Function.Implication.Factory;
+using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Rule.Abstractions;
 using Shared.Options.Factory;
@@ -12,23 +13,22 @@ using Shared.Options.Implementations;
 
 namespace Inference.Defuzzifier.Implementations;
 
-public class LastOfMaxima : IDefuzzifier
+public class LastOfMaxima : BaseDefuzzifier
 {
-    public Option<double> Defuzzify(ICollection<IRule> rules, IWorkingMemory memory, INegation negation,
-        INorm norm, IConorm conorm, ImplicationMethod method, out ICollection<IRule> activatedRules)
+    override protected Option<double> DefuzzifyMethod(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
+        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
+        out ICollection<IFuzzySetRule> activatedRules)
     {
-        IDefuzzifier.RulesCheck(rules, memory);
-        var (min, max) = IDefuzzifier.GetUniverse(rules).ToTuple();
-
-        var applicable = IDefuzzifier.GetWeightedTuples(rules, memory, negation, norm, conorm);
-        activatedRules = [..applicable.Select(tuple => tuple.Rule)];
-
-        var best = applicable.MaxBy(tuple => tuple.Weight);
-        if (best.Weight == 0)
+        activatedRules = [];
+        
+        var applicable = EvaluateFiringStrengths(rules, memory, family);
+        if (applicable.Count == 0)
             return OptionFactory.None<double>();
-
-        var (function, weight) = (best.Function, best.Weight);
-        var lastOfMaxima = method == ImplicationMethod.Mamdani ? function.AlphaCutRight(weight).Get : function.PeakRight.Get;
-        return Math.Clamp(lastOfMaxima, min, max);
+        
+        activatedRules = [..applicable.Select(tuple => tuple.Rule)];
+        return FiringStrengthAggregator.AggregateFirings(applicable, Selector, aggregator);
+        
+        double Selector(FiringStrength firing) => 
+            method == ImplicationMethod.Mamdani ? firing.Function.AlphaCutRightClipped(firing.Weight).Get : firing.Function.PeakRightClipped.Get;
     }
 }

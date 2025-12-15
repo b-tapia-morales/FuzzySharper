@@ -16,7 +16,7 @@ public class PremiseWeight(IWorkingMemory memory, IOperatorFamily family) : IRul
     {
     }
 
-    public int ComparerMethod(IRule x, IRule y)
+    public int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y)
     {
         var firstIsPresent = x.EvaluatePremiseWeight(Memory, Family).IsSomeVal(out var w1);
         var secondIsPresent = y.EvaluatePremiseWeight(Memory, Family).IsSomeVal(out var w2);

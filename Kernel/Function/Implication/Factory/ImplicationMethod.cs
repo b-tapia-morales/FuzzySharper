@@ -1,4 +1,4 @@
-﻿namespace Kernel.Function.Extensions;
+﻿namespace Kernel.Function.Implication.Factory;
 
 public enum ImplicationMethod
 {

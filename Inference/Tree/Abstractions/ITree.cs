@@ -1,5 +1,6 @@
-﻿using Inference.Defuzzifier.Abstractions;
-using Kernel.Function.Extensions;
+﻿using Inference.Aggregator.Abstractions;
+using Inference.Defuzzifier.Abstractions;
+using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Rule.Abstractions;
@@ -12,7 +13,7 @@ public interface ITree<T> where T : class, ITree<T>
 {
     StringOrType Identifier { get; }
     ICollection<T> Children { get; }
-    ICollection<IRule> Rules { get; }
+    ICollection<IFuzzySetRule> Rules { get; }
     bool IsProven { get; }
 
     bool IsLeaf();
@@ -21,13 +22,13 @@ public interface ITree<T> where T : class, ITree<T>
 
     void AddChildren(params IEnumerable<T> children);
 
-    void AddRules(params IEnumerable<IRule> rules);
+    void AddRules(params IEnumerable<IFuzzySetRule> rules);
     
-    Option<double> InferFact(IWorkingMemory memory, IComparer<IRule> comparer,
-        IDefuzzifier defuzzifier, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod);
+    Option<double> InferFact(IWorkingMemory memory, IComparer<IFuzzySetRule> comparer,
+        IDefuzzifier defuzzifier, IValueAggregator aggregator, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod);
 
-    Option<double> InferFact(IWorkingMemory memory, IComparer<IRule> comparer,
-        IDefuzzifier defuzzifier, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod, Option<uint> iteration);
+    Option<double> InferFact(IWorkingMemory memory, IComparer<IFuzzySetRule> comparer,
+        IDefuzzifier defuzzifier, IValueAggregator aggregator, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod, Option<uint> iteration);
 
-    static abstract T BuildTree(StringOrType rootIdentifier, ICollection<IRule> rules);
+    static abstract T BuildTree(StringOrType rootIdentifier, ICollection<IFuzzySetRule> rules);
 }

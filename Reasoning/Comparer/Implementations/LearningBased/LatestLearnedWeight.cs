@@ -18,7 +18,7 @@ public class LatestLearnedWeight(IWorkingMemory memory, IOperatorFamily operator
     {
     }
 
-    public int ComparerMethod(IRule x, IRule y)
+    public int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y)
     {
         var (firstIsPresent, secondIsPresent) = (ResolveWeight(x).IsSomeVal(out var w1), ResolveWeight(y).IsSomeVal(out var w2));
         return (firstIsPresent, secondIsPresent) switch
@@ -30,7 +30,7 @@ public class LatestLearnedWeight(IWorkingMemory memory, IOperatorFamily operator
         };
     }
 
-    private Option<FuzzyNumber> ResolveWeight(IRule rule)
+    private Option<FuzzyNumber> ResolveWeight(IFuzzySetRule rule)
     {
         if (rule.AdaptationState.LatestWeight.IsSomeVal(out var learnedWeight))
             return learnedWeight;

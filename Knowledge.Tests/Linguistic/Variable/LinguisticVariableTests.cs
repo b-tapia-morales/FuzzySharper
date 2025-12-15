@@ -16,8 +16,8 @@ public class LinguisticVariableTests
     [Fact]
     public void InstantiationThrowsOnEntryCollision()
     {
-        var f1 = new TriangleFunction("Bad", 0, 0, 5);
-        var f2 = new GaussianFunction("bad", 5, 2.5);
+        var f1 = TriangleFunction.Create("Bad", 0, 0, 5);
+        var f2 = GaussianFunction.Create("bad", 5, 2.5);
         Assert.Throws<DuplicatedEntryException>(() => VariableExt.Create("Food quality", f1, f2));
     }
     

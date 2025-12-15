@@ -4,13 +4,13 @@ using Reasoning.Rule.Extensions;
 
 namespace Reasoning.Comparer.Abstractions;
 
-public interface IRuleComparer : IComparer<IRule>
+public interface IRuleComparer : IComparer<IFuzzySetRule>
 {
     IWorkingMemory Memory { get; }
 
-    int ComparerMethod(IRule x, IRule y);
+    int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y);
 
-    int IComparer<IRule>.Compare(IRule? x, IRule? y)
+    int IComparer<IFuzzySetRule>.Compare(IFuzzySetRule? x, IFuzzySetRule? y)
     {
         if (x == null && y == null)
             return +0;

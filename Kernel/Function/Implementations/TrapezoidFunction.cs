@@ -12,17 +12,25 @@ namespace Kernel.Function.Implementations;
 
 public class TrapezoidFunction : LinearPiecewiseFunction
 {
-    public TrapezoidFunction(string name, double a, double b, double c, double d, double uMax = 1) :
-        this(name, a, b, c, d, Interval.Default, uMax)
-    {
-    }
-
-    public TrapezoidFunction(string name, double a, double b, double c, double d, Interval universe, double uMax = 1) :
-        base(name, universe, uMax)
+    internal static IMembershipFunction Create(string name, double a, double b, double c, double d, Interval universe, double uMax = 1)
     {
         CheckIfTriangle(b, c);
         CheckIfRectangular(a, b, c, d);
         CheckEdges(a, b, c, d);
+        return new TrapezoidFunction(name, a, b, c, d, universe, uMax);
+    }
+
+    public static IMembershipFunction Create(string name, double a, double b, double c, double d, double uMax = 1) =>
+        Create(name, a, b, c, d, Interval.Default, uMax);
+
+    private TrapezoidFunction(string name, double a, double b, double c, double d, double uMax = 1) :
+        this(name, a, b, c, d, Interval.Default, uMax)
+    {
+    }
+
+    private TrapezoidFunction(string name, double a, double b, double c, double d, Interval universe, double uMax) :
+        base(name, universe, uMax)
+    {
         A = a;
         B = b;
         C = c;
@@ -45,6 +53,8 @@ public class TrapezoidFunction : LinearPiecewiseFunction
     override protected double LeftSlope => TrigonometricUtils.Distance((A, 0), (B, UMax));
 
     override protected double RightSlope => TrigonometricUtils.Distance((C, UMax), (D, 0));
+
+    override protected List<(double X, double Y)> Vertices => [(A, 0), (B, UMax), (C, UMax), (D, 0)];
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {

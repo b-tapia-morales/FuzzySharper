@@ -6,7 +6,7 @@ namespace Reasoning.Comparer.Implementations.LearningBased.Factory;
 
 public class LearningBasedFactory
 {
-    public static IComparer<IRule> GetInstance(LearningBasedMethod method, IWorkingMemory memory) =>
+    public static IComparer<IFuzzySetRule> GetInstance(LearningBasedMethod method, IWorkingMemory memory) =>
         method switch
         {
             LearningBasedMethod.LatestWeight => new LatestLearnedWeight(memory),
@@ -15,7 +15,7 @@ public class LearningBasedFactory
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-    public static IComparer<IRule> GetInstance(LearningBasedMethod method, IWorkingMemory memory,
+    public static IComparer<IFuzzySetRule> GetInstance(LearningBasedMethod method, IWorkingMemory memory,
         IOperatorFamily family) =>
         method switch
         {

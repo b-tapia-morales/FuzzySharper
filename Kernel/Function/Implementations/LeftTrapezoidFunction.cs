@@ -11,22 +11,32 @@ namespace Kernel.Function.Implementations;
 
 public class LeftTrapezoidFunction : UnilateralFunction
 {
-    public LeftTrapezoidFunction(string name, double a, double b, double uMax = 1) :
+    internal static IMembershipFunction Create(string name, double a, double b, Interval universe, double uMax = 1)
+    {
+        CheckValues(a, b);
+        return new LeftTrapezoidFunction(name, a, b, universe, uMax);
+    }
+    
+    public static IMembershipFunction Create(string name, double a, double b, double uMax = 1) =>
+        Create(name, a, b, Interval.Default, uMax);
+    
+    private LeftTrapezoidFunction(string name, double a, double b, double uMax) :
         this(name, a, b, Interval.Default, uMax)
     {
     }
 
-    public LeftTrapezoidFunction(string name, double a, double b, Interval universe, double uMax = 1) :
+    private LeftTrapezoidFunction(string name, double a, double b, Interval universe, double uMax) :
         base(name, universe, uMax)
     {
-        CheckValues(a, b);
         A = a;
         B = b;
     }
 
     public double A { get; }
     public double B { get; }
+    
     public override double SlopeBase => B;
+    
     public override double SlopePeak => A;
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha) =>

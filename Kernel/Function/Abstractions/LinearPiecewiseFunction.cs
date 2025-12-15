@@ -1,12 +1,13 @@
-﻿using Kernel.Function.Implementations;
-using Shared.Approx;
+﻿using Shared.Approx;
+using Shared.Deferred;
 using Shared.Intervals.Implementations;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
+using Utils.Shape;
 
 namespace Kernel.Function.Abstractions;
 
-public abstract class LinearPiecewiseFunction(string name, Interval universe, double uMax = 1) : MembershipFunction(name, universe, uMax)
+public abstract class LinearPiecewiseFunction(string name, Interval universe, double uMax = 1) : MeasurableFunction(name, universe, uMax)
 {
     public abstract double LeftEdge { get; }
     public abstract double TopLeftCorner { get; }
@@ -14,6 +15,7 @@ public abstract class LinearPiecewiseFunction(string name, Interval universe, do
     public abstract double RightEdge { get; }
     protected abstract double LeftSlope { get; }
     protected abstract double RightSlope { get; }
+    protected abstract List<(double X, double Y)> Vertices { get; }
 
     public override bool HasGlobalMaximum => true;
 
@@ -46,4 +48,16 @@ public abstract class LinearPiecewiseFunction(string name, Interval universe, do
     public override Option<double> CoreLeft => UMax.IsRoughlyOne() ? TopLeftCorner : OptionFactory.None<double>();
 
     public override Option<double> CoreRight => UMax.IsRoughlyOne() ? TopRightCorner : OptionFactory.None<double>();
+
+    override protected DeferredValue<double> DeferredArea => new(PolygonUtils.CalculateArea(Vertices));
+
+    override protected DeferredValue<double> DeferredMomentX => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.X));
+
+    override protected DeferredValue<double> DeferredMomentY => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.Y));
+
+    override protected DeferredValue<double> DeferredMomentXx => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.X));
+
+    override protected DeferredValue<double> DeferredMomentXy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.Y));
+
+    override protected DeferredValue<double> DeferredMomentYy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.Y, Axis.Y));
 }

@@ -1,12 +1,11 @@
-﻿using Kernel.Function.Implementations;
-using Shared.Approx;
+﻿using Shared.Approx;
 using Shared.Intervals.Implementations;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 
 namespace Kernel.Function.Abstractions;
 
-public abstract class SigmoidFunction(string name, Interval universe, double uMax = 1) : MembershipFunction(name, universe, uMax)
+public abstract class SigmoidFunction(string name, Interval universe, double uMax = 1) : MeasurableFunction(name, universe, uMax)
 {
     public abstract double Center { get; }
 

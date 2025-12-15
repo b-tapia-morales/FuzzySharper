@@ -1,5 +1,8 @@
-﻿using Kernel.Function.Abstractions;
+﻿using System.Diagnostics;
+using Kernel.Function.Abstractions;
+using Kernel.Function.Extensions.Metric;
 using Kernel.Function.Implementations;
+using Kernel.Function.Implication.Factory;
 using Kernel.Number;
 using Shared.Approx;
 using Utils.Shape;
@@ -10,172 +13,179 @@ public static class ShapeGeometry
 {
     private const uint DefaultPrecision = DoubleApproxExt.DefaultPrecision;
 
-    /// <param name="function">The membership function.</param>
     extension(IMembershipFunction function)
     {
-        public double CalculateArea(uint precision = DefaultPrecision) =>
-            function.CalculateArea(ImplicationMethod.Larsen, FuzzyNumber.Max, precision);
+        public double CalculateArea(bool useUoD = true) =>
+            function switch
+            {
+                UnilateralFunction unilateral => unilateral.CalculateMetric(MetricType.Area),
+                MeasurableFunction measurable => measurable.Area(useUoD ? MetricScope.Clipped : MetricScope.Original),
+                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+            };
 
-        /// <summary>
-        /// Calculates the area of a membership function after applying the specified
-        /// implication method.
-        /// </summary>
-        /// <param name="method"> The implication method to apply while computing the area.</param>
-        /// <param name="implicationParam">The parameter used by the implication method.</param>
-        /// <param name="precision">
-        ///     The number of decimal places <i>d</i> that determines the expected accuracy of the area calculation <i>ε = 10<sup>‑d</sup></i>;
-        ///     defaults to <see cref="DefaultPrecision"/>.
-        /// </param>
-        /// <returns>The computed area as a <c>double</c>.</returns>
-        public double CalculateArea(ImplicationMethod method,
-            FuzzyNumber implicationParam, uint precision = DefaultPrecision)
-        {
-            var (x0, x1) = function.EffectiveSupport.ToTuple();
-            return function.CalculateAreaAt(method, implicationParam, x0, x1, precision);
-        }
-
-        /// <summary>
-        /// Calculates the area of a membership function after applying the specified
-        /// implication method and making two vertical cuts at the points <paramref name="x0"/> 
-        /// and <paramref name="x1"/>.
-        /// </summary>
-        /// <param name="method">
-        ///     The implication method to apply while computing the area.
-        /// </param>
-        /// <param name="implicationParam">
-        ///     The parameter used by the implication method.
-        /// </param>
-        /// <param name="x0">The x-coordinate for the first vertical cut (lower support bound).</param>
-        /// <param name="x1">The x-coordinate for the second vertical cut (upper support bound).</param>
-        /// <param name="precision">
-        ///     The number of decimal places <i>d</i> that determines the expected accuracy of the area calculation <i>ε = 10<sup>‑d</sup></i>;
-        ///     defaults to <see cref="DefaultPrecision"/>.
-        /// </param>
-        /// <returns>The computed area as a <c>double</c>.</returns>
-        public double CalculateAreaAt(ImplicationMethod method,
-            FuzzyNumber implicationParam, double x0, double x1, uint precision = DefaultPrecision)
+        public double CalculateArea(ImplicationMethod method, FuzzyNumber implicationParam, bool useUoD = true,
+            uint precision = DefaultPrecision)
         {
             if (implicationParam == FuzzyNumber.Min)
                 return 0;
 
-            // If the implication parameter is greater or equal to the function's maximum truth value μMax, the new weight will be α = μMax.
-            // No alpha cut or scaling down is performed.
-            var param = Math.Min(implicationParam.Value, function.UMax);
-            // We keep track of whether an alpha cut or a scaling down needs to be performed.
-            var noCutNeeded = param.RoughlyEquals(function.UMax);
+            if (function is UnilateralFunction unilateral)
+                return unilateral.CalculateMetric(MetricType.Area, implicationParam);
 
+            Debug.Assert(function is MeasurableFunction);
+            var measurable = (MeasurableFunction) function;
+            var evaluator = ImplicationFactory.GetInstance(method, measurable, implicationParam, useUoD);
+            return evaluator.Evaluate(MetricType.Area, measurable, precision);
+        }
+
+        public double CalculateFirstMoment(Axis axis, bool useUoD = true)
+        {
+            var firstMomentMetric = ResolveFirstMoment(axis);
             return function switch
             {
-                // Case 1: the triangle either remains as is if α >= UMax, or it is scaled down by α if α < UMax.
-                // The triangle does not transform into a trapezoid, nor any of its original x-coordinates change.
-                TriangleFunction tri when method == ImplicationMethod.Larsen || noCutNeeded =>
-                    TriangleUtils.CalculateSideCutArea(tri.A, tri.B, tri.C, param, x0, x1),
-                // Case 2: the trapezoid either remains as is if α >= UMax, or it is scaled down by α if α < UMax.
-                // The trapezoid's original x-coordinates remain unchanged.
-                TrapezoidFunction tra when method == ImplicationMethod.Larsen || noCutNeeded =>
-                    TrapezoidUtils.CalculateSideCutArea(tra.A, tra.B, tra.C, tra.D, param, x0, x1),
-                // Case 3: A horizontal cut is performed at α. If the shape is a triangle, it will transform into a trapezoid; if it is a trapezoid,
-                // the x-coordinates for its upper base will change. In both cases, the new upper base's x-coordinates will be
-                // the leftmost and rightmost x-coordinates xᵢ and xⱼ at which μ(x) = α.
-                LinearPiecewiseFunction lp when method == ImplicationMethod.Mamdani => lp.CalculateAlphaCutArea(param, x0, x1),
-                _ => ShapeUtils.CalculateArea(function, method, param, x0, x1, precision)
+                UnilateralFunction unilateral => unilateral.CalculateMetric(firstMomentMetric),
+                MeasurableFunction measurable => measurable.ResolveFirstMoment(axis, useUoD),
+                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
             };
         }
 
-        public double CalculateFirstMoment(Axis axis, uint precision = DefaultPrecision) =>
-            function.CalculateFirstMoment(axis, ImplicationMethod.Larsen, FuzzyNumber.Max, precision);
-
-        public double CalculateFirstMoment(Axis axis, ImplicationMethod method,
-            FuzzyNumber implicationParam, uint precision = DefaultPrecision)
-        {
-            var (x0, x1) = function.EffectiveSupport.ToTuple();
-            return CalculateFirstMomentAt(function, axis, method, implicationParam, x0, x1, precision);
-        }
-
-        public double CalculateFirstMomentAt(Axis axis, ImplicationMethod method,
-            FuzzyNumber implicationParam, double x0, double x1, uint precision = DefaultPrecision)
+        public double CalculateFirstMoment(Axis axis, ImplicationMethod method, FuzzyNumber implicationParam,
+            bool useUoD = true, uint precision = DefaultPrecision)
         {
             if (implicationParam == FuzzyNumber.Min)
                 return 0;
 
-            var param = Math.Min(implicationParam.Value, function.UMax);
-            var vertices = function.BuildVertices(method, param, x0, x1);
-            return function is LinearPiecewiseFunction ? PolygonUtils.CalculateFirstMoment(vertices, axis) : ShapeUtils.CalculateFirstMomentAt(function, axis, method, param, x0, x1, precision);
+            var firstMomentMetric = ResolveFirstMoment(axis);
+            if (function is UnilateralFunction unilateral)
+                return unilateral.CalculateMetric(firstMomentMetric, implicationParam);
+
+            Debug.Assert(function is MeasurableFunction);
+            var measurable = (MeasurableFunction) function;
+            var evaluator = ImplicationFactory.GetInstance(method, measurable, implicationParam, useUoD);
+            return evaluator.Evaluate(firstMomentMetric, measurable, precision);
         }
 
-        public double CalculateSecondMoment(Axis firstAxis, Axis secondAxis, uint precision = DefaultPrecision) =>
-            function.CalculateSecondMoment(firstAxis, secondAxis, ImplicationMethod.Larsen, FuzzyNumber.Max, precision);
+        public double CalculateSecondMoment(Axis firstAxis, Axis secondAxis, bool useUoD = true)
+        {
+            var secondMomentMetric = ResolveSecondMoment(firstAxis, secondAxis);
+            return function switch
+            {
+                UnilateralFunction unilateral => unilateral.CalculateMetric(secondMomentMetric),
+                MeasurableFunction measurable => measurable.ResolveSecondMoment(firstAxis, secondAxis, useUoD),
+                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+            };
+        }
 
         public double CalculateSecondMoment(Axis firstAxis, Axis secondAxis, ImplicationMethod method,
-            FuzzyNumber implicationParam, uint precision = DefaultPrecision)
-        {
-            var (x0, x1) = function.EffectiveSupport.ToTuple();
-            return CalculateSecondMomentAt(function, firstAxis, secondAxis, method, implicationParam, x0, x1, precision);
-        }
-
-        public double CalculateSecondMomentAt(Axis firstAxis, Axis secondAxis, ImplicationMethod method,
-            FuzzyNumber implicationParam, double x0, double x1, uint precision = DefaultPrecision)
+            FuzzyNumber implicationParam, bool useUoD = true, uint precision = DefaultPrecision)
         {
             if (implicationParam == FuzzyNumber.Min)
                 return 0;
 
-            var param = Math.Min(implicationParam.Value, function.UMax);
-            var vertices = function.BuildVertices(method, param, x0, x1);
-            return function is LinearPiecewiseFunction
-                ? PolygonUtils.CalculateSecondMoment(vertices, firstAxis, secondAxis)
-                : ShapeUtils.CalculateSecondMomentAt(function, firstAxis, secondAxis, method, param, x0, x1, precision);
+            var secondMomentMetric = ResolveSecondMoment(firstAxis, secondAxis);
+            if (function is UnilateralFunction unilateral)
+                return unilateral.CalculateMetric(secondMomentMetric, implicationParam);
+
+            Debug.Assert(function is MeasurableFunction);
+            var measurable = (MeasurableFunction) function;
+            var evaluator = ImplicationFactory.GetInstance(method, measurable, implicationParam, useUoD);
+            return evaluator.Evaluate(secondMomentMetric, measurable, precision);
+        }
+
+        public double CalculateCentroid(Axis axis, bool useUoD = true)
+        {
+            var centroidMetric = ResolveCentroid(axis);
+            return function switch
+            {
+                UnilateralFunction unilateral => unilateral.CalculateMetric(centroidMetric),
+                MeasurableFunction measurable => measurable.ResolveCentroid(axis, useUoD),
+                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+            };
         }
 
         public double CalculateCentroid(Axis axis, ImplicationMethod method,
-            FuzzyNumber implicationParam, uint precision = DefaultPrecision)
+            FuzzyNumber implicationParam, bool useUoD = true, uint precision = DefaultPrecision)
         {
-            var (x0, x1) = function.EffectiveSupport.ToTuple();
-            return CalculateCentroidAt(function, axis, method, implicationParam, x0, x1, precision);
-        }
+            if (implicationParam == FuzzyNumber.Min)
+                return 0;
 
-        public double CalculateCentroidAt(Axis axis, ImplicationMethod method,
-            FuzzyNumber implicationParam, double x0, double x1, uint precision = DefaultPrecision)
-        {
-            var area = function.CalculateAreaAt(method, implicationParam, x0, x1, precision);
-            if (area.IsRoughlyZero())
-                throw new ArgumentException("The area of the shape is roughly zero");
-            var momentum = CalculateFirstMomentAt(function, axis, method, implicationParam, x0, x1, precision);
-            return momentum / area;
-        }
+            var centroid = ResolveCentroid(axis);
+            if (function is UnilateralFunction unilateral)
+                return unilateral.CalculateMetric(centroid, implicationParam);
 
-        private List<(double X, double Y)> BuildVertices(ImplicationMethod method, double alpha, double x0, double x1)
-        {
-            // We keep track of whether an alpha cut or a scaling down needs to be performed.
-            var noCutNeeded = alpha.RoughlyEquals(function.UMax);
-            // If the function is a polygon, we need to build a list of vertices resulting from applying the vertical cuts at points
-            // x0 and x1 and the horizontal alpha-cut at point α (only if the implication method is Mamdani).
-            var vertices = function switch
-            {
-                TriangleFunction tri when method == ImplicationMethod.Larsen || noCutNeeded => TriangleUtils.ToVertices(tri.A, tri.B, tri.C, alpha, x0, x1),
-                TrapezoidFunction tra when method == ImplicationMethod.Larsen || noCutNeeded => TrapezoidUtils.ToVertices(tra.A, tra.B, tra.C, tra.D, alpha, x0, x1),
-                LinearPiecewiseFunction lp when method == ImplicationMethod.Mamdani => lp.GetAlphaCutVertices(alpha, x0, x1),
-                _ => []
-            };
-
-            if (vertices.Count > 0)
-                PolygonUtils.OrderCounterClockwise(vertices);
-
-            return vertices;
+            Debug.Assert(function is MeasurableFunction);
+            var measurable = (MeasurableFunction) function;
+            var evaluator = ImplicationFactory.GetInstance(method, measurable, implicationParam, useUoD);
+            return evaluator.Evaluate(centroid, measurable, precision);
         }
     }
 
-    extension(LinearPiecewiseFunction function)
+    extension(UnilateralFunction function)
     {
-        private double CalculateAlphaCutArea(double alpha, double x0, double x1)
-        {
-            var (ai, aj) = function.AlphaCutClipped(alpha).Get.ToTuple();
-            return TrapezoidUtils.CalculateSideCutArea(function.LeftEdge, ai, aj, function.RightEdge, alpha, x0, x1);
-        }
+        private double CalculateMetric(MetricType metricType, bool useUoD = true) =>
+            function.CalculateMetric(metricType, function.UMax, useUoD);
 
-        private List<(double X, double Y)> GetAlphaCutVertices(double alpha, double x0, double x1)
+        private double CalculateMetric(MetricType metricType, FuzzyNumber implicationParam, bool useUoD = true)
         {
-            var (ai, aj) = function.AlphaCutClipped(alpha).Get.ToTuple();
-            return TrapezoidUtils.ToVertices(function.LeftEdge, ai, aj, function.RightEdge, alpha, x0, x1);
+            Debug.Assert(implicationParam >= FuzzyNumber.Min);
+            var (x0, x1) = useUoD ? function.RestrictedSupport.ToTuple() : function.EffectiveSupport.ToTuple();
+            var vertices = function switch
+            {
+                LeftTrapezoidFunction left => TriangleUtils.ToVertices(left.A, left.A, left.B, implicationParam.Value, x0, x1),
+                RightTrapezoidFunction right => TriangleUtils.ToVertices(right.A, right.B, right.B, implicationParam.Value, x0, x1),
+                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+            };
+            return metricType.CalculateMetric(vertices);
         }
+    }
+
+    extension(MeasurableFunction function)
+    {
+        private double ResolveFirstMoment(Axis axis, bool useUoD = true) => axis switch
+        {
+            Axis.X => function.MomentX(useUoD ? MetricScope.Clipped : MetricScope.Original),
+            Axis.Y => function.MomentY(useUoD ? MetricScope.Clipped : MetricScope.Original),
+            _ => throw new ArgumentOutOfRangeException(nameof(axis), axis, null)
+        };
+
+        private double ResolveSecondMoment(Axis firstAxis, Axis secondAxis, bool useUoD = true) => (firstAxis, secondAxis) switch
+        {
+            (Axis.X, Axis.X) => function.MomentXx(useUoD ? MetricScope.Clipped : MetricScope.Original),
+            (Axis.X, Axis.Y) or (Axis.Y, Axis.X) => function.MomentXy(useUoD ? MetricScope.Clipped : MetricScope.Original),
+            (Axis.Y, Axis.Y) => function.MomentYy(useUoD ? MetricScope.Clipped : MetricScope.Original),
+            _ => throw new ArgumentOutOfRangeException(nameof(firstAxis), firstAxis, null)
+        };
+
+        private double ResolveCentroid(Axis axis, bool useUoD = true) => axis switch
+        {
+            Axis.X => function.CentroidX(useUoD ? MetricScope.Clipped : MetricScope.Original),
+            Axis.Y => function.CentroidY(useUoD ? MetricScope.Clipped : MetricScope.Original),
+            _ => throw new ArgumentOutOfRangeException(nameof(axis), axis, null)
+        };
+    }
+
+    extension(MetricType)
+    {
+        private static MetricType ResolveFirstMoment(Axis axis) => axis switch
+        {
+            Axis.X => MetricType.MomentX,
+            Axis.Y => MetricType.MomentY,
+            _ => throw new ArgumentOutOfRangeException(nameof(axis), axis, null)
+        };
+
+        private static MetricType ResolveSecondMoment(Axis firstAxis, Axis secondAxis) => (firstAxis, secondAxis) switch
+        {
+            (Axis.X, Axis.X) => MetricType.MomentXx,
+            (Axis.X, Axis.Y) or (Axis.Y, Axis.X) => MetricType.MomentXy,
+            (Axis.Y, Axis.Y) => MetricType.MomentYy,
+            _ => throw new ArgumentOutOfRangeException(nameof(firstAxis), firstAxis, null)
+        };
+
+        private static MetricType ResolveCentroid(Axis axis) => axis switch
+        {
+            Axis.X => MetricType.CentroidX,
+            Axis.Y => MetricType.CentroidY,
+            _ => throw new ArgumentOutOfRangeException(nameof(axis), axis, null)
+        };
     }
 }

@@ -1,7 +1,8 @@
-﻿using Inference.Tree.Extensions;
+﻿using Inference.Aggregator.Abstractions;
+using Inference.Tree.Extensions;
 using Inference.Defuzzifier.Abstractions;
 using Inference.Tree.Abstractions;
-using Kernel.Function.Extensions;
+using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Rule.Abstractions;
@@ -15,14 +16,14 @@ namespace Inference.Tree.Implementations;
 public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
 {
     public StringOrType Identifier { get; } = identifier;
-    public ICollection<IRule> Rules { get; } = new List<IRule>();
+    public ICollection<IFuzzySetRule> Rules { get; } = new List<IFuzzySetRule>();
     public ICollection<DerivationTree> Children { get; } = new List<DerivationTree>();
     public bool IsProven { get; private set; }
 
     public bool IsLeaf() =>
         Children.Count == 0;
 
-    public void AddRules(IEnumerable<IRule> rules)
+    public void AddRules(IEnumerable<IFuzzySetRule> rules)
     {
         foreach (var rule in rules)
             Rules.Add(rule);
@@ -37,12 +38,12 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
             Children.Add(child);
     }
 
-    public static DerivationTree BuildTree(StringOrType rootIdentifier, ICollection<IRule> rules)
+    public static DerivationTree BuildTree(StringOrType rootIdentifier, ICollection<IFuzzySetRule> rules)
     {
         return BuildTreeNode(rootIdentifier, rules.BuildDependencyGraph(), rules.BuildRuleDependencyMap());
 
         static DerivationTree BuildTreeNode(StringOrType currentId, IDictionary<StringOrType, List<StringOrType>> dependencyGraph,
-            IDictionary<string, List<IRule>> ruleDependencyMap)
+            IDictionary<string, List<IFuzzySetRule>> ruleDependencyMap)
         {
             var currentNode = new DerivationTree(currentId);
 
@@ -74,12 +75,12 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
         }
     }
 
-    public Option<double> InferFact(IWorkingMemory memory, IComparer<IRule> comparer,
-        IDefuzzifier defuzzifier, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod) =>
-        InferFact(memory, comparer, defuzzifier, operatorFamily, implicationMethod, OptionFactory.None<uint>());
+    public Option<double> InferFact(IWorkingMemory memory, IComparer<IFuzzySetRule> comparer,
+        IDefuzzifier defuzzifier, IValueAggregator aggregator, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod) =>
+        InferFact(memory, comparer, defuzzifier, aggregator, operatorFamily, implicationMethod, OptionFactory.None<uint>());
 
-    public Option<double> InferFact(IWorkingMemory memory, IComparer<IRule> comparer,
-        IDefuzzifier defuzzifier, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod, Option<uint> iteration)
+    public Option<double> InferFact(IWorkingMemory memory, IComparer<IFuzzySetRule> comparer,
+        IDefuzzifier defuzzifier, IValueAggregator aggregator, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod, Option<uint> iteration)
     {
         var stack = this.TraverseReverseLevelOrder();
         while (stack.TryPop(out var node))
@@ -98,7 +99,7 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
                 continue;
             }
 
-            if (defuzzifier.Defuzzify(rules, memory, operatorFamily, implicationMethod, out var activatedRules).IsSomeVal(out var crispValue))
+            if (defuzzifier.Defuzzify(rules, memory, operatorFamily, aggregator, implicationMethod, out var activatedRules).IsSomeVal(out var crispValue))
                 memory.AddNumericFact(variableName, crispValue);
 
             AppendRecords(activatedRules, memory, operatorFamily, iteration);
@@ -111,7 +112,7 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
         return fact;
     }
 
-    private static void AppendRecords(ICollection<IRule> rules, IWorkingMemory memory, IOperatorFamily family, Option<uint> iteration)
+    private static void AppendRecords(ICollection<IFuzzySetRule> rules, IWorkingMemory memory, IOperatorFamily family, Option<uint> iteration)
     {
         if (!iteration.IsSomeVal(out var current))
             return;

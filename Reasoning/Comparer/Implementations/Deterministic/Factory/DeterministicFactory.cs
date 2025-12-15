@@ -6,7 +6,7 @@ namespace Reasoning.Comparer.Implementations.Deterministic.Factory;
 
 public static class DeterministicFactory
 {
-    public static IComparer<IRule> GetInstance(DeterministicMethod method, IWorkingMemory memory) =>
+    public static IComparer<IFuzzySetRule> GetInstance(DeterministicMethod method, IWorkingMemory memory) =>
         method switch
         {
             DeterministicMethod.HighestPriority => new HighestPriority(memory),
@@ -19,7 +19,7 @@ public static class DeterministicFactory
             _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
         };
 
-    public static IComparer<IRule> GetInstance(DeterministicMethod method, IWorkingMemory memory,
+    public static IComparer<IFuzzySetRule> GetInstance(DeterministicMethod method, IWorkingMemory memory,
         IOperatorFamily family) =>
         method switch
         {

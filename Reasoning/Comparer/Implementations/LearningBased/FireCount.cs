@@ -8,6 +8,6 @@ public class FireCount(IWorkingMemory memory) : IRuleComparer
 {
     public IWorkingMemory Memory { get; } = memory;
 
-    public int ComparerMethod(IRule x, IRule y) => 
+    public int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y) => 
         y.AdaptationState.FireCount.CompareTo(x.AdaptationState.FireCount);
 }

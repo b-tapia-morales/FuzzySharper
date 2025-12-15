@@ -16,7 +16,7 @@ public class AggregatedWeight(IWorkingMemory memory, IOperatorFamily operatorFam
     
     public AggregatedWeight(IWorkingMemory memory) : this(memory, CanonicalFactory.UseFamily(CanonicalType.Godel)) {}
 
-    public int ComparerMethod(IRule x, IRule y)
+    public int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y)
     {
         var (firstIsPresent, secondIsPresent) = (ResolveWeight(x).IsSomeVal(out var w1), ResolveWeight(y).IsSomeVal(out var w2));
         return (firstIsPresent, secondIsPresent) switch
@@ -28,7 +28,7 @@ public class AggregatedWeight(IWorkingMemory memory, IOperatorFamily operatorFam
         };
     }
 
-    private Option<FuzzyNumber> ResolveWeight(IRule rule)
+    private Option<FuzzyNumber> ResolveWeight(IFuzzySetRule rule)
     {
         if (rule.AdaptationState.AggregatedWeight.IsSomeVal(out var learnedWeight))
             return learnedWeight;

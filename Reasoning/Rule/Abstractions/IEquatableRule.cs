@@ -1,6 +1,6 @@
 ﻿namespace Reasoning.Rule.Abstractions;
 
-public interface IEquatableRule<TSelf> : IRule, IEquatable<TSelf>, IEqualityComparer<TSelf>
+public interface IEquatableRule<TSelf> : IFuzzySetRule, IEquatable<TSelf>, IEqualityComparer<TSelf>
     where TSelf : class, IEquatableRule<TSelf>
 {
     bool IEquatable<TSelf>.Equals(TSelf? other) =>

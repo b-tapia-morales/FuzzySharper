@@ -48,7 +48,7 @@ public static class VariableExt
 
         var outsideEntry = functions.FirstOrDefault(func => IsOutsideUniverse(func, universe));
         if (outsideEntry != null)
-            throw new VariableRangeException(name, universe, outsideEntry.Name, outsideEntry.EffectiveSupport, nameof(outsideEntry));
+            throw new VariableRangeException(name, universe, outsideEntry.Name, outsideEntry.RestrictedSupport, nameof(outsideEntry));
 
         var variable = new LinguisticVariable(name, universe);
         foreach (var function in functions)
@@ -58,30 +58,37 @@ public static class VariableExt
 
     extension(IVariable variable)
     {
-        public IVariable AddTrapezoidFunction(string name, double a, double b, double c,
-            double d, double h = 1) =>
-            variable.AddFunction(new TrapezoidFunction(name, a, b, c, d, variable.UniverseOfDiscourse, h));
+        public IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d, 
+            double uMax = 1) =>
+            variable.AddFunction(TrapezoidFunction.Create(name, a, b, c, d, variable.UniverseOfDiscourse, uMax));
 
-        public IVariable AddLeftTrapezoidFunction(string name, double a, double b, double h = 1) =>
-            variable.AddFunction(new LeftTrapezoidFunction(name, a, b, variable.UniverseOfDiscourse, h));
+        public IVariable AddLeftTrapezoidFunction(string name, double a, double b, 
+            double uMax = 1) =>
+            variable.AddFunction(LeftTrapezoidFunction.Create(name, a, b, variable.UniverseOfDiscourse, uMax));
 
         public IVariable AddRightTrapezoidFunction(string name, double a, double b,
-            double h = 1) =>
-            variable.AddFunction(new LeftTrapezoidFunction(name, a, b, variable.UniverseOfDiscourse, h));
+            double uMax = 1) =>
+            variable.AddFunction(LeftTrapezoidFunction.Create(name, a, b, variable.UniverseOfDiscourse, uMax));
 
         public IVariable AddTriangularFunction(string name, double a, double b, double c,
-            double h = 1) =>
-            variable.AddFunction(new TriangleFunction(name, a, b, c, variable.UniverseOfDiscourse, h));
+            double uMax = 1) =>
+            variable.AddFunction(TriangleFunction.Create(name, a, b, c, variable.UniverseOfDiscourse, uMax));
 
-        public IVariable AddGaussianFunction(string name, double mu, double sigma, double h = 1) =>
-            variable.AddFunction(new GaussianFunction(name, mu, sigma, variable.UniverseOfDiscourse, h));
+        public IVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U,
+            double uMax = 1) =>
+            variable.AddFunction(SingletonFunction.Create(name, center, variable.UniverseOfDiscourse, decimalPlaces, uMax));
+
+        public IVariable AddGaussianFunction(string name, double mu, double sigma, 
+            double uMax = 1) =>
+            variable.AddFunction(GaussianFunction.Create(name, mu, sigma, variable.UniverseOfDiscourse, uMax));
 
         public IVariable AddGeneralizedBellFunction(string name, double a, double b, double c,
-            double h = 1) =>
-            variable.AddFunction(new GeneralizedBellFunction(name, a, b, c, variable.UniverseOfDiscourse, h));
+            double uMax = 1) =>
+            variable.AddFunction(GeneralizedBellFunction.Create(name, a, b, c, variable.UniverseOfDiscourse, uMax));
 
-        public IVariable AddSigmoidFunction(string name, double a, double c, double h = 1) =>
-            variable.AddFunction(new LogisticFunction(name, a, c, variable.UniverseOfDiscourse, h));
+        public IVariable AddSigmoidFunction(string name, double a, double c, 
+            double uMax = 1) =>
+            variable.AddFunction(LogisticFunction.Create(name, a, c, variable.UniverseOfDiscourse, uMax));
 
         public IVariable AddFunction(IMembershipFunction function)
         {
@@ -92,7 +99,7 @@ public static class VariableExt
                 throw new DuplicatedEntryException(variable.Name, function.Name);
 
             if (IsOutsideUniverse(function, variable.UniverseOfDiscourse))
-                throw new VariableRangeException(variable.Name, variable.UniverseOfDiscourse, function.Name, function.EffectiveSupport, nameof(function));
+                throw new VariableRangeException(variable.Name, variable.UniverseOfDiscourse, function.Name, function.RestrictedSupport, nameof(function));
 
             variable.SemanticalMappings[function.Name] = function;
             return variable;
@@ -103,7 +110,7 @@ public static class VariableExt
     {
         if (!function.IsZeroConvergent)
             return false;
-        var (lower, upper) = function.EffectiveSupport.ToTuple();
+        var (lower, upper) = function.RestrictedSupport.ToTuple();
         var (min, max) = universe.ToTuple();
         return lower.IsRoughlyGreaterOrEqualTo(max) || upper.IsRoughlyLesserOrEqualTo(min);
     }

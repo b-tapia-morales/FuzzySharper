@@ -33,7 +33,7 @@ public readonly struct FuzzyNumber : IComparable<FuzzyNumber>, IComparer<FuzzyNu
     /// during comparisons.
     /// </remarks>
     /// </summary>
-    public const double Epsilon = DoubleApproxExt.DefaultTolerance;
+    public const double Epsilon = DefaultTolerance;
 
     /// <summary>
     /// Represents a Fuzzy Number's smallest possible value.

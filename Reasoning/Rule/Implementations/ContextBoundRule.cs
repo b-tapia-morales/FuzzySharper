@@ -26,19 +26,19 @@ public sealed class ContextBoundRule(ILinguisticBase linguisticBase) : IEquatabl
     public DateTimeOffset CreationTime { get; } = DateTimeOffset.Now;
     public AdaptationState AdaptationState { get; set; } = new();
 
-    public static IRule Create(ILinguisticBase linguisticBase) =>
+    public static IFuzzySetRule Create(ILinguisticBase linguisticBase) =>
         new ContextBoundRule(linguisticBase);
 
-    public static IRule Create(ILinguisticBase linguisticBase, RulePriority priority) =>
+    public static IFuzzySetRule Create(ILinguisticBase linguisticBase, RulePriority priority) =>
         new ContextBoundRule(linguisticBase)
         {
             Priority = priority
         };
 
-    public static IRule Create(ILinguisticBase linguisticBase, double certaintyFactor) =>
+    public static IFuzzySetRule Create(ILinguisticBase linguisticBase, double certaintyFactor) =>
         new ContextBoundRule(linguisticBase)
         {
-            CertaintyFactor = IRule.ValidateFactor(certaintyFactor)
+            CertaintyFactor = IFuzzySetRule.ValidateFactor(certaintyFactor)
         };
 
     public override bool Equals(object? obj)
@@ -74,85 +74,85 @@ public sealed class ContextBoundRule(ILinguisticBase linguisticBase) : IEquatabl
         return HashCode.Combine(Conditional, Connectives, Consequent);
     }
 
-    public IRule If(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
+    public IFuzzySetRule If(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
     {
         ValidateConflictingVariable(linguisticBase, variableName);
         return this.AddAntecedent(linguisticBase, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
     }
 
-    public IRule If(string variableName, string termName, HedgeType hedgeType = HedgeType.None) => 
+    public IFuzzySetRule If(string variableName, string termName, HedgeType hedgeType = HedgeType.None) => 
         this.AddAntecedent(LinguisticBase, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
 
-    public IRule If<T>(T value) where T : struct, Enum, IEquatable<T> =>
+    public IFuzzySetRule If<T>(T value) where T : struct, Enum, IEquatable<T> =>
         this.AddAntecedent(value, Literal.Is);
 
-    public IRule IfNot(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
+    public IFuzzySetRule IfNot(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
     {
         ValidateConflictingVariable(linguisticBase, variableName);
         return this.AddAntecedent(linguisticBase, variableName, Literal.IsNot, LinguisticHedge.ToValue(hedgeType), termName);
     }
 
-    public IRule IfNot(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
+    public IFuzzySetRule IfNot(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
         this.AddAntecedent(LinguisticBase, variableName, Literal.IsNot, LinguisticHedge.ToValue(hedgeType), termName);
 
-    public IRule IfNot<T>(T value) where T : struct, Enum, IConvertible =>
+    public IFuzzySetRule IfNot<T>(T value) where T : struct, Enum, IConvertible =>
         this.AddAntecedent(value, Literal.IsNot);
 
-    public IRule And(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
+    public IFuzzySetRule And(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
     {
         ValidateConflictingVariable(linguisticBase, variableName);
         return this.AddConnective(linguisticBase, Connective.And, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
     }
 
-    public IRule And(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
+    public IFuzzySetRule And(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
         this.AddConnective(LinguisticBase, Connective.And, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
 
-    public IRule And<T>(T value) where T : struct, Enum, IConvertible =>
+    public IFuzzySetRule And<T>(T value) where T : struct, Enum, IConvertible =>
         this.AddConnective(value, Connective.And, Literal.Is);
 
-    public IRule AndNot(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
+    public IFuzzySetRule AndNot(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
     {
         ValidateConflictingVariable(linguisticBase, variableName);
         return this.AddConnective(linguisticBase, Connective.And, variableName, Literal.IsNot, LinguisticHedge.ToValue(hedgeType), termName);
     }
 
-    public IRule AndNot(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
+    public IFuzzySetRule AndNot(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
         this.AddConnective(LinguisticBase, Connective.And, variableName, Literal.IsNot, LinguisticHedge.ToValue(hedgeType), termName);
 
-    public IRule AndNot<T>(T value) where T : struct, Enum, IConvertible =>
+    public IFuzzySetRule AndNot<T>(T value) where T : struct, Enum, IConvertible =>
         this.AddConnective(value, Connective.And, Literal.IsNot);
 
-    public IRule Or(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
+    public IFuzzySetRule Or(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
     {
         ValidateConflictingVariable(linguisticBase, variableName);
         return this.AddConnective(linguisticBase, Connective.Or, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
     }
 
-    public IRule Or(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
+    public IFuzzySetRule Or(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
         this.AddConnective(LinguisticBase, Connective.Or, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
 
-    public IRule Or<T>(T value) where T : struct, Enum, IConvertible =>
+    public IFuzzySetRule Or<T>(T value) where T : struct, Enum, IConvertible =>
         this.AddConnective(value, Connective.Or, Literal.Is);
 
-    public IRule OrNot(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
+    public IFuzzySetRule OrNot(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
     {
         ValidateConflictingVariable(linguisticBase, variableName);
         return this.AddConnective(linguisticBase, Connective.Or, variableName, Literal.IsNot, LinguisticHedge.ToValue(hedgeType), termName);
     }
 
-    public IRule OrNot(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
+    public IFuzzySetRule OrNot(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
         this.AddConnective(LinguisticBase, Connective.Or, variableName, Literal.IsNot, LinguisticHedge.ToValue(hedgeType), termName);
 
-    public IRule OrNot<T>(T value) where T : struct, Enum, IConvertible =>
+    public IFuzzySetRule OrNot<T>(T value) where T : struct, Enum, IConvertible =>
         this.AddConnective(value, Connective.Or, Literal.IsNot);
 
-    public IRule Then(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
+    public IFuzzySetRule Then(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None)
     {
         ValidateConflictingVariable(linguisticBase, variableName);
         return this.AddConsequent(linguisticBase, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
     }
 
-    public IRule Then(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
+    public IFuzzySetRule Then(string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
         this.AddConsequent(LinguisticBase, variableName, Literal.Is, LinguisticHedge.ToValue(hedgeType), termName);
 
     private void ValidateConflictingVariable(ILinguisticBase otherBase, string variableName)

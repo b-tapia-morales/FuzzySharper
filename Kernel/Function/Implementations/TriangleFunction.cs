@@ -12,16 +12,24 @@ namespace Kernel.Function.Implementations;
 
 public class TriangleFunction : LinearPiecewiseFunction
 {
-    public TriangleFunction(string name, double a, double b, double c, double uMax = 1) :
+    internal static IMembershipFunction Create(string name, double a, double b, double c, Interval universe, double uMax = 1)
+    {
+        CheckEdges(a, b, c);
+        CheckSides(a, b, c);
+        return new TriangleFunction(name, a, b, c, universe, uMax);
+    }
+
+    public static IMembershipFunction Create(string name, double a, double b, double c, double uMax = 1) =>
+        Create(name, a, b, c, Interval.Default, uMax);
+
+    private TriangleFunction(string name, double a, double b, double c, double uMax = 1) :
         this(name, a, b, c, Interval.Default, uMax)
     {
     }
 
-    public TriangleFunction(string name, double a, double b, double c, Interval universe, double uMax = 1) :
+    private TriangleFunction(string name, double a, double b, double c, Interval universe, double uMax = 1) :
         base(name, universe, uMax)
     {
-        CheckEdges(a, b, c);
-        CheckSides(a, b, c);
         A = a;
         B = b;
         C = c;
@@ -42,6 +50,8 @@ public class TriangleFunction : LinearPiecewiseFunction
     override protected double LeftSlope => TrigonometricUtils.Distance((A, 0), (B, UMax));
 
     override protected double RightSlope => TrigonometricUtils.Distance((B, UMax), (C, 0));
+
+    override protected List<(double X, double Y)> Vertices => [(A, 0), (B, UMax), (C, 0)];
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {

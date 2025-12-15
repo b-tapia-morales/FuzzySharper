@@ -10,7 +10,7 @@ namespace Reasoning.Rule.Extensions;
 
 public static class RuleExt
 {
-    extension(IRule rule)
+    extension(IFuzzySetRule rule)
     {
         internal bool IsValid() =>
             rule is {Conditional: not null, Consequent: not null};
@@ -21,7 +21,7 @@ public static class RuleExt
                 throw new InvalidRuleException();
         }
 
-        public IRule AddAntecedent(ILinguisticBase linguisticBase, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
+        public IFuzzySetRule AddAntecedent(ILinguisticBase linguisticBase, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
@@ -37,7 +37,7 @@ public static class RuleExt
             return rule;
         }
 
-        public IRule AddAntecedent<T>(T value, Literal literal) where T : struct, Enum, IConvertible
+        public IFuzzySetRule AddAntecedent<T>(T value, Literal literal) where T : struct, Enum, IConvertible
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
@@ -48,7 +48,7 @@ public static class RuleExt
             return rule;
         }
 
-        public IRule AddConnective(ILinguisticBase linguisticBase, Connective connective, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
+        public IFuzzySetRule AddConnective(ILinguisticBase linguisticBase, Connective connective, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
@@ -64,7 +64,7 @@ public static class RuleExt
             return rule;
         }
 
-        public IRule AddConnective<T>(T value, Connective connective, Literal literal) where T : struct, Enum, IConvertible
+        public IFuzzySetRule AddConnective<T>(T value, Connective connective, Literal literal) where T : struct, Enum, IConvertible
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
@@ -75,7 +75,7 @@ public static class RuleExt
             return rule;
         }
 
-        public IRule AddConsequent(ILinguisticBase linguisticBase, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
+        public IFuzzySetRule AddConsequent(ILinguisticBase linguisticBase, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();

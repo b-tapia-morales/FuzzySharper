@@ -1,8 +1,9 @@
-﻿using Inference.Defuzzifier.Factory;
+﻿using Inference.Aggregator.Factory;
+using Inference.Defuzzifier.Factory;
 using Inference.Engine.Abstractions;
 using Inference.Tree.Extensions;
 using Inference.Tree.Implementations;
-using Kernel.Function.Extensions;
+using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
@@ -23,6 +24,7 @@ public class InferenceEngine : IEngine
     public ImplicationMethod ImplicationMethod { get; set; }
     public DefuzzificationMethod DefuzzificationMethod { get; set; }
     public DeterministicMethod DeterministicMethod { get; set; }
+    public ValueAggregatorMethod AggregatorMethod { get; set; }
     public bool IsLearningEnabled { get; set; }
     public uint CurrentIteration { get; set; }
     public Option<AdaptationConfig> AdaptationConfig { get; set; } = OptionFactory.None<AdaptationConfig>();
@@ -64,14 +66,15 @@ public class InferenceEngine : IEngine
         if (WorkingMemory.GetNumericFact(variableName).IsSomeVal(out var value))
             return value;
         var workingMemory = WorkingMemory.DeepCopy();
-        var rules = new List<IRule>(RuleBase.ProductionRules);
+        var rules = new List<IFuzzySetRule>(RuleBase.ProductionRules);
         rules = rules.FilterFacts(workingMemory).ToList();
         rules = rules.FilterCircularDependencies(variableName).ToList();
         var operatorFamily = OperatorFamily.DeepCopy();
         var ruleComparer = DeterministicFactory.GetInstance(DeterministicMethod, workingMemory, operatorFamily);
         var defuzzifier = DefuzzificationFactory.GetInstance(DefuzzificationMethod);
+        var aggregator = ValueAggregatorFactory.GetInstance(AggregatorMethod);
         var rootNode = DerivationTree.BuildTree(variableName, rules);
-        var inferredValue = rootNode.InferFact(workingMemory, ruleComparer, defuzzifier, operatorFamily, ImplicationMethod, CurrentIteration);
+        var inferredValue = rootNode.InferFact(workingMemory, ruleComparer, defuzzifier, aggregator, operatorFamily, ImplicationMethod, CurrentIteration);
         if (IsLearningEnabled)
             UpdateLearning();
         if (!provideExplanation)

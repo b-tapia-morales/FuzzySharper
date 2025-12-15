@@ -1,6 +1,4 @@
-﻿using Shared.Approx;
-
-namespace Utils.Shape;
+﻿namespace Utils.Shape;
 
 public static class PolygonUtils
 {
@@ -11,7 +9,6 @@ public static class PolygonUtils
         var refX = vertices.Average(v => v.X);
         var refY = vertices.Average(v => v.Y);
 
-        // Sort by atan2 of (y - cy, x - cx).
         vertices.Sort((a, b) =>
         {
             var angleA = Math.Atan2(a.Y - refY, a.X - refX);
@@ -22,7 +19,7 @@ public static class PolygonUtils
         });
     }
 
-    public static double CalculateArea(IList<(double X, double Y)> vertices)
+    public static double CalculateArea(List<(double X, double Y)> vertices)
     {
         ArgumentNullException.ThrowIfNull(vertices);
 
@@ -39,22 +36,6 @@ public static class PolygonUtils
         }
 
         return Math.Abs((1 / 2.0) * sum);
-    }
-
-    public static double CalculateCentroidX(List<(double X, double Y)> vertices) =>
-        CalculateCentroid(vertices, Axis.X);
-
-    public static double CalculateCentroidY(List<(double X, double Y)> vertices) =>
-        CalculateCentroid(vertices, Axis.Y);
-
-    public static double CalculateCentroid(List<(double X, double Y)> vertices, Axis axis)
-    {
-        var area = CalculateArea(vertices);
-        if (area.IsRoughlyZero())
-            throw new ArgumentException("The area of the polygon is roughly zero", nameof(vertices));
-
-        var moment = CalculateFirstMoment(vertices, axis);
-        return moment / area;
     }
 
     public static double CalculateFirstMoment(List<(double X, double Y)> vertices, Axis axis)
@@ -117,4 +98,7 @@ public static class PolygonUtils
 
         return (1 / 24.0) * crossWeightedSum;
     }
+    
+    public static double CalculateCentroid(List<(double X, double Y)> vertices, Axis axis) => 
+        CalculateFirstMoment(vertices, axis) / CalculateArea(vertices);
 }

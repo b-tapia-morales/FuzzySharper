@@ -8,6 +8,6 @@ public class EarliestCreated(IWorkingMemory memory) : IRuleComparer
 {
     public IWorkingMemory Memory { get; } = memory;
 
-    public int ComparerMethod(IRule x, IRule y) =>
+    public int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y) =>
         DateTimeOffset.Compare(x.CreationTime, y.CreationTime);
 }

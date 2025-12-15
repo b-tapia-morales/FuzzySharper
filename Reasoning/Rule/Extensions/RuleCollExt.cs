@@ -8,7 +8,7 @@ namespace Reasoning.Rule.Extensions;
 
 public static class RuleCollExt
 {
-    extension(ICollection<IRule> rules)
+    extension(ICollection<IFuzzySetRule> rules)
     {
         public ISet<StringOrType> GetBaseVariables()
         {
@@ -45,9 +45,9 @@ public static class RuleCollExt
             return antecedents.Concat(connectives).ToHashSet();
         }
 
-        public IDictionary<string, List<IRule>> BuildRuleDependencyMap()
+        public IDictionary<string, List<IFuzzySetRule>> BuildRuleDependencyMap()
         {
-            var dict = new Dictionary<string, List<IRule>>(StringComparer.OrdinalIgnoreCase);
+            var dict = new Dictionary<string, List<IFuzzySetRule>>(StringComparer.OrdinalIgnoreCase);
             foreach (var variable in rules.GetFuzzyVariables())
                 dict[variable] = rules.FindByConclusion(variable).ToList();
 
@@ -61,14 +61,14 @@ public static class RuleCollExt
             return consequents.Concat(antecedents).ToDictionary(e => e.Key, e => e.Value);
         }
 
-        public IEnumerable<IRule> FilterByResolutionMethod(string variableName, IComparer<IRule> ruleComparer) =>
+        public IEnumerable<IFuzzySetRule> FilterByResolutionMethod(string variableName, IComparer<IFuzzySetRule> ruleComparer) =>
             rules
                 .Where(rule => string.Equals(rule.Consequent!.Variable, variableName, StringComparison.OrdinalIgnoreCase))
                 .GroupBy(rule => rule.Consequent!.Term)
                 .Select(grouping => (Function: grouping.Key, Rule: grouping.MaxBy(g => g, ruleComparer)))
                 .Select(tuple => tuple.Rule)!;
 
-        public IEnumerable<IRule> FilterFacts(IWorkingMemory workingMemory)
+        public IEnumerable<IFuzzySetRule> FilterFacts(IWorkingMemory workingMemory)
         {
             var keys = workingMemory.NumericStorage.Keys().Select(e => e.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var rule in rules)
@@ -78,7 +78,7 @@ public static class RuleCollExt
             }
         }
 
-        public IEnumerable<IRule> FilterCircularDependencies(string variableName)
+        public IEnumerable<IFuzzySetRule> FilterCircularDependencies(string variableName)
         {
             var adjacencyList = rules.BuildDependencyGraph();
             var backEdges = GraphUtils.FindBackEdges(adjacencyList, variableName);
@@ -93,32 +93,32 @@ public static class RuleCollExt
             }
         }
 
-        public IEnumerable<IRule> FindByPremise(StringOrType variableName) =>
+        public IEnumerable<IFuzzySetRule> FindByPremise(StringOrType variableName) =>
             rules.Where(e => e.PremiseContains(variableName)).ToList();
 
-        public IEnumerable<IRule> FindByConclusion(string variableName) =>
+        public IEnumerable<IFuzzySetRule> FindByConclusion(string variableName) =>
             rules.Where(e => e.ConsequentContains(variableName)).ToList();
 
-        public IEnumerable<IRule> GetActivated(uint iteration) =>
+        public IEnumerable<IFuzzySetRule> GetActivated(uint iteration) =>
             rules.Where(r => r.AdaptationState.LearningHistory.Count > 0 && r.AdaptationState.LearningHistory.Last!.Value.Iteration == iteration);
 
-        public IEnumerable<IRule> GetUnactivated(uint iteration) =>
+        public IEnumerable<IFuzzySetRule> GetUnactivated(uint iteration) =>
             rules.Where(r => r.AdaptationState.LearningHistory.Count == 0 || r.AdaptationState.LearningHistory.Last!.Value.Iteration != iteration);
 
-        public IEnumerable<IRule> GetDormant(IWorkingMemory memory, uint iteration)
+        public IEnumerable<IFuzzySetRule> GetDormant(IWorkingMemory memory, uint iteration)
         {
             var eligible = rules.GetEvaluable(memory);
             var activated = rules.GetActivated(iteration);
             return eligible.Except(activated);
         }
 
-        public IEnumerable<IRule> GetEvaluable(IWorkingMemory memory) =>
+        public IEnumerable<IFuzzySetRule> GetEvaluable(IWorkingMemory memory) =>
             rules.Where(e => e.IsPremiseEvaluable(memory));
 
-        public IEnumerable<IRule> GetNeverActivated() =>
+        public IEnumerable<IFuzzySetRule> GetNeverActivated() =>
             rules.Where(r => r.AdaptationState.LearningHistory.Count == 0);
 
-        public IEnumerable<IRule> GetEverActivated() =>
+        public IEnumerable<IFuzzySetRule> GetEverActivated() =>
             rules.Where(r => r.AdaptationState.LearningHistory.Count > 0);
 
         public void UpdateLearning(AdaptationConfig config)

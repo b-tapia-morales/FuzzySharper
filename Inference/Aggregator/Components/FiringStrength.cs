@@ -1,0 +1,7 @@
+﻿using Kernel.Function.Abstractions;
+using Kernel.Number;
+using Reasoning.Rule.Abstractions;
+
+namespace Inference.Aggregator.Components;
+
+public record FiringStrength(IFuzzySetRule Rule, IMembershipFunction Function, FuzzyNumber Weight);

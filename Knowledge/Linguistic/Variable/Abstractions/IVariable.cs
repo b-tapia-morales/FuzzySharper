@@ -1,4 +1,6 @@
 ﻿using Kernel.Function.Abstractions;
+using Kernel.Function.Comparer.Factory;
+using Kernel.Number;
 using Shared.Intervals.Implementations;
 using Shared.Options.Implementations;
 
@@ -46,34 +48,50 @@ public interface IVariable
     /// <summary>
     /// The name of the variable <b>X</b>.
     /// </summary>
-    public string Name { get; }
+    string Name { get; }
 
     /// <summary>
     /// The semantical associations between each Linguistic Term (t ∈ <b>T(X)</b>),
     /// and its corresponding Membership Function (m ∈ <b>M</b>),
     /// represented as a Dictionary.
     /// </summary>
-    public IDictionary<string, IMembershipFunction> SemanticalMappings { get; }
-    
-    public Interval UniverseOfDiscourse { get; }
+    IDictionary<string, IMembershipFunction> SemanticalMappings { get; }
 
-    IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d, double h = 1);
+    Interval UniverseOfDiscourse { get; }
 
-    IVariable AddLeftTrapezoidFunction(string name, double a, double b, double h = 1);
+    ISet<string> Terms { get; }
 
-    IVariable AddRightTrapezoidFunction(string name, double a, double b, double h = 1);
+    IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d, double uMax = 1);
 
-    IVariable AddTriangularFunction(string name, double a, double b, double c, double h = 1);
+    IVariable AddLeftTrapezoidFunction(string name, double a, double b, double uMax = 1);
 
-    IVariable AddGaussianFunction(string name, double m, double o, double h = 1);
+    IVariable AddRightTrapezoidFunction(string name, double a, double b, double uMax = 1);
 
-    IVariable AddCauchyFunction(string name, double a, double b, double c, double h = 1);
+    IVariable AddTriangularFunction(string name, double a, double b, double c, double uMax = 1);
 
-    IVariable AddSigmoidFunction(string name, double a, double c, double h = 1);
+    IVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U, double uMax = 1);
+
+    IVariable AddGaussianFunction(string name, double mu, double sigma, double uMax = 1);
+
+    IVariable AddGeneralizedBellFunction(string name, double a, double b, double c, double uMax = 1);
+
+    IVariable AddSigmoidFunction(string name, double a, double c, double uMax = 1);
 
     IVariable AddFunction(IMembershipFunction function);
 
     bool ContainsFunction(string term);
 
     Option<IMembershipFunction> GetFunction(string term);
+
+    Option<Interval> GetCoverage();
+
+    IEnumerable<Interval> FindGaps();
+
+    IEnumerable<double> SampleDomain(uint points = 1000);
+    
+    IEnumerable<string> GetSortedTerms(OrderingMethod method = OrderingMethod.Centroid);
+
+    public IEnumerable<(double x, IList<string> Terms)> ActiveFunctionCount(uint points = 1000, uint maxAllowed = 2);
+
+    IDictionary<string, FuzzyNumber> EvaluateAll(double crispValue);
 }

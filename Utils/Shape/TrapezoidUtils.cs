@@ -20,6 +20,9 @@ public static class TrapezoidUtils
         return PolygonUtils.CalculateArea(vertices);
     }
 
+    public static List<(double X, double Y)> ToVertices(double a, double b, double c, double d, double h) =>
+        ToVertices(a, b, c, d, h, a, d);
+
     public static List<(double X, double Y)> ToVertices(double a, double b, double c, double d, double h, double x0, double x1)
     {
         var vertices = new List<(double X, double Y)>();

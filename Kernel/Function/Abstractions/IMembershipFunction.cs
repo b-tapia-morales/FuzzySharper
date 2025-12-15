@@ -163,6 +163,12 @@ public interface IMembershipFunction
     /// </summary>
     /// <value>The interval, represented as a <see cref="ValueTuple" />.</value>
     Option<Interval> Peak { get; }
+    
+    Option<double> PeakLeftClipped { get; }
+    
+    Option<double> PeakRightClipped { get; }
+    
+    Option<Interval> PeakClipped { get; }
 
     #endregion
 
@@ -202,11 +208,11 @@ public interface IMembershipFunction
 
     Interval EffectiveSupport { get; }
 
-    double SupportLeftClipped { get; }
+    double RestrictedSupportLeft { get; }
 
-    double SupportRightClipped { get; }
+    double RestrictedSupportRight { get; }
 
-    Interval SupportClipped { get; }
+    Interval RestrictedSupport { get; }
 
     /// <summary>
     /// <para>
@@ -282,7 +288,7 @@ public interface IMembershipFunction
     /// <value>
     ///     The leftmost <i>x</i> value itself if none of the special cases described above apply.
     /// </value>
-    Option<double> CrossoverLeft { get; }
+    double CrossoverLeft { get; }
 
     /// <summary>
     /// Retrieves the rightmost <i>x</i> value of the crossover points.
@@ -306,7 +312,7 @@ public interface IMembershipFunction
     /// <value>
     ///     The rightmost <i>x</i> value itself if none of the special cases described above apply.
     /// </value>
-    Option<double> CrossoverRight { get; }
+    double CrossoverRight { get; }
 
     /// <summary>
     /// Returns the leftmost and rightmost values of the <b>Crossover interval</b>,
@@ -317,7 +323,7 @@ public interface IMembershipFunction
     /// lower and higher degrees of truth relative to 0.5.
     /// </summary>
     /// <value>The interval, represented as a <see cref="ValueTuple" />.</value>
-    Option<Interval> Crossover { get; }
+    Interval Crossover { get; }
 
     #endregion
 
@@ -502,17 +508,8 @@ public interface IMembershipFunction
     /// <returns>The membership degree, represented as a <see cref="FuzzyNumber" /></returns>
     /// <seealso cref="PureFunction" />
     FuzzyNumber MembershipDegree(double x);
-
-    /// <summary>
-    /// Returns the <i>x</i> value provided as a parameter and its membership degree <i>y</i> value as a two-dimensional
-    /// point, represented by a <see cref="ValueTuple" />.
-    /// </summary>
-    /// <param name="x">The <i>x</i> value.</param>
-    /// <returns>
-    /// The <i>x</i> value and its membership degree <i>y</i> value as a two-dimensional point, represented by
-    /// a <see cref="ValueTuple" />.
-    /// </returns>
-    (double x, FuzzyNumber Y) ToPoint(double x);
+    
+    FuzzyNumber MembershipDegreeClipped(double x);
 
     #endregion
 

@@ -1,11 +1,12 @@
-﻿using Inference.Defuzzifier.Abstractions;
+﻿using Inference.Aggregator.Abstractions;
+using Inference.Aggregator.Components;
+using Inference.Aggregator.Extensions;
+using Inference.Defuzzifier.Abstractions;
 using Kernel.Function.Extensions;
-using Kernel.Operator.Conorm.Abstractions;
-using Kernel.Operator.Negation.Abstractions;
-using Kernel.Operator.Norm.Abstractions;
+using Kernel.Function.Implication.Factory;
+using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Rule.Abstractions;
-using Shared.Approx;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 using Utils.Shape;
@@ -14,34 +15,27 @@ using Utils.Shape;
 
 namespace Inference.Defuzzifier.Implementations;
 
-public class CenterOfLargestArea : IDefuzzifier
+public class CenterOfLargestArea : BaseDefuzzifier
 {
-    public Option<double> Defuzzify(ICollection<IRule> rules, IWorkingMemory memory,
-        INegation negation, INorm norm, IConorm conorm, ImplicationMethod method, out ICollection<IRule> activatedRules)
+    override protected Option<double> DefuzzifyMethod(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
+        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
+        out ICollection<IFuzzySetRule> activatedRules)
     {
-        IDefuzzifier.RulesCheck(rules, memory);
-        var (min, max) = IDefuzzifier.GetUniverse(rules).ToTuple();
-
         activatedRules = [];
 
-        var applicable = IDefuzzifier.GetWeightedTuples(rules, memory, negation, norm, conorm);
+        var applicable = EvaluateFiringStrengths(rules, memory, family);
         if (applicable.Count == 0)
             return OptionFactory.None<double>();
 
-        var candidates = applicable.Select(tuple => (
-                Rule: tuple.Rule,
-                Function: tuple.Function,
-                Weight: tuple.Weight,
-                Area: tuple.Function.CalculateAreaAt(method, tuple.Weight, min, max)))
-            .Where(tuple => tuple.Area.IsRoughlyGreaterThan(0))
-            .ToList();
+        var candidates = FiringStrengthAggregator.SelectFirings(applicable);
         if (candidates.Count == 0)
             return OptionFactory.None<double>();
-        
+
         activatedRules = [..candidates.Select(tuple => tuple.Rule)];
+        return FiringStrengthAggregator.AggregateFirings(candidates, Selector, aggregator);
+
+        double Selector(FiringStrength firing) =>
+            firing.Function.CalculateFirstMoment(Axis.X, method, firing.Weight) / firing.Function.CalculateArea(method, firing.Weight);
         
-        var best = candidates.MaxBy(tuple => tuple.Area);
-        var centroid = best.Function.CalculateFirstMomentAt(Axis.X, method, best.Weight, min, max) / best.Area;
-        return Math.Clamp(centroid, min, max);
     }
 }

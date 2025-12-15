@@ -8,7 +8,7 @@ public class HighestPriority(IWorkingMemory memory) : IRuleComparer
 {
     public IWorkingMemory Memory { get; } = memory;
 
-    public int ComparerMethod(IRule x, IRule y)
+    public int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y)
     {
         var a = x.Priority.Match(e => (int) e, _ => -1);
         var b = y.Priority.Match(e => (int) e, _ => -1);

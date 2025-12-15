@@ -16,6 +16,9 @@ public static class TriangleUtils
     public static double CalculateSideCutArea(double a, double b, double c, double h, double x0, double x1) =>
         CalculateLeftCutArea(a, b, h, x0) + CalculateRightCutArea(b, c, h, x1);
 
+    public static List<(double X, double Y)> ToVertices(double a, double b, double c, double h) =>
+        ToVertices(a, b, c, h, a, c);
+
     public static List<(double X, double Y)> ToVertices(double a, double b, double c, double h, double x0, double x1)
     {
         var vertices = new List<(double X, double Y)>();

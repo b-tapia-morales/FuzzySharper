@@ -17,7 +17,7 @@ public class CertaintyComparer(IWorkingMemory memory, IOperatorFamily family) : 
     {
     }
 
-    public int ComparerMethod(IRule x, IRule y)
+    public int ComparerMethod(IFuzzySetRule x, IFuzzySetRule y)
     {
         var (cf1, firstIsPresent) = (x.CertaintyFactor, x.EvaluatePremiseWeight(Memory, Family).IsSomeVal(out var w1));
         var (cf2, secondIsPresent) = (y.CertaintyFactor, y.EvaluatePremiseWeight(Memory, Family).IsSomeVal(out var w2));

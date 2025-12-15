@@ -1,7 +1,8 @@
-﻿using Inference.Defuzzifier.Factory;
+﻿using Inference.Aggregator.Factory;
+using Inference.Defuzzifier.Factory;
 using Inference.Engine.Abstractions;
 using Inference.Engine.Implementations;
-using Kernel.Function.Extensions;
+using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Conorm.Abstractions;
 using Kernel.Operator.Family.Abstractions;
 using Kernel.Operator.Family.Factory.Canonical;
@@ -25,6 +26,7 @@ public class EngineBuilder
     private ImplicationMethod ImplicationMethod { get; set; }
     private DefuzzificationMethod DefuzzificationMethod { get; set; }
     private DeterministicMethod ComparerMethod { get; set; }
+    private ValueAggregatorMethod AggregatorMethod { get; set; }
     private bool IsLearningEnabled { get; set; }
     private Option<AdaptationPolicy> AdaptationPolicy { get; set; }
 
@@ -34,6 +36,7 @@ public class EngineBuilder
         ImplicationMethod = ImplicationMethod.Mamdani;
         DefuzzificationMethod = DefuzzificationMethod.MeanOfMaxima;
         ComparerMethod = DeterministicMethod.PremiseWeight;
+        AggregatorMethod = ValueAggregatorMethod.Mean;
         IsLearningEnabled = false;
         AdaptationPolicy = OptionFactory.None<AdaptationPolicy>();
     }
@@ -123,6 +126,12 @@ public class EngineBuilder
         return this;
     }
 
+    public EngineBuilder WithValueAggregator(ValueAggregatorMethod method)
+    {
+        AggregatorMethod = method;
+        return this;
+    }
+
     public IEngine Build()
     {
         ArgumentNullException.ThrowIfNull(WorkingMemory);
@@ -135,6 +144,7 @@ public class EngineBuilder
             ImplicationMethod = ImplicationMethod,
             DefuzzificationMethod = DefuzzificationMethod,
             DeterministicMethod = ComparerMethod,
+            AggregatorMethod = AggregatorMethod,
             IsLearningEnabled = IsLearningEnabled,
             AdaptationConfig = AdaptationPolicy.IsSomeVal(out var policy)
                 ? new AdaptationConfig(policy)

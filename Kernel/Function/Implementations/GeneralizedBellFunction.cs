@@ -12,19 +12,25 @@ namespace Kernel.Function.Implementations;
 
 public class GeneralizedBellFunction : BellShapedFunction
 {
-    private const double RoughlyZero = DoubleApproxExt.DefaultTolerance * 10e-1;
-
-    private double? _leftMost;
-    private double? _rightMost;
-
-    public GeneralizedBellFunction(string name, double a, double b, double c, double uMax = 1) : this(name, a, b, c, Interval.Default, uMax)
-    {
-    }
-
-    public GeneralizedBellFunction(string name, double a, double b, double c, Interval universe, double uMax = 1) : base(name, universe, uMax)
+    internal static IMembershipFunction Create(string name, double a, double b, double c, Interval universe, double uMax = 1)
     {
         CheckAValue(a);
         CheckValues(a, b, c);
+        return new GeneralizedBellFunction(name, a, b, c, universe, uMax);
+    }
+
+    public static IMembershipFunction Create(string name, double a, double b, double c, double uMax = 1) =>
+        Create(name, a, b, c, Interval.Default, uMax);
+
+
+    private GeneralizedBellFunction(string name, double a, double b, double c, double uMax) :
+        this(name, a, b, c, Interval.Default, uMax)
+    {
+    }
+
+    private GeneralizedBellFunction(string name, double a, double b, double c, Interval universe, double uMax) :
+        base(name, universe, uMax)
+    {
         A = a;
         B = b;
         C = c;
@@ -33,6 +39,11 @@ public class GeneralizedBellFunction : BellShapedFunction
     public double A { get; }
     public double B { get; }
     public double C { get; }
+
+    private double? _leftMost;
+    private double? _rightMost;
+
+    private const double RoughlyZero = DoubleApproxExt.DefaultTolerance * 1e-1;
 
     #region BellShapedFunctionProperties
 

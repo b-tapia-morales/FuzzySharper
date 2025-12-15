@@ -11,15 +11,23 @@ namespace Kernel.Function.Implementations;
 
 public class RightTrapezoidFunction : UnilateralFunction
 {
-    public RightTrapezoidFunction(string name, double a, double b, double uMax = 1) :
+    internal static IMembershipFunction Create(string name, double a, double b, Interval universe, double uMax = 1)
+    {
+        CheckValues(a, b);
+        return new RightTrapezoidFunction(name, a, b, universe, uMax);
+    }
+
+    public static IMembershipFunction Create(string name, double a, double b, double uMax = 1) =>
+        Create(name, a, b, Interval.Default, uMax);
+
+    public RightTrapezoidFunction(string name, double a, double b, double uMax) :
         this(name, a, b, Interval.Default, uMax)
     {
     }
 
-    public RightTrapezoidFunction(string name, double a, double b, Interval universe, double uMax = 1) :
+    protected RightTrapezoidFunction(string name, double a, double b, Interval universe, double uMax) :
         base(name, universe, uMax)
     {
-        CheckValues(a, b);
         A = a;
         B = b;
     }

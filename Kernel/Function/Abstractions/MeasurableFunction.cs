@@ -1,7 +1,13 @@
-﻿using Kernel.Function.Extensions;
+﻿using System.Diagnostics;
+using Kernel.Function.Extensions;
+using Kernel.Function.Extensions.Clipping;
+using Kernel.Function.Extensions.Metric;
 using Kernel.Function.Implementations;
 using Shared.Deferred;
 using Shared.Intervals.Implementations;
+using Shared.Options.Extensions;
+using Shared.Options.Factory;
+using Shared.Options.Implementations;
 using Utils.Shape;
 using static System.Math;
 
@@ -9,16 +15,26 @@ namespace Kernel.Function.Abstractions;
 
 public abstract class MeasurableFunction : MembershipFunction
 {
-    protected DeferredValue<double> DeferredArea { get; }
-    protected DeferredValue<double> DeferredMomentX { get; }
-    protected DeferredValue<double> DeferredMomentY { get; }
-    protected DeferredValue<double> DeferredMomentXx { get; }
-    protected DeferredValue<double> DeferredMomentXy { get; }
-    protected DeferredValue<double> DeferredMomentYy { get; }
+    protected virtual DeferredValue<double> DeferredArea { get; }
+    protected virtual Option<DeferredValue<double>> ClippedArea { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual DeferredValue<double> DeferredMomentX { get; }
+    protected virtual Option<DeferredValue<double>> ClippedMomentX { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual DeferredValue<double> DeferredMomentY { get; }
+    protected virtual Option<DeferredValue<double>> ClippedMomentY { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual DeferredValue<double> DeferredMomentXx { get; }
+    protected virtual Option<DeferredValue<double>> ClippedMomentXx { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual DeferredValue<double> DeferredMomentXy { get; }
+    protected virtual Option<DeferredValue<double>> ClippedMomentXy { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual DeferredValue<double> DeferredMomentYy { get; }
+    protected virtual Option<DeferredValue<double>> ClippedMomentYy { get; } = OptionFactory.None<DeferredValue<double>>();
+    internal bool IsClipped { get; }
 
     protected MeasurableFunction(string name, Interval universe, double uMax) : base(name, universe, uMax)
     {
         var resolver = ResolveToOrder;
+
+        var clippingPlan = ClippingPlan.BuildPlan(this);
+        IsClipped = clippingPlan.Mode != ClippingMode.None;
 
         DeferredArea = new DeferredValue<double>(() => this.CalculateArea(), () => resolver(MetricOrder.Zeroth));
         DeferredMomentX = new DeferredValue<double>(() => this.CalculateFirstMoment(Axis.X), () => resolver(MetricOrder.First));
@@ -26,79 +42,98 @@ public abstract class MeasurableFunction : MembershipFunction
         DeferredMomentXx = new DeferredValue<double>(() => this.CalculateSecondMoment(Axis.X, Axis.X), () => resolver(MetricOrder.Second));
         DeferredMomentXy = new DeferredValue<double>(() => this.CalculateSecondMoment(Axis.X, Axis.Y), () => resolver(MetricOrder.Second));
         DeferredMomentYy = new DeferredValue<double>(() => this.CalculateSecondMoment(Axis.Y, Axis.Y), () => resolver(MetricOrder.Second));
+
+        ClippedArea = IsClipped
+            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.Area), () => resolver(MetricOrder.Zeroth)))
+            : OptionFactory.None<DeferredValue<double>>();
+        ClippedMomentX = IsClipped
+            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentX), () => resolver(MetricOrder.First)))
+            : OptionFactory.None<DeferredValue<double>>();
+        ClippedMomentY = IsClipped
+            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentY), () => resolver(MetricOrder.First)))
+            : OptionFactory.None<DeferredValue<double>>();
+        ClippedMomentXx = IsClipped
+            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentXx), () => resolver(MetricOrder.Second)))
+            : OptionFactory.None<DeferredValue<double>>();
+        ClippedMomentXy = IsClipped
+            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentXy), () => resolver(MetricOrder.Second)))
+            : OptionFactory.None<DeferredValue<double>>();
+        ClippedMomentYy = IsClipped
+            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentYy), () => resolver(MetricOrder.Second)))
+            : OptionFactory.None<DeferredValue<double>>();
     }
 
-    public virtual double Area() =>
-        DeferredArea.Value;
+    public virtual double Area(MetricScope scope = MetricScope.Clipped) =>
+        IsClipped && scope == MetricScope.Clipped ? ClippedArea.Get.Value : DeferredArea.Value;
 
-    public virtual double MomentX() =>
-        DeferredMomentX.Value;
+    public virtual double MomentX(MetricScope scope = MetricScope.Clipped) =>
+        IsClipped && scope == MetricScope.Clipped ? ClippedMomentX.Get.Value : DeferredMomentX.Value;
 
-    public virtual double MomentY() =>
-        DeferredMomentY.Value;
+    public virtual double MomentY(MetricScope scope = MetricScope.Clipped) =>
+        IsClipped && scope == MetricScope.Clipped ? ClippedMomentY.Get.Value : DeferredMomentY.Value;
 
-    public virtual double MomentXx() =>
-        DeferredMomentXx.Value;
+    public virtual double MomentXx(MetricScope scope = MetricScope.Clipped) =>
+        IsClipped && scope == MetricScope.Clipped ? ClippedMomentXx.Get.Value : DeferredMomentXx.Value;
 
-    public virtual double MomentXy() =>
-        DeferredMomentXy.Value;
+    public virtual double MomentXy(MetricScope scope = MetricScope.Clipped) =>
+        IsClipped && scope == MetricScope.Clipped ? ClippedMomentXy.Get.Value : DeferredMomentXy.Value;
 
-    public virtual double MomentYy() =>
-        DeferredMomentYy.Value;
+    public virtual double MomentYy(MetricScope scope = MetricScope.Clipped) =>
+        IsClipped && scope == MetricScope.Clipped ? ClippedMomentYy.Get.Value : DeferredMomentYy.Value;
 
     public virtual double EffectiveSupportLength() =>
         EffectiveSupportRight - EffectiveSupportLeft;
 
-    public virtual double AverageHeight() =>
-        Area() / EffectiveSupportLength();
+    public virtual double AverageHeight(MetricScope scope = MetricScope.Clipped) =>
+        Area(scope) / EffectiveSupportLength();
 
-    public virtual double CentroidX() =>
-        MomentX() / Area();
+    public virtual double CentroidX(MetricScope scope = MetricScope.Clipped) =>
+        MomentX(scope) / Area(scope);
 
-    public virtual double CentroidY() =>
-        MomentY() / Area();
+    public virtual double CentroidY(MetricScope scope = MetricScope.Clipped) =>
+        MomentY(scope) / Area(scope);
 
-    public virtual double VarianceX() =>
-        MomentXx() / Area() - Pow(CentroidX(), 2);
+    public virtual double VarianceX(MetricScope scope = MetricScope.Clipped) =>
+        MomentXx(scope) / Area(scope) - Pow(CentroidX(scope), 2);
 
-    public virtual double VarianceY() =>
-        MomentYy() / Area() - Pow(CentroidY(), 2);
+    public virtual double VarianceY(MetricScope scope = MetricScope.Clipped) =>
+        MomentYy(scope) / Area(scope) - Pow(CentroidY(scope), 2);
 
-    public virtual double Covariance() =>
-        MomentXy() / Area() - CentroidX() * CentroidY();
+    public virtual double Covariance(MetricScope scope = MetricScope.Clipped) =>
+        MomentXy(scope) / Area(scope) - CentroidX(scope) * CentroidY(scope);
 
-    public virtual double StandardDeviationX() =>
-        Sqrt(VarianceX());
+    public virtual double StandardDeviationX(MetricScope scope = MetricScope.Clipped) =>
+        Sqrt(VarianceX(scope));
 
-    public virtual double StandardDeviationY() =>
-        Sqrt(VarianceY());
+    public virtual double StandardDeviationY(MetricScope scope = MetricScope.Clipped) =>
+        Sqrt(VarianceY(scope));
 
-    public virtual double EigenvalueMajor() =>
-        (VarianceX() + VarianceY() + Sqrt(Pow(VarianceX() - VarianceY(), 2) + 4 * Pow(Covariance(), 2))) / 2;
+    public virtual double EigenvalueMajor(MetricScope scope = MetricScope.Clipped) =>
+        (VarianceX(scope) + VarianceY(scope) + Sqrt(Pow(VarianceX(scope) - VarianceY(scope), 2) + 4 * Pow(Covariance(scope), 2))) / 2;
 
-    public virtual double EigenvalueMinor() =>
-        (VarianceX() + VarianceY() - Sqrt(Pow(VarianceX() - VarianceY(), 2) + 4 * Pow(Covariance(), 2))) / 2;
+    public virtual double EigenvalueMinor(MetricScope scope = MetricScope.Clipped) =>
+        (VarianceX(scope) + VarianceY(scope) - Sqrt(Pow(VarianceX(scope) - VarianceY(scope), 2) + 4 * Pow(Covariance(scope), 2))) / 2;
 
-    public virtual double PrincipalAxisAngle() =>
-        (1 / 2.0) * Atan2(2 * Covariance(), VarianceX() - VarianceY());
+    public virtual double PrincipalAxisAngle(MetricScope scope = MetricScope.Clipped) =>
+        (1 / 2.0) * Atan2(2 * Covariance(scope), VarianceX(scope) - VarianceY(scope));
 
-    public virtual double Eccentricity() =>
-        Sqrt(1 - EigenvalueMinor() / EigenvalueMajor());
+    public virtual double Eccentricity(MetricScope scope = MetricScope.Clipped) =>
+        Sqrt(1 - EigenvalueMinor(scope) / EigenvalueMajor(scope));
 
-    public virtual double AxisRatio() =>
-        Sqrt(EigenvalueMinor() / EigenvalueMajor());
+    public virtual double AxisRatio(MetricScope scope = MetricScope.Clipped) =>
+        Sqrt(EigenvalueMinor(scope) / EigenvalueMajor(scope));
 
-    public virtual double MajorMomentCompactness() =>
-        Area() / Sqrt(PI * EigenvalueMajor());
+    public virtual double MajorMomentCompactness(MetricScope scope = MetricScope.Clipped) =>
+        Area(scope) / Sqrt(PI * EigenvalueMajor(scope));
 
-    public virtual double InertiaRatio() =>
-        EigenvalueMinor() / EigenvalueMajor();
+    public virtual double InertiaRatio(MetricScope scope = MetricScope.Clipped) =>
+        EigenvalueMinor(scope) / EigenvalueMajor(scope);
 
-    public virtual double ShearStrength() =>
-        Covariance() / (VarianceX() + VarianceY());
+    public virtual double ShearStrength(MetricScope scope = MetricScope.Clipped) =>
+        Covariance(scope) / (VarianceX(scope) + VarianceY(scope));
 
-    public virtual double OrientationStability() =>
-        (EigenvalueMajor() - EigenvalueMinor()) / (EigenvalueMajor() + EigenvalueMinor());
+    public virtual double OrientationStability(MetricScope scope = MetricScope.Clipped) =>
+        (EigenvalueMajor(scope) - EigenvalueMinor(scope)) / (EigenvalueMajor(scope) + EigenvalueMinor(scope));
 
     private void ResolveToOrder(MetricOrder order)
     {
@@ -113,25 +148,63 @@ public abstract class MeasurableFunction : MembershipFunction
     private void ResolveToZerothOrder()
     {
         if (!DeferredArea.HasValue)
-            _ = DeferredArea.Value;
+            DeferredArea.Compute();
+        if (ClippedArea.IsSomeRef(out var deferredArea) && !deferredArea.HasValue)
+            deferredArea.Compute();
     }
 
     private void ResolveToFirstOrder()
     {
         if (!DeferredMomentX.HasValue)
-            _ = DeferredMomentX.Value;
+            DeferredMomentX.Compute();
+        if (ClippedMomentX.IsSomeRef(out var deferredMomentX) && !deferredMomentX.HasValue)
+            deferredMomentX.Compute();
         if (!DeferredMomentY.HasValue)
-            _ = DeferredMomentY.Value;
+            DeferredMomentY.Compute();
+        if (ClippedMomentY.IsSomeRef(out var deferredMomentY) && !deferredMomentY.HasValue)
+            deferredMomentY.Compute();
     }
 
     private void ResolveToSecondOrder()
     {
         if (!DeferredMomentXx.HasValue)
-            _ = DeferredMomentXx.Value;
+            DeferredMomentXx.Compute();
+        if (ClippedMomentXx.IsSomeRef(out var deferredMomentXx) && !deferredMomentXx.HasValue)
+            deferredMomentXx.Compute();
         if (!DeferredMomentXy.HasValue)
-            _ = DeferredMomentXy.Value;
+            DeferredMomentXy.Compute();
+        if (ClippedMomentXy.IsSomeRef(out var deferredMomentXy) && !deferredMomentXy.HasValue)
+            deferredMomentXy.Compute();
         if (!DeferredMomentYy.HasValue)
-            _ = DeferredMomentYy.Value;
+            DeferredMomentYy.Compute();
+        if (ClippedMomentYy.IsSomeRef(out var deferredMomentYy) && !deferredMomentYy.HasValue)
+            deferredMomentYy.Compute();
+    }
+
+    private double CalculateClippedMetric(ClippingPlan clippingPlan, MetricType metricType)
+    {
+        Debug.Assert(clippingPlan.Mode != ClippingMode.None);
+        return clippingPlan.Mode == ClippingMode.Inner
+            ? CalculateInnerClipping(clippingPlan, metricType)
+            : CalculateOuterClipping(clippingPlan, metricType);
+    }
+
+    private double CalculateInnerClipping(ClippingPlan clippingPlan, MetricType metricType)
+    {
+        Debug.Assert(clippingPlan.Mode != ClippingMode.None);
+        Debug.Assert(clippingPlan is {HasLeftCut: true, LeftCut.IsSome: true} and {HasRightCut: true, RightCut.IsSome: true});
+        return metricType.CalculateMetric(this, clippingPlan.LeftCut.Get, clippingPlan.RightCut.Get);
+    }
+
+    private double CalculateOuterClipping(ClippingPlan clippingPlan, MetricType metricType)
+    {
+        Debug.Assert(clippingPlan.Mode != ClippingMode.None);
+        var survivingRegion = metricType.GetOriginalMetric(this);
+        var (fx0, fx1) = EffectiveSupport.ToTuple();
+        var (ux0, ux1) = (clippingPlan.LeftCut.OrElse(0), clippingPlan.RightCut.OrElse(0));
+        var leftClippedRegion = clippingPlan.HasLeftCut ? metricType.CalculateMetric(this, fx0, ux0) : 0D;
+        var rightClippedRegion = clippingPlan.HasRightCut ? metricType.CalculateMetric(this, ux1, fx1) : 0D;
+        return survivingRegion - (leftClippedRegion + rightClippedRegion);
     }
 }
 

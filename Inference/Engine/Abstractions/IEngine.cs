@@ -1,5 +1,6 @@
-﻿using Inference.Defuzzifier.Factory;
-using Kernel.Function.Extensions;
+﻿using Inference.Aggregator.Factory;
+using Inference.Defuzzifier.Factory;
+using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
@@ -17,6 +18,7 @@ public interface IEngine
     ImplicationMethod ImplicationMethod { get; internal set; }
     DefuzzificationMethod DefuzzificationMethod { get; internal set; }
     DeterministicMethod DeterministicMethod { get; internal set; }
+    ValueAggregatorMethod AggregatorMethod { get; internal set; }
     bool IsLearningEnabled { get; internal set; }
     uint CurrentIteration { get; internal set; }
     Option<AdaptationConfig> AdaptationConfig { get; internal set; }

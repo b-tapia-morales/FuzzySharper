@@ -10,28 +10,28 @@ namespace Reasoning.Base.Implementations;
 
 public class RuleBase : IRuleBase
 {
-    private RuleBase(params IEnumerable<IRule> rules)
+    private RuleBase(params IEnumerable<IFuzzySetRule> rules)
     {
         foreach (var rule in rules)
             ProductionRules.Add(rule);
     }
 
-    public ICollection<IRule> ProductionRules { get; } = new List<IRule>();
+    public ICollection<IFuzzySetRule> ProductionRules { get; } = new List<IFuzzySetRule>();
 
     public static IRuleBase Create() =>
         new RuleBase();
 
-    public static IRuleBase Create(params IEnumerable<IRule> rules) =>
+    public static IRuleBase Create(params IEnumerable<IFuzzySetRule> rules) =>
         new RuleBase(rules);
 
-    public void Add(IRule rule)
+    public void Add(IFuzzySetRule rule)
     {
         if (!rule.IsValid())
             throw new InvalidRuleException();
         ProductionRules.Add(rule);
     }
 
-    public void AddAll(ICollection<IRule> rules)
+    public void AddAll(ICollection<IFuzzySetRule> rules)
     {
         if (rules.Any(e => !e.IsValid()))
             throw new InvalidRuleException();
@@ -39,22 +39,22 @@ public class RuleBase : IRuleBase
             ProductionRules.Add(rule);
     }
 
-    public void AddAll(params IEnumerable<IRule> rules) =>
+    public void AddAll(params IEnumerable<IFuzzySetRule> rules) =>
         AddAll(rules.ToList());
 
-    public bool Remove(IRule rule) =>
+    public bool Remove(IFuzzySetRule rule) =>
         ProductionRules.Remove(rule);
 
-    public void RemoveAll(params IEnumerable<IRule> rules)
+    public void RemoveAll(params IEnumerable<IFuzzySetRule> rules)
     {
         foreach (var rule in rules)
             ProductionRules.Remove(rule);
     }
 
-    public IEnumerable<IRule> FindByPremise(StringOrType variableName) =>
+    public IEnumerable<IFuzzySetRule> FindByPremise(StringOrType variableName) =>
         ProductionRules.FindByPremise(variableName);
 
-    public IEnumerable<IRule> FindByConclusion(string variableName) =>
+    public IEnumerable<IFuzzySetRule> FindByConclusion(string variableName) =>
         ProductionRules.FindByConclusion(variableName);
 
     public ISet<StringOrType> GetBaseVariables() =>
@@ -78,19 +78,19 @@ public class RuleBase : IRuleBase
     public IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph() =>
         ProductionRules.BuildDependencyGraph();
 
-    public IDictionary<string, List<IRule>> BuildRuleDependencyMap() =>
+    public IDictionary<string, List<IFuzzySetRule>> BuildRuleDependencyMap() =>
         ProductionRules.BuildRuleDependencyMap();
 
-    public IEnumerable<IRule> FilterByApplicability(IWorkingMemory memory) =>
+    public IEnumerable<IFuzzySetRule> FilterByApplicability(IWorkingMemory memory) =>
         ProductionRules.GetEvaluable(memory);
 
-    public IEnumerable<IRule> FilterByResolutionMethod(string variableName, IComparer<IRule> ruleComparer) =>
+    public IEnumerable<IFuzzySetRule> FilterByResolutionMethod(string variableName, IComparer<IFuzzySetRule> ruleComparer) =>
         ProductionRules.FilterByResolutionMethod(variableName, ruleComparer);
 
-    public IEnumerable<IRule> FilterFacts(IWorkingMemory workingMemory) =>
+    public IEnumerable<IFuzzySetRule> FilterFacts(IWorkingMemory workingMemory) =>
         ProductionRules.FilterFacts(workingMemory);
 
-    public IEnumerable<IRule> FilterCircularDependencies(string variableName) =>
+    public IEnumerable<IFuzzySetRule> FilterCircularDependencies(string variableName) =>
         ProductionRules.FilterCircularDependencies(variableName);
 
     public void UpdateLearning(AdaptationConfig config) =>
