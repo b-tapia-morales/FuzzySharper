@@ -1,6 +1,6 @@
 ﻿using Kernel.Function.Abstractions;
 using Kernel.Number;
-using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 
 namespace Inference.Aggregator.Components;
 

@@ -5,7 +5,7 @@ using Inference.Defuzzifier.Abstractions;
 using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
-using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 

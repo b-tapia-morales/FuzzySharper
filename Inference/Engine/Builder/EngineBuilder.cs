@@ -11,7 +11,7 @@ using Kernel.Operator.Norm.Abstractions;
 using Kernel.Operator.Residuum.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
-using Reasoning.Base.Abstractions;
+using Reasoning.Base.FuzzySet.Abstractions;
 using Reasoning.Comparer.Implementations.Deterministic.Factory;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
@@ -20,7 +20,7 @@ namespace Inference.Engine.Builder;
 
 public class EngineBuilder
 {
-    private IRuleBase? RuleBase { get; set; }
+    private IFuzzySetRuleBase? RuleBase { get; set; }
     private IWorkingMemory? WorkingMemory { get; set; }
     private IOperatorFamily OperatorFamily { get; set; }
     private ImplicationMethod ImplicationMethod { get; set; }
@@ -44,7 +44,7 @@ public class EngineBuilder
     public static EngineBuilder Create() =>
         new();
 
-    public EngineBuilder WithRuleBase(IRuleBase ruleBase)
+    public EngineBuilder WithRuleBase(IFuzzySetRuleBase ruleBase)
     {
         RuleBase = ruleBase;
         return this;

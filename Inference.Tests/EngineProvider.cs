@@ -4,9 +4,9 @@ using Knowledge.Linguistic.Variable.Implementations;
 using Knowledge.Memory.Abstractions;
 using Knowledge.Memory.Implementations;
 using Microsoft.Extensions.DependencyInjection;
-using Reasoning.Base.Abstractions;
-using Reasoning.Base.Implementations;
-using Reasoning.Rule.Implementations;
+using Reasoning.Base.FuzzySet.Abstractions;
+using Reasoning.Base.FuzzySet.Implementations;
+using Reasoning.Rule.FuzzySet.Implementations;
 
 namespace Inference.Tests;
 
@@ -19,7 +19,7 @@ public static class EngineProvider
         var ruleBase = InitializeRuleBase(linguisticBase);
         var workingMemory = InitializeWorkingMemory();
         serviceCollection.AddTransient<ILinguisticBase>(_ => linguisticBase);
-        serviceCollection.AddTransient<IRuleBase>(_ => ruleBase);
+        serviceCollection.AddTransient<IFuzzySetRuleBase>(_ => ruleBase);
         serviceCollection.AddTransient<IWorkingMemory>(_ => workingMemory);
         return serviceCollection.BuildServiceProvider();
     }
@@ -44,20 +44,20 @@ public static class EngineProvider
         return LinguisticBase.Create(foodQuality, serviceQuality, tip);
     }
 
-    private static IRuleBase InitializeRuleBase(ILinguisticBase linguisticBase)
+    private static IFuzzySetRuleBase InitializeRuleBase(ILinguisticBase linguisticBase)
     {
-        var r1 = ContextBoundRule.Create(linguisticBase)
+        var r1 = BoundFuzzySetRule.Create(linguisticBase)
             .If("food quality", "bad")
             .Or("service quality", "poor")
             .Then("tip", "low");
-        var r2 = ContextBoundRule.Create(linguisticBase)
+        var r2 = BoundFuzzySetRule.Create(linguisticBase)
             .If("service quality", "acceptable")
             .Then("tip", "medium");
-        var r3 = ContextBoundRule.Create(linguisticBase)
+        var r3 = BoundFuzzySetRule.Create(linguisticBase)
             .If("food quality", "great")
             .Or("service quality", "amazing")
             .Then("tip", "high");
-        return RuleBase.Create(r1, r2, r3);
+        return FuzzySetRuleBase.Create(r1, r2, r3);
     }
 
     private static IWorkingMemory InitializeWorkingMemory() => 

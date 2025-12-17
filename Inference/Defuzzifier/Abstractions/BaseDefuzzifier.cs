@@ -5,7 +5,8 @@ using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Kernel.Operator.Family.Factory.Canonical;
 using Knowledge.Memory.Abstractions;
-using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.FuzzySet;
+using Reasoning.Rule.FuzzySet.Abstractions;
 using Shared.Options.Extensions;
 using Shared.Options.Implementations;
 
@@ -17,12 +18,12 @@ public abstract class BaseDefuzzifier : IDefuzzifier
 {
     protected abstract Option<double> DefuzzifyMethod(
         ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
-        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method, 
+        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules);
 
     public Option<double> Defuzzify(
         ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
-        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method, 
+        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules)
     {
         if (rules.Count == 0)
@@ -31,22 +32,22 @@ public abstract class BaseDefuzzifier : IDefuzzifier
         if (!rules.Any(e => e.IsPremiseEvaluable(memory)))
             throw new InapplicableRulesException();
 
-        var firstConsequent = rules.First().Consequent!.Variable;
-        if (!rules.Select(e => e.Consequent!.Variable).All(e => string.Equals(e, firstConsequent, StringComparison.OrdinalIgnoreCase)))
+        var firstConsequent = rules.First().Consequent!.Target;
+        if (!rules.Select(e => e.Consequent!.Target).All(e => string.Equals(e, firstConsequent, StringComparison.OrdinalIgnoreCase)))
             throw new ConsequentMismatchException();
 
         return DefuzzifyMethod(rules, memory, family, aggregator, method, out activatedRules);
     }
 
     public Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
-        IValueAggregator aggregator, ImplicationMethod method, 
+        IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules) =>
         Defuzzify(rules, memory, CanonicalFactory.UseFamily(CanonicalType.Godel), aggregator, method, out activatedRules);
 
     protected static IList<FiringStrength> EvaluateFiringStrengths(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
         IOperatorFamily family) =>
         rules
-            .Select(rule => new FiringStrength(rule, rule.Consequent!.Function, rule.EvaluatePremiseWeight(memory, family).OrElse(0)))
+            .Select(rule => new FiringStrength(rule, ((FuzzySetConsequent) rule.Consequent!).Proposition.Function, rule.EvaluatePremiseWeight(memory, family).OrElse(0)))
             .Where(tuple => tuple.Weight > 0)
             .ToList();
 }

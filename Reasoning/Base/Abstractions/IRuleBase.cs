@@ -5,23 +5,23 @@ using Shared.Primitives.Implementation;
 
 namespace Reasoning.Base.Abstractions;
 
-public interface IRuleBase
+public interface IRuleBase<T> where T : class, IRule
 {
-    ICollection<IFuzzySetRule> ProductionRules { get; }
+    ICollection<T> ProductionRules { get; }
 
-    void Add(IFuzzySetRule rule);
+    void Add(T rule);
 
-    void AddAll(ICollection<IFuzzySetRule> rules);
+    void AddAll(ICollection<T> rules);
 
-    void AddAll(params IEnumerable<IFuzzySetRule> rules);
+    void AddAll(params IEnumerable<T> rules);
 
-    bool Remove(IFuzzySetRule rule);
+    bool Remove(T rule);
 
-    void RemoveAll(params IEnumerable<IFuzzySetRule> rules);
+    void RemoveAll(params IEnumerable<T> rules);
 
-    IEnumerable<IFuzzySetRule> FindByPremise(StringOrType variableName);
+    IEnumerable<T> FindByPremise(StringOrType variableName);
 
-    IEnumerable<IFuzzySetRule> FindByConclusion(string variableName);
+    IEnumerable<T> FindByConclusion(string variableName);
 
     ISet<StringOrType> GetBaseVariables();
 
@@ -37,19 +37,11 @@ public interface IRuleBase
 
     IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph();
 
-    IDictionary<string, List<IFuzzySetRule>> BuildRuleDependencyMap();
+    IDictionary<string, List<T>> BuildRuleDependencyMap();
 
-    IEnumerable<IFuzzySetRule> FilterByApplicability(IWorkingMemory memory);
-
-    IEnumerable<IFuzzySetRule> FilterByResolutionMethod(string variableName, IComparer<IFuzzySetRule> ruleComparer);
-
-    IEnumerable<IFuzzySetRule> FilterFacts(IWorkingMemory workingMemory);
-
-    IEnumerable<IFuzzySetRule> FilterCircularDependencies(string variableName);
+    IEnumerable<IRule> FilterByApplicability(IWorkingMemory memory);
 
     public void UpdateLearning(AdaptationConfig config);
 
     public void ResetLearning();
-
-    IRuleBase DeepCopy();
 }

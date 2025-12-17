@@ -1,6 +1,6 @@
 ﻿using Knowledge.Memory.Abstractions;
-using Reasoning.Rule.Abstractions;
 using Reasoning.Rule.Extensions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 
 namespace Reasoning.Comparer.Abstractions;
 

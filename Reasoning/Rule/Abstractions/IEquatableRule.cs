@@ -1,4 +1,6 @@
-﻿namespace Reasoning.Rule.Abstractions;
+﻿using Reasoning.Rule.FuzzySet.Abstractions;
+
+namespace Reasoning.Rule.Abstractions;
 
 public interface IEquatableRule<TSelf> : IFuzzySetRule, IEquatable<TSelf>, IEqualityComparer<TSelf>
     where TSelf : class, IEquatableRule<TSelf>

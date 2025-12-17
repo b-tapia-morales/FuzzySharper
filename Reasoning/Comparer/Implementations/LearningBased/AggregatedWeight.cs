@@ -3,7 +3,7 @@ using Kernel.Operator.Family.Abstractions;
 using Kernel.Operator.Family.Factory.Canonical;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Comparer.Abstractions;
-using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 

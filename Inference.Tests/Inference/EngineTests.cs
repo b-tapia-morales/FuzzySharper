@@ -8,6 +8,7 @@ using Kernel.Operator.Family.Factory.Canonical;
 using Knowledge.Memory.Implementations;
 using Microsoft.Extensions.DependencyInjection;
 using Reasoning.Base.Abstractions;
+using Reasoning.Base.FuzzySet.Abstractions;
 using Shared.Options.Factory;
 using Xunit.Abstractions;
 
@@ -16,7 +17,7 @@ namespace Inference.Tests.Inference;
 public class EngineTests(ITestOutputHelper outputHelper)
 {
     private static readonly ServiceProvider ServiceProvider = EngineProvider.ConfigureProvider();
-    private static readonly IRuleBase Rules = ServiceProvider.GetService<IRuleBase>()!;
+    private static readonly IFuzzySetRuleBase Rules = ServiceProvider.GetService<IFuzzySetRuleBase>()!;
 
     [Theory]
     [ClassData(typeof(MassiveUnionData))]

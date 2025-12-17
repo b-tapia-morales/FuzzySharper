@@ -1,6 +1,6 @@
 ﻿using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
-using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 
 namespace Reasoning.Comparer.Implementations.LearningBased.Factory;
 

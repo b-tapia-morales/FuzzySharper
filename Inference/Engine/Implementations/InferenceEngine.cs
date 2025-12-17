@@ -7,10 +7,10 @@ using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
-using Reasoning.Base.Abstractions;
+using Reasoning.Base.FuzzySet.Abstractions;
+using Reasoning.Base.FuzzySet.Extensions;
 using Reasoning.Comparer.Implementations.Deterministic.Factory;
-using Reasoning.Rule.Abstractions;
-using Reasoning.Rule.Extensions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 
@@ -18,7 +18,7 @@ namespace Inference.Engine.Implementations;
 
 public class InferenceEngine : IEngine
 {
-    public required IRuleBase RuleBase { get; init; }
+    public required IFuzzySetRuleBase RuleBase { get; init; }
     public required IWorkingMemory WorkingMemory { get; init; }
     public required IOperatorFamily OperatorFamily { get; set; }
     public ImplicationMethod ImplicationMethod { get; set; }

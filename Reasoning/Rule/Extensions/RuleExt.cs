@@ -10,7 +10,7 @@ namespace Reasoning.Rule.Extensions;
 
 public static class RuleExt
 {
-    extension(IFuzzySetRule rule)
+    extension<T>(T rule) where T : class, IRule
     {
         internal bool IsValid() =>
             rule is {Conditional: not null, Consequent: not null};
@@ -21,7 +21,7 @@ public static class RuleExt
                 throw new InvalidRuleException();
         }
 
-        public IFuzzySetRule AddAntecedent(ILinguisticBase linguisticBase, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
+        public T AddAntecedent(ILinguisticBase linguisticBase, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
@@ -37,18 +37,18 @@ public static class RuleExt
             return rule;
         }
 
-        public IFuzzySetRule AddAntecedent<T>(T value, Literal literal) where T : struct, Enum, IConvertible
+        public T AddAntecedent<TEnum>(TEnum value, Literal literal) where TEnum : struct, Enum, IConvertible
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
             if (rule.Conditional != null)
                 throw new DuplicatedAntecedentException();
 
-            rule.Conditional = new BooleanProposition<T>(value, Connective.If, literal);
+            rule.Conditional = new BooleanProposition<TEnum>(value, Connective.If, literal);
             return rule;
         }
 
-        public IFuzzySetRule AddConnective(ILinguisticBase linguisticBase, Connective connective, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
+        public T AddConnective(ILinguisticBase linguisticBase, Connective connective, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
@@ -64,33 +64,14 @@ public static class RuleExt
             return rule;
         }
 
-        public IFuzzySetRule AddConnective<T>(T value, Connective connective, Literal literal) where T : struct, Enum, IConvertible
+        public T AddConnective<TEnum>(TEnum value, Connective connective, Literal literal) where TEnum : struct, Enum, IConvertible
         {
             if (rule.IsFinalized)
                 throw new FinalizedRuleException();
             if (rule.Conditional == null)
                 throw new MissingAntecedentException();
 
-            rule.Connectives.Add(new BooleanProposition<T>(value, connective, literal));
-            return rule;
-        }
-
-        public IFuzzySetRule AddConsequent(ILinguisticBase linguisticBase, string variableName, Literal literal, LinguisticHedge linguisticHedge, string termName)
-        {
-            if (rule.IsFinalized)
-                throw new FinalizedRuleException();
-            if (rule.Conditional == null)
-                throw new MissingAntecedentException();
-            if (literal == Literal.IsNot)
-                throw new NegatedConsequentException();
-
-            if (!linguisticBase.GetVariable(variableName).IsSomeRef(out var variable))
-                throw new VariableNotFoundException(variableName);
-            if (!variable.GetFunction(termName).IsSomeRef(out var membershipFunction))
-                throw new EntryNotFoundException(variableName, termName);
-
-            rule.Consequent = new FuzzyProposition(variableName, Connective.Then, literal, linguisticHedge, membershipFunction);
-            rule.IsFinalized = true;
+            rule.Connectives.Add(new BooleanProposition<TEnum>(value, connective, literal));
             return rule;
         }
     }

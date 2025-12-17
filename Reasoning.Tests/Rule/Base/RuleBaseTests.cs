@@ -1,9 +1,10 @@
 ﻿using Knowledge.Linguistic.Base.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using Reasoning.Base.Abstractions;
-using Reasoning.Rule.Extensions;
-using Reasoning.Rule.Implementations;
+using Reasoning.Base.Extensions;
+using Reasoning.Base.FuzzySet.Abstractions;
+using Reasoning.Base.FuzzySet.Extensions;
+using Reasoning.Rule.FuzzySet.Implementations;
 using Shared.Primitives.Implementation;
 using Xunit.Abstractions;
 
@@ -14,7 +15,7 @@ public class RuleBaseTests(ITestOutputHelper output)
     private static readonly IServiceProvider ServiceProvider = ReasoningProvider.ConfigureProvider();
     private static readonly IWorkingMemory Memory = ServiceProvider.GetService<IWorkingMemory>()!;
     private static readonly ILinguisticBase Linguistics = ServiceProvider.GetService<ILinguisticBase>()!;
-    private static readonly IRuleBase Rules = ServiceProvider.GetService<IRuleBase>()!;
+    private static readonly IFuzzySetRuleBase Rules = ServiceProvider.GetService<IFuzzySetRuleBase>()!;
 
     [Theory]
     [ClassData(typeof(BaseVariables))]
@@ -65,7 +66,7 @@ public class RuleBaseTests(ITestOutputHelper output)
     public void VariableKnownAsFactIsFilteredOut()
     {
         var ruleBase = Rules.DeepCopy();
-        var factRule = ContextBoundRule.Create(Linguistics)
+        var factRule = BoundFuzzySetRule.Create(Linguistics)
             .If("Humidity", "humid")
             .Then("Room temperature", "cold");
         ruleBase.Add(factRule);
@@ -79,7 +80,7 @@ public class RuleBaseTests(ITestOutputHelper output)
     public void CircularDependencyIsFilteredOut()
     {
         var ruleBase = Rules.DeepCopy();
-        var circularRule = ContextBoundRule.Create(Linguistics)
+        var circularRule = BoundFuzzySetRule.Create(Linguistics)
             .If("Heating power", "Low")
             .Then("Room temperature", "cold");
         ruleBase.Add(circularRule);

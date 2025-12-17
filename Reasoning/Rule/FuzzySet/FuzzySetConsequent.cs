@@ -5,7 +5,7 @@ namespace Reasoning.Rule.FuzzySet;
 
 public class FuzzySetConsequent(FuzzyProposition proposition) : IRuleOutput
 {
-    private FuzzyProposition Proposition { get; } = proposition;
+    public FuzzyProposition Proposition { get; } = proposition;
 
     public string Target { get; } = proposition.Variable;
 }

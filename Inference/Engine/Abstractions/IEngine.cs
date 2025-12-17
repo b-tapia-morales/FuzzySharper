@@ -4,7 +4,7 @@ using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
-using Reasoning.Base.Abstractions;
+using Reasoning.Base.FuzzySet.Abstractions;
 using Reasoning.Comparer.Implementations.Deterministic.Factory;
 using Shared.Options.Implementations;
 
@@ -12,7 +12,7 @@ namespace Inference.Engine.Abstractions;
 
 public interface IEngine
 {
-    IRuleBase RuleBase { get; }
+    IFuzzySetRuleBase RuleBase { get; }
     IWorkingMemory WorkingMemory { get; }
     IOperatorFamily OperatorFamily { get; internal set; }
     ImplicationMethod ImplicationMethod { get; internal set; }
