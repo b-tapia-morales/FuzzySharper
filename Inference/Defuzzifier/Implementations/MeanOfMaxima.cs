@@ -23,7 +23,7 @@ public class MeanOfMaxima : BaseDefuzzifier
 
         var applicable = EvaluateFiringStrengths(rules, memory, family);
         if (applicable.Count == 0)
-            return OptionFactory.None<double>();
+            return Option<double>.None();
 
         activatedRules = [..applicable.Select(firing => firing.Rule)];
         return FiringStrengthAggregator.AggregateFirings(applicable, Selector, aggregator);

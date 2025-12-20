@@ -27,7 +27,7 @@ public class FrequencyWeightedAverage : IWeightAggregator
     public Option<FuzzyNumber> Aggregate(IReadOnlyCollection<AdaptationRecord> records)
     {
         if (records.Count == 0)
-            return OptionFactory.None<FuzzyNumber>();
+            return Option<FuzzyNumber>.None();
 
         var dict = records
             .Select(e => Math.Round(e.Weight.Value, (int) _decimalPlaces))

@@ -11,22 +11,38 @@ using Shared.Primitives.Implementation;
 
 namespace Reasoning.Proposition.Implementations;
 
-public class FuzzyProposition(string variable, Connective connective, Literal literal, LinguisticHedge linguisticHedge, IMembershipFunction function)
-    : IEquatableProposition<FuzzyProposition>
+public sealed class FuzzyProposition(string variable, Connective connective, Literal literal, LinguisticHedge linguisticHedge, IMembershipFunction function)
+    : IProposition, IEquatable<FuzzyProposition>
 {
     public StringOrType Identifier { get; } = variable;
-    public string Variable { get; } = variable;
     public Connective Connective { get; } = connective;
     public Literal Literal { get; } = literal;
-    public string Term { get; } = function.Name;
+    public string Label { get; } = function.Name;
     public LinguisticHedge LinguisticHedge { get; } = linguisticHedge;
     public IMembershipFunction Function { get; } = function;
+    private string Variable { get; } = variable;
+
+    public bool Equals(FuzzyProposition? other) =>
+        other != null &&
+        string.Equals(Variable, Variable, StringComparison.OrdinalIgnoreCase) &&
+        Connective == other.Connective &&
+        Literal == other.Literal &&
+        LinguisticHedge == other.LinguisticHedge &&
+        string.Equals(Label, other.Label, StringComparison.OrdinalIgnoreCase);
 
     public override bool Equals(object? obj) =>
-        ReferenceEquals(this, obj) || obj is FuzzyProposition other && MemberwiseEquals(other);
+        ReferenceEquals(this, obj) || obj is FuzzyProposition other && Equals(other);
 
-    public override int GetHashCode() =>
-        MemberwiseHashCode();
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Variable, StringComparer.OrdinalIgnoreCase);
+        hash.Add(Connective);
+        hash.Add(Literal);
+        hash.Add(LinguisticHedge);
+        hash.Add(Label, StringComparer.OrdinalIgnoreCase);
+        return hash.ToHashCode();
+    }
 
     public override string ToString()
     {
@@ -34,22 +50,11 @@ public class FuzzyProposition(string variable, Connective connective, Literal li
         return $"{Connective} {Variable} {Literal.ReadableName} {hedge}{Function.Name}";
     }
 
-    public bool MemberwiseEquals(FuzzyProposition? other) =>
-        other != null &&
-        string.Equals(Variable, other.Variable, StringComparison.OrdinalIgnoreCase) &&
-        Connective == other.Connective &&
-        Literal == other.Literal &&
-        LinguisticHedge == other.LinguisticHedge &&
-        string.Equals(Term, other.Term, StringComparison.OrdinalIgnoreCase);
-
-    public int MemberwiseHashCode() =>
-        HashCode.Combine(Variable, Connective.Name, Literal.Name, LinguisticHedge.Name, Term);
-
     public bool IsEvaluable(IWorkingMemory memory) =>
         memory.ContainsNumericFact(Variable);
 
     public Option<FuzzyNumber> Evaluate(IWorkingMemory memory, INegation negation) =>
-        !memory.GetNumericFact(Variable).IsSomeVal(out var crispValue) ? OptionFactory.None<FuzzyNumber>() : Evaluate(crispValue, negation);
+        !memory.GetNumericFact(Variable).IsSome(out var crispValue) ? Option<FuzzyNumber>.None() : Evaluate(crispValue, negation);
 
     public FuzzyNumber Evaluate(DoubleOrEnum value, INegation negation) =>
         value.IsDouble ? Evaluate(value.AsDouble, negation) : throw new ArgumentException("");

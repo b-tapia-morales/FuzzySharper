@@ -17,12 +17,12 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
     private FuzzyNumber TopCut { get; init; }
 
     private bool HasLeftRegion { get; init; }
-    private Option<Interval> LeftRegion { get; init; } = OptionFactory.None<Interval>();
+    private Option<Interval> LeftRegion { get; init; } = Option<Interval>.None();
 
     private bool HasRightRegion { get; init; }
-    private Option<Interval> RightRegion { get; init; } = OptionFactory.None<Interval>();
+    private Option<Interval> RightRegion { get; init; } = Option<Interval>.None();
 
-    private Option<List<(double X, double Y)>> MiddleRegion { get; init; } = OptionFactory.None<List<(double, double)>>();
+    private Option<List<(double X, double Y)>> MiddleRegion { get; init; } = Option<List<(double, double)>>.None();
 
     private MamdaniOutcome Outcome { get; init; }
 
@@ -52,10 +52,10 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
         var (a0, a1) = alphaCut.Get.ToTuple();
 
         var hasLeftRegion = fx0.IsRoughlyLesserThan(a0);
-        var leftRegion = hasLeftRegion ? new Interval(fx0, a0) : OptionFactory.None<Interval>();
+        var leftRegion = hasLeftRegion ? new Interval(fx0, a0) : Option<Interval>.None();
 
         var hasRightRegion = fx1.IsRoughlyGreaterThan(a1);
-        var rightRegion = hasRightRegion ? new Interval(a1, fx1) : OptionFactory.None<Interval>();
+        var rightRegion = hasRightRegion ? new Interval(a1, fx1) : Option<Interval>.None();
 
         var mode = (hasLeftRegion, hasRightRegion) switch
         {
@@ -75,7 +75,7 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
             LeftRegion = leftRegion,
             HasRightRegion = hasRightRegion,
             RightRegion = rightRegion,
-            MiddleRegion = OptionFactory.SomeRef(vertices),
+            MiddleRegion = Option<List<(double, double)>>.Some(vertices),
             Outcome = mode,
         };
     }

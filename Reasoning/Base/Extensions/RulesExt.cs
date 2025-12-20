@@ -88,16 +88,16 @@ public static class RulesExt
         public IEnumerable<T> GetEverActivated() =>
             rules.Where(r => r.AdaptationState.LearningHistory.Count > 0);
 
-        public void UpdateLearning(AdaptationConfig config)
+        public void RecomputeAdaptation(AdaptationConfig config)
         {
             foreach (var rule in rules)
-                rule.UpdateLearning(config.MaxHistorySize, config.WeightAggregator);
+                rule.RecomputeAdaptation(config.MaxHistorySize, config.WeightAggregator);
         }
 
-        public void ResetLearning()
+        public void ResetAdaptation()
         {
             foreach (var rule in rules)
-                rule.ResetLearning();
+                rule.ResetAdaptation();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Reasoning.Rule.Exceptions;
 
-public class InvalidRuleException: Exception
+public class InvalidRuleException: InvalidOperationException
 {
     private const string Template = "This rule is not structurally valid. A fuzzy rule must contain a premise and a consequent, and all components must be properly defined.";
     

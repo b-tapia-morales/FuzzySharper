@@ -27,10 +27,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Rule\Definition\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Knowledge\Knowledge.csproj" />
       <ProjectReference Include="..\Reasoning\Reasoning.csproj" />
     </ItemGroup>

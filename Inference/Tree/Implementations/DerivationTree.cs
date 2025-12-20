@@ -78,7 +78,7 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
 
     public Option<double> InferFact(IWorkingMemory memory, IComparer<IFuzzySetRule> comparer,
         IDefuzzifier defuzzifier, IValueAggregator aggregator, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod) =>
-        InferFact(memory, comparer, defuzzifier, aggregator, operatorFamily, implicationMethod, OptionFactory.None<uint>());
+        InferFact(memory, comparer, defuzzifier, aggregator, operatorFamily, implicationMethod, Option<uint>.None());
 
     public Option<double> InferFact(IWorkingMemory memory, IComparer<IFuzzySetRule> comparer,
         IDefuzzifier defuzzifier, IValueAggregator aggregator, IOperatorFamily operatorFamily, ImplicationMethod implicationMethod, Option<uint> iteration)
@@ -100,22 +100,22 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
                 continue;
             }
 
-            if (defuzzifier.Defuzzify(rules, memory, operatorFamily, aggregator, implicationMethod, out var activatedRules).IsSomeVal(out var crispValue))
+            if (defuzzifier.Defuzzify(rules, memory, operatorFamily, aggregator, implicationMethod, out var activatedRules).IsSome(out var crispValue))
                 memory.AddNumericFact(variableName, crispValue);
 
             AppendRecords(activatedRules, memory, operatorFamily, iteration);
             node.IsProven = true;
         }
 
-        if (!memory.GetNumericFact(Identifier.AsString).IsSomeVal(out var fact))
-            return OptionFactory.None<double>();
+        if (!memory.GetNumericFact(Identifier.AsString).IsSome(out var fact))
+            return Option<double>.None();
         IsProven = true;
         return fact;
     }
 
     private static void AppendRecords(ICollection<IFuzzySetRule> rules, IWorkingMemory memory, IOperatorFamily family, Option<uint> iteration)
     {
-        if (!iteration.IsSomeVal(out var current))
+        if (!iteration.IsSome(out var current))
             return;
         foreach (var rule in rules)
             rule.AdaptationState.Append(rule.EvaluateRuleWeight(memory, family).Get, current);

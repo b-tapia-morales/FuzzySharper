@@ -25,11 +25,11 @@ public class CenterOfLargestArea : BaseDefuzzifier
 
         var applicable = EvaluateFiringStrengths(rules, memory, family);
         if (applicable.Count == 0)
-            return OptionFactory.None<double>();
+            return Option<double>.None();
 
         var candidates = FiringStrengthAggregator.SelectFirings(applicable);
         if (candidates.Count == 0)
-            return OptionFactory.None<double>();
+            return Option<double>.None();
 
         activatedRules = [..candidates.Select(tuple => tuple.Rule)];
         return FiringStrengthAggregator.AggregateFirings(candidates, Selector, aggregator);

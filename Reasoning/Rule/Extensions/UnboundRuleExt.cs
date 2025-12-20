@@ -4,7 +4,7 @@ using Reasoning.Rule.Abstractions;
 
 namespace Reasoning.Rule.Extensions;
 
-public static class UnboundRuleExt
+internal static class UnboundRuleExt
 {
     extension<T>(T rule) where T : class, IContextFreeRule<T>
     {

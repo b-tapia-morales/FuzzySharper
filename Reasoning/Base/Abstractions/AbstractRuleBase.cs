@@ -69,12 +69,12 @@ public abstract class AbstractRuleBase<T> : IRuleBase<T> where T : class, IRule
     public IDictionary<string, List<T>> BuildRuleDependencyMap() =>
         ProductionRules.BuildRuleDependencyMap();
 
-    public IEnumerable<IRule> FilterByApplicability(IWorkingMemory memory) =>
+    public IEnumerable<IRule> GetEvaluable(IWorkingMemory memory) =>
         ProductionRules.GetEvaluable(memory);
 
     public void UpdateLearning(AdaptationConfig config) =>
-        ProductionRules.UpdateLearning(config);
+        ProductionRules.RecomputeAdaptation(config);
 
     public void ResetLearning() =>
-        ProductionRules.ResetLearning();
+        ProductionRules.ResetAdaptation();
 }

@@ -35,7 +35,7 @@ public class LinguisticBase : ILinguisticBase
     /// <returns>The linguistic base itself containing the collection of linguistic variables</returns>
     public static ILinguisticBase Create(ICollection<IVariable> variables)
     {
-        var duplicates = variables.GroupBy(v => v.Name).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        var duplicates = variables.GroupBy(v => v.Name, StringComparer.OrdinalIgnoreCase).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
         if (duplicates.Count > 0)
             throw new DuplicateVariableException(duplicates);
 
@@ -48,13 +48,13 @@ public class LinguisticBase : ILinguisticBase
         LinguisticVariables.ContainsKey(name);
 
     public Option<IVariable> GetVariable(string name) =>
-        LinguisticVariables.TryGetValue(name, out var variable) ? OptionFactory.SomeRef(variable) : OptionFactory.None<IVariable>();
+        LinguisticVariables.TryGetValue(name, out var variable) ? Option<IVariable>.Some(variable) : Option<IVariable>.None();
 
     public bool ContainsFunction(string variableName, string termName) =>
         ContainsVariable(variableName) && LinguisticVariables[variableName].ContainsFunction(termName);
 
     public Option<IMembershipFunction> GetFunction(string variableName, string termName) =>
-        LinguisticVariables.TryGetValue(variableName, out var variable) ? variable.GetFunction(termName) : OptionFactory.None<IMembershipFunction>();
+        LinguisticVariables.TryGetValue(variableName, out var variable) ? variable.GetFunction(termName) : Option<IMembershipFunction>.None();
 
     public void Add(IVariable variable)
     {

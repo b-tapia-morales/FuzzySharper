@@ -4,7 +4,7 @@ using Utils.RandomGenerator;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class RandomInit(uint decimals) : ICoefficientInitPolicy<RandomInit>
+public class RandomInit(uint decimals) : BaseCoefficientInitPolicy
 {
     private uint Decimals { get; } = decimals switch
     {
@@ -15,9 +15,9 @@ public class RandomInit(uint decimals) : ICoefficientInitPolicy<RandomInit>
 
     public static RandomInit Default => new(1);
 
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions)
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
     {
         var bound = Math.Pow(10, -Decimals);
-        return ([..Enumerable.Range(0, propositions.Count).Select(_ => RandomUtils.NextDouble(-bound, bound))], 0);
+        return Enumerable.Range(0, premise.Count).Select(_ => RandomUtils.NextDouble(-bound, bound));
     }
 }

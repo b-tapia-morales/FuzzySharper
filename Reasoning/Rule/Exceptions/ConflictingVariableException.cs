@@ -1,6 +1,6 @@
 ﻿namespace Reasoning.Rule.Exceptions;
 
-public class ConflictingVariableException : Exception
+public class ConflictingVariableException : InvalidOperationException
 {
     private const string Template =
         """

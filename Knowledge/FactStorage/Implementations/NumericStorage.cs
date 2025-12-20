@@ -24,7 +24,7 @@ public sealed class NumericStorage : IFactStorage
         key.IsString ? Facts.ContainsKey(key.AsString) : throw new InvalidKeyException(GetType().Name, nameof(String), nameof(Type));
 
     public Option<DoubleOrEnum> GetValue(StringOrType key) =>
-        Contains(key) ? OptionFactory.SomeRef<DoubleOrEnum>(Facts[key.AsString]) : OptionFactory.None<DoubleOrEnum>();
+        Contains(key) ? Option<DoubleOrEnum>.Some<DoubleOrEnum>(Facts[key.AsString]) : Option<DoubleOrEnum>.None();
 
     public void AddValue(StringOrType key, DoubleOrEnum value)
     {

@@ -11,7 +11,7 @@ public static class TypeExt
             .GetAssemblies()
             .SelectMany(a => a.GetTypes())
             .FirstOrDefault(t => string.Equals(t.Name, typeName, StringComparison.OrdinalIgnoreCase));
-        return type ?? OptionFactory.None<Type>();
+        return type ?? Option<Type>.None();
     }
 
     public static Option<Type> GetTypeByName(string typeName, string @namespace)
@@ -23,9 +23,9 @@ public static class TypeExt
                 string.Equals(type.Name, typeName, StringComparison.OrdinalIgnoreCase) &&
                 type.Namespace != null &&
                 (string.Equals(type.Namespace, @namespace, StringComparison.OrdinalIgnoreCase) || type.Namespace.StartsWith($"{@namespace}.")));
-        return type ?? OptionFactory.None<Type>();
+        return type ?? Option<Type>.None();
     }
 
     public static Option<Type> GetExactType(string fullyQualifiedName) =>
-        Type.GetType(fullyQualifiedName, throwOnError: false, ignoreCase: false) ?? OptionFactory.None<Type>();
+        Type.GetType(fullyQualifiedName, throwOnError: false, ignoreCase: false) ?? Option<Type>.None();
 }

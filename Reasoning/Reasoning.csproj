@@ -8,14 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Kernel\Kernel.csproj" />
-      <ProjectReference Include="..\Knowledge\Knowledge.csproj" />
-      <ProjectReference Include="..\Shared\Shared.csproj" />
-      <ProjectReference Include="..\Utils\Utils.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Base\Functional\" />
+        <ProjectReference Include="..\Kernel\Kernel.csproj"/>
+        <ProjectReference Include="..\Knowledge\Knowledge.csproj"/>
+        <ProjectReference Include="..\Shared\Shared.csproj"/>
+        <ProjectReference Include="..\Utils\Utils.csproj"/>
+        <InternalsVisibleTo Include="Inference"/>
+        <InternalsVisibleTo Include="Reasoning.Tests"/>
     </ItemGroup>
 
 </Project>

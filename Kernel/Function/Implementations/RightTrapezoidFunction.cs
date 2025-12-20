@@ -46,14 +46,14 @@ public class RightTrapezoidFunction : UnilateralFunction
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return A;
         return A + alpha.Value * (B - A);
     }
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha) =>
-        alpha.Value.IsRoughlyGreaterThan(UMax) ? OptionFactory.None<double>() : double.PositiveInfinity;
+        alpha.Value.IsRoughlyGreaterThan(UMax) ? Option<double>.None() : double.PositiveInfinity;
 
     public override Func<double, double> LarsenProduct(FuzzyNumber lambda) => x =>
     {

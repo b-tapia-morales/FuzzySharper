@@ -115,7 +115,7 @@ public class WorkingMemory : IWorkingMemory
         NumericStorage.Contains(key);
 
     public Option<double> GetNumericFact(string key) =>
-        NumericStorage.GetValue(key).IsSomeRef(out var value) ? OptionFactory.SomeVal((double) value) : OptionFactory.None<double>();
+        NumericStorage.GetValue(key).IsSome(out var value) ? Option<double>.Some((double) value) : Option<double>.None();
 
     public void AddNumericFact(string key, double value)
     {
@@ -142,7 +142,7 @@ public class WorkingMemory : IWorkingMemory
 
     public void AddNumericFacts(EntryResolutionMethod method, params IEnumerable<(string Key, double Value)> pairs) =>
         NumericStorage.AddRange(pairs
-            .GroupBy(tuple => tuple.Key)
+            .GroupBy(tuple => tuple.Key, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(tuple => (StringOrType) tuple.Key, tuple => (DoubleOrEnum) (method == EntryResolutionMethod.Replace ? tuple.Last().Value : tuple.First().Value))
         );
 
@@ -153,7 +153,7 @@ public class WorkingMemory : IWorkingMemory
         DelimiterType delimiter = DelimiterType.Semicolon, EntryResolutionMethod method = EntryResolutionMethod.Replace)
     {
         var entries = CsvUtils.RetrieveRows<NumericFact, NumericMapping>(folderPath, hasHeader, delimiter)
-            .GroupBy(tuple => tuple.Key)
+            .GroupBy(tuple => tuple.Key, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(tuple => tuple.Key, tuple => method == EntryResolutionMethod.Replace ? tuple.Last().Value : tuple.First().Value);
         AddNumericFacts(method, entries);
     }
@@ -162,7 +162,7 @@ public class WorkingMemory : IWorkingMemory
         CategoricalStorage.Contains(typeof(T));
 
     public Option<T> GetCategoricalFact<T>() where T : struct, Enum, IConvertible =>
-        CategoricalStorage.GetValue(typeof(T)).IsSomeRef(out var value) ? OptionFactory.SomeVal((T) value) : OptionFactory.None<T>();
+        CategoricalStorage.GetValue(typeof(T)).IsSome(out var value) ? Option<T>.Some((T) value) : Option<T>.None();
 
     public void AddCategoricalFact<T>(T value) where T : struct, Enum, IConvertible
     {
@@ -195,7 +195,7 @@ public class WorkingMemory : IWorkingMemory
     {
         var entries = CsvUtils.RetrieveRows<CategoricalFact, CategoricalMapping>(folderPath, hasHeader, delimiter)
             .Select(e => (Type: useFullyQualifiedName ? TypeExt.GetExactType(e.TypeName) : TypeExt.GetTypeByName(e.TypeName), ConstValue: e.ConstValue))
-            .Where(tuple => tuple.Type.IsSomeRef(out var type) && type.IsEnum)
+            .Where(tuple => tuple.Type.IsSome(out var type) && type.IsEnum)
             .Select(tuple => ParseEnum(tuple.Type.Get, tuple.ConstValue))
             .GroupBy(e => e.GetType())
             .Select(e => method == EntryResolutionMethod.Replace ? e.Last() : e.First());

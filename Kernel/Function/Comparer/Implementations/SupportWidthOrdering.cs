@@ -8,8 +8,8 @@ public class SupportWidthOrdering : IFunctionComparer
 {
     public int CompareMethod(IMembershipFunction x, IMembershipFunction y)
     {
-        var firstExists = x.EffectiveSupport.Width.IsSomeVal(out var a);
-        var secondExists = y.EffectiveSupport.Width.IsSomeVal(out var b);
+        var firstExists = x.EffectiveSupport.Width.IsSome(out var a);
+        var secondExists = y.EffectiveSupport.Width.IsSome(out var b);
         return (firstExists, secondExists) switch
         {
             (false, false) => +0,

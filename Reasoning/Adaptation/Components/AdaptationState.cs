@@ -7,30 +7,30 @@ namespace Reasoning.Adaptation.Components;
 
 public class AdaptationState
 {
-    public Option<FuzzyNumber> LatestWeight { get; private set; } = OptionFactory.None<FuzzyNumber>();
-    public Option<FuzzyNumber> AggregatedWeight { get; private set; } = OptionFactory.None<FuzzyNumber>();
+    public Option<FuzzyNumber> LatestWeight { get; private set; } = Option<FuzzyNumber>.None();
+    public Option<FuzzyNumber> AggregatedWeight { get; private set; } = Option<FuzzyNumber>.None();
     public LinkedList<AdaptationRecord> LearningHistory { get; } = [];
     public uint FireCount { get; private set; }
+    
+    public void Recompute(uint maxHistorySize, IWeightAggregator aggregator)
+    {
+        ResizeHistory(maxHistorySize);
+        RecomputeAggregatedWeight(aggregator);
+    }
 
     public void Reset()
     {
-        LatestWeight = OptionFactory.None<FuzzyNumber>();
-        AggregatedWeight = OptionFactory.None<FuzzyNumber>();
+        LatestWeight = Option<FuzzyNumber>.None();
+        AggregatedWeight = Option<FuzzyNumber>.None();
         LearningHistory.Clear();
         FireCount = 0;
     }
-
-    public void Append(FuzzyNumber weight, uint iteration)
+    
+    internal void Append(FuzzyNumber weight, uint iteration)
     {
         LatestWeight = weight;
         LearningHistory.AddLast(new AdaptationRecord(weight, iteration, DateTimeOffset.Now));
         FireCount++;
-    }
-
-    public void Update(uint maxHistorySize, IWeightAggregator aggregator)
-    {
-        ResizeHistory(maxHistorySize);
-        RecomputeAggregatedWeight(aggregator);
     }
 
     private void ResizeHistory(uint maxHistorySize)

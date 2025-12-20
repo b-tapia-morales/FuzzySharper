@@ -59,7 +59,7 @@ public class TrapezoidFunction : LinearPiecewiseFunction
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return B;
         return A + alpha.Value * (B - A);
@@ -68,7 +68,7 @@ public class TrapezoidFunction : LinearPiecewiseFunction
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return B;
         return D - alpha.Value * (D - C);

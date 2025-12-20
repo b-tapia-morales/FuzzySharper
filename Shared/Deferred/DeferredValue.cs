@@ -5,7 +5,7 @@ namespace Shared.Deferred;
 
 public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisites)
 {
-    private Option<T> _cachedValue = OptionFactory.None<T>();
+    private Option<T> _cachedValue = Option<T>.None();
 
     public DeferredValue(T value) : this(() => value, () => { })
     {
@@ -27,7 +27,7 @@ public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisite
         _cachedValue.IsSome;
 
     public void Invalidate() =>
-        _cachedValue = OptionFactory.None<T>();
+        _cachedValue = Option<T>.None();
 
     public void Compute()
     {

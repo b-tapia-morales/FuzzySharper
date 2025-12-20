@@ -11,10 +11,9 @@ namespace Reasoning.Proposition.Abstractions;
 public interface IProposition
 {
     StringOrType Identifier { get; }
-    string Variable { get; }
     Connective Connective { get; }
     Literal Literal { get; }
-    string Term { get; }
+    string Label { get; }
 
     bool IsEvaluable(IWorkingMemory memory);
 

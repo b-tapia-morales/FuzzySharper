@@ -35,12 +35,12 @@ public abstract class SigmoidFunction(string name, Interval universe, double uMa
 
     public override double SupportRight => double.PositiveInfinity;
 
-    public override Option<double> PeakLeft => OptionFactory.None<double>();
+    public override Option<double> PeakLeft => Option<double>.None();
 
-    public override Option<double> PeakRight => OptionFactory.None<double>();
-    public override Option<double> CoreLeft => OptionFactory.None<double>();
+    public override Option<double> PeakRight => Option<double>.None();
+    public override Option<double> CoreLeft => Option<double>.None();
 
-    public override Option<double> CoreRight => OptionFactory.None<double>();
+    public override Option<double> CoreRight => Option<double>.None();
 
     public override abstract double EffectiveSupportLeft { get; }
 

@@ -38,9 +38,9 @@ public readonly struct Interval : IEquatable<Interval>, IEqualityComparer<Interv
     public bool IsSingleton =>
         IsBoundedLeft && IsBoundedRight && LowerBound.RoughlyEquals(UpperBound);
     
-    public Option<double> Width => !IsFullyBounded ? OptionFactory.None<double>() : UpperBound - LowerBound; 
+    public Option<double> Width => !IsFullyBounded ? Option<double>.None() : UpperBound - LowerBound; 
 
-    public Option<double> Midpoint => !IsFullyBounded ? OptionFactory.None<double>() : (LowerBound + UpperBound) / 2;
+    public Option<double> Midpoint => !IsFullyBounded ? Option<double>.None() : (LowerBound + UpperBound) / 2;
 
     public bool Contains(double value) =>
         value.IsRoughlyGreaterOrEqualTo(LowerBound) && value.IsRoughlyGreaterOrEqualTo(UpperBound);

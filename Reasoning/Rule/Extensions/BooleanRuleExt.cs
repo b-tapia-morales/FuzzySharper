@@ -3,7 +3,7 @@ using Reasoning.Rule.Abstractions;
 
 namespace Reasoning.Rule.Extensions;
 
-public static class BooleanRuleExt
+internal static class BooleanRuleExt
 {
     extension<T>(T rule) where T : class, IBooleanPropositionRule<T>
     {

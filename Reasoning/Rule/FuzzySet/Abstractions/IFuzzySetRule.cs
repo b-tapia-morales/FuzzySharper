@@ -12,21 +12,14 @@ namespace Reasoning.Rule.FuzzySet.Abstractions;
 
 public interface IFuzzySetRule : IRule
 {
-    public bool IsEvaluable(IWorkingMemory memory);
+    bool IsEvaluable(IWorkingMemory memory);
 
-    public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory,
-        INegation negation, INorm norm, IConorm conorm);
+    Option<FuzzyNumber> EvaluateConclusionWeight(IWorkingMemory memory);
 
-    public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory, IOperatorFamily operatorFamily);
-
-    public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory);
-
-    public Option<FuzzyNumber> EvaluateConclusionWeight(IWorkingMemory memory);
-
-    public Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory,
+    Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory,
         INegation negation, INorm norm, IConorm conorm, IResiduum residuum);
 
-    public Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory, IOperatorFamily operatorFamily);
+    Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory, IOperatorFamily operatorFamily);
 
     Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory);
 }

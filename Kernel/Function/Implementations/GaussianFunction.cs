@@ -85,7 +85,7 @@ public class GaussianFunction : BellShapedFunction
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return Mu;
         return Mu - Sigma * Sqrt(2 * Log(1 / alpha.Value));
@@ -94,7 +94,7 @@ public class GaussianFunction : BellShapedFunction
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return Mu;
         return Mu + Sigma * Sqrt(2 * Log(1 / alpha.Value));

@@ -43,12 +43,12 @@ public static class OptionExt
             option.IsSome ? option.Get : throw exceptionSupplier();
 
         public Option<T> Where(Predicate<T> predicate) =>
-            option.IsSome && predicate(option.Get) ? option : OptionFactory.None<T>();
+            option.IsSome && predicate(option.Get) ? option : Option<T>.None();
 
         public Option<TResult> Select<TResult>(Func<T, TResult> selector) =>
-            option.IsSome ? new Option<TResult>(selector(option.Get)) : OptionFactory.None<TResult>();
+            option.IsSome ? new Option<TResult>(selector(option.Get)) : Option<TResult>.None();
 
         public Option<TResult> SelectMany<TResult>(Func<T, Option<TResult>> mapper) =>
-            option.IsSome ? mapper(option.Get) : OptionFactory.None<TResult>();
+            option.IsSome ? mapper(option.Get) : Option<TResult>.None();
     }
 }

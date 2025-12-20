@@ -33,9 +33,9 @@ public abstract class BellShapedFunction(string name, Interval universe, double 
 
     public override Option<double> PeakRight => Center;
 
-    public override Option<double> CoreLeft => UMax.IsRoughlyOne() ? Center : OptionFactory.None<double>();
+    public override Option<double> CoreLeft => UMax.IsRoughlyOne() ? Center : Option<double>.None();
 
-    public override Option<double> CoreRight => UMax.IsRoughlyOne() ? Center : OptionFactory.None<double>();
+    public override Option<double> CoreRight => UMax.IsRoughlyOne() ? Center : Option<double>.None();
 
     public override double SupportLeft => double.NegativeInfinity;
 

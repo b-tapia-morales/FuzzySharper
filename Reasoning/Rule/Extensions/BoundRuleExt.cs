@@ -5,7 +5,7 @@ using Reasoning.Rule.Exceptions;
 
 namespace Reasoning.Rule.Extensions;
 
-public static class BoundRuleExt
+internal static class BoundRuleExt
 {
     extension<T>(T rule) where T : class, IContextBoundRule<T>
     {

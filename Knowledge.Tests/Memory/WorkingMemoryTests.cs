@@ -24,11 +24,11 @@ public class WorkingMemoryTests(ITestOutputHelper output)
     {
         Assert.True(Memory.NumericStorage.Contains(variable));
         Assert.True(Memory.NumericStorage.GetValue(variable).IsSome);
-        Memory.GetNumericFact(variable).IsSomeVal(out var value);
+        Memory.GetNumericFact(variable).IsSome(out var value);
         Assert.NotEqual(0, value);
         Assert.True(Memory.ContainsNumericFact(variable));
         Assert.True(Memory.GetNumericFact(variable).IsSome);
-        Memory.GetNumericFact(variable).IsSomeVal(out value);
+        Memory.GetNumericFact(variable).IsSome(out value);
         Assert.NotEqual(0, value);
     }
 
@@ -40,8 +40,8 @@ public class WorkingMemoryTests(ITestOutputHelper output)
         Assert.True(Memory.CategoricalStorage.GetValue(type).IsSome);
         Assert.True(Memory.ContainsCategoricalFact<MichelinStars>());
         Assert.True(Memory.GetCategoricalFact<MichelinStars>().IsSome);
-        Memory.GetCategoricalFact<MichelinStars>().IsSomeVal(out var e1);
-        Memory.CategoricalStorage.GetValue(type).IsSomeRef(out var e2);
+        Memory.GetCategoricalFact<MichelinStars>().IsSome(out var e1);
+        Memory.CategoricalStorage.GetValue(type).IsSome(out var e2);
         Assert.InRange((int) e1, 0, 3);
         Assert.Equal(e2.AsTypedEnum<MichelinStars>(), e1);
     }

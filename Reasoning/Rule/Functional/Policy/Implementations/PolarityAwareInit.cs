@@ -4,10 +4,10 @@ using Reasoning.Rule.Functional.Policy.Factory;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class PolarityAwareInit(SkewnessMetric metric) : ICoefficientInitPolicy<PolarityAwareInit>
+public class PolarityAwareInit(SkewnessMetric metric) : BaseCoefficientInitPolicy
 {
     public SkewnessMetric Metric { get; } = metric;
-    
+
     public static PolarityAwareInit Default => new(SkewnessMetric.Centroid);
 
     private static readonly Dictionary<SkewnessMetric, CoefficientInitMethod> Dict = new()
@@ -18,11 +18,11 @@ public class PolarityAwareInit(SkewnessMetric metric) : ICoefficientInitPolicy<P
         {SkewnessMetric.NormalizedMeanDeviation, CoefficientInitMethod.NormalizedMeanDeviation}
     };
 
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions)
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
     {
-        var coefficients = CoefficientInitFactory.GetInstance(Dict[Metric]).Initialize(propositions).Coefficients;
-        var midpoints = CoefficientInitFactory.GetInstance(CoefficientInitMethod.SupportMidpoint).Initialize(propositions).Coefficients;
-        return ([..coefficients.Zip(midpoints, (coefficient, midpoint) => coefficient < midpoint ? -coefficient : coefficient)], 0);
+        var coefficients = ((BaseCoefficientInitPolicy) CoefficientInitFactory.GetInstance(Dict[Metric])).Initialize(premise);
+        var midpoints = ((BaseCoefficientInitPolicy) CoefficientInitFactory.GetInstance(CoefficientInitMethod.SupportMidpoint)).Initialize(premise);
+        return [..coefficients.Zip(midpoints, (coefficient, midpoint) => coefficient < midpoint ? -coefficient : coefficient)];
     }
 }
 

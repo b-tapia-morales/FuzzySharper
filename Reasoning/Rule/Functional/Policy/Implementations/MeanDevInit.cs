@@ -2,20 +2,19 @@
 using Reasoning.Proposition.Abstractions;
 using Reasoning.Rule.Functional.Policy.Abstractions;
 using Utils.Shape;
-using static Reasoning.Rule.Functional.Policy.Abstractions.ICoefficientInitPolicy;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class MeanDevInit : ICoefficientInitPolicy
+public class MeanDevInit : BaseCoefficientInitPolicy
 {
     protected bool Normalize { get; init; }
 
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions)
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
     {
-        var coefficients = propositions.Select(p => EvaluateCoefficient(p, prop => prop.Function.CalculateCentroid(Axis.X) - prop.Function.EffectiveSupport.Midpoint.Get)).ToList();
+        var coefficients = premise.Select(p => EvaluateCoefficient(p, prop => prop.Function.CalculateCentroid(Axis.X) - prop.Function.EffectiveSupport.Midpoint.Get)).ToList();
         if (!Normalize)
-            return (coefficients, 0);
-        var widths = propositions.Select(p => EvaluateCoefficient(p, prop => prop.Function.EffectiveSupport.Width.Get));
-        return ([..coefficients.Zip(widths, (coefficient, width) => coefficient / width)], 0);
+            return coefficients;
+        var widths = premise.Select(p => EvaluateCoefficient(p, prop => prop.Function.EffectiveSupport.Width.Get));
+        return coefficients.Zip(widths, (coefficient, width) => coefficient / width);
     }
 }

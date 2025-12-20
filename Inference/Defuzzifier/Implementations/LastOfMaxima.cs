@@ -23,7 +23,7 @@ public class LastOfMaxima : BaseDefuzzifier
         
         var applicable = EvaluateFiringStrengths(rules, memory, family);
         if (applicable.Count == 0)
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         
         activatedRules = [..applicable.Select(tuple => tuple.Rule)];
         return FiringStrengthAggregator.AggregateFirings(applicable, Selector, aggregator);

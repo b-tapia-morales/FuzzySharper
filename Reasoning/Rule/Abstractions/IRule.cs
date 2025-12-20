@@ -1,11 +1,13 @@
 ﻿using Kernel.Number;
+using Kernel.Operator.Conorm.Abstractions;
 using Kernel.Operator.Family.Abstractions;
 using Kernel.Operator.Negation.Abstractions;
+using Kernel.Operator.Norm.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Aggregator.Abstractions;
 using Reasoning.Adaptation.Components;
-using Reasoning.Comparer.Implementations.Deterministic;
 using Reasoning.Proposition.Abstractions;
+using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
 
@@ -22,13 +24,16 @@ public interface IRule
     DateTimeOffset CreationTime { get; }
     AdaptationState AdaptationState { get; }
 
+    IReadOnlyList<IProposition> Premise { get; }
+    int PremiseLength { get; }
+    IReadOnlyList<StringOrType> PremiseVariables { get; }
+    IReadOnlyDictionary<StringOrType, IReadOnlyList<IProposition>> PremiseDict { get; }
+
     bool IsPremiseEvaluable(IWorkingMemory memory);
 
     bool PremiseContains(StringOrType identifier);
 
     bool ConsequentContains(string variableName);
-
-    int PremiseLength();
 
     IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory, INegation negation);
 
@@ -36,7 +41,14 @@ public interface IRule
 
     IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory);
 
-    void UpdateLearning(uint maxHistorySize, IWeightAggregator aggregator);
+    Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory,
+        INegation negation, INorm norm, IConorm conorm);
 
-    void ResetLearning();
+    Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory, IOperatorFamily operatorFamily);
+
+    Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory);
+
+    void RecomputeAdaptation(uint maxHistorySize, IWeightAggregator aggregator);
+
+    void ResetAdaptation();
 }

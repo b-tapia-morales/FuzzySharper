@@ -44,9 +44,9 @@ public abstract class UnilateralFunction(string name, Interval universe, double 
 
     public override double EffectiveSupportRight => IsBoundedRight ? SlopePeak : SlopeBase;
 
-    public override Option<double> CoreLeft => !IsNormal ? OptionFactory.None<double>() : PeakLeft;
+    public override Option<double> CoreLeft => !IsNormal ? Option<double>.None() : PeakLeft;
 
-    public override Option<double> CoreRight => !IsNormal ? OptionFactory.None<double>() : PeakRight;
+    public override Option<double> CoreRight => !IsNormal ? Option<double>.None() : PeakRight;
 
     public override abstract Option<double> AlphaCutLeft(FuzzyNumber alpha);
 

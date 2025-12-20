@@ -2,12 +2,11 @@
 using System.Globalization;
 using Inference.Aggregator.Factory;
 using Inference.Defuzzifier.Factory;
-using Inference.Engine.Builder;
+using Inference.Engine.Fuzzy.Builder;
 using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Factory.Canonical;
 using Knowledge.Memory.Implementations;
 using Microsoft.Extensions.DependencyInjection;
-using Reasoning.Base.Abstractions;
 using Reasoning.Base.FuzzySet.Abstractions;
 using Shared.Options.Factory;
 using Xunit.Abstractions;
@@ -27,7 +26,7 @@ public class EngineTests(ITestOutputHelper outputHelper)
         var canonicalFamily = CanonicalFactory.UseFamily(canonicalType);
         var workingMemory = WorkingMemory.Create(("food quality", foodRating), ("service quality", serviceRating));
         var ruleBase = Rules.DeepCopy();
-        var engine = EngineBuilder
+        var engine = FuzzyConsequentEngineBuilder
             .Create()
             .WithRuleBase(ruleBase)
             .WithWorkingMemory(workingMemory)
@@ -40,7 +39,7 @@ public class EngineTests(ITestOutputHelper outputHelper)
             Rule: r,
             Weight: r.EvaluatePremiseWeight(workingMemory, canonicalFamily)));
         outputHelper.WriteLine(string.Join(Environment.NewLine, tuples.Select(t => $"{t.Rule} : {t.Weight}")));
-        var success = engine.Defuzzify("Tip").IsSomeVal(out var value);
+        var success = engine.Defuzzify("Tip").IsSome(out var value);
         outputHelper.WriteLine(value.ToString(CultureInfo.InvariantCulture));
         if (success)
             Assert.InRange(value, 0, 35);

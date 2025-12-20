@@ -10,6 +10,6 @@ public class LatestValue : IWeightAggregator
 {
     public Option<FuzzyNumber> Aggregate(IReadOnlyCollection<AdaptationRecord> records) =>
         records.Count == 0
-            ? OptionFactory.None<FuzzyNumber>()
+            ? Option<FuzzyNumber>.None()
             : records.Last().Weight;
 }

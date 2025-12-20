@@ -56,14 +56,14 @@ public class LogisticFunction : SigmoidFunction
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyGreaterOrEqualTo(UMax) || alpha.Value.IsRoughlyZero())
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         return SaturatesLeft ? double.NegativeInfinity : C - (double.Log(UMax / alpha.Value) - 1) / A;
     }
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyGreaterOrEqualTo(UMax) || alpha.Value.IsRoughlyZero())
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         return SaturatesRight ? double.PositiveInfinity : C - (double.Log(UMax / alpha.Value) - 1) / A;
     }
 

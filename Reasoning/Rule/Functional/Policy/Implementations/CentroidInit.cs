@@ -4,24 +4,24 @@ using Reasoning.Proposition.Implementations;
 using Reasoning.Rule.Functional.Policy.Abstractions;
 using Shared.Intervals.Implementations;
 using Shared.Options.Factory;
+using Shared.Options.Implementations;
 using Utils.Shape;
-using static Reasoning.Rule.Functional.Policy.Abstractions.ICoefficientInitPolicy;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class CentroidInit : ICoefficientInitPolicy
+public class CentroidInit : BaseCoefficientInitPolicy
 {
     protected bool Normalize { get; init; }
 
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions)
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
     {
-        var centroids = propositions.Select(p => EvaluateCoefficient(p, prop => prop.Function.CalculateCentroid(Axis.X))).ToList();
+        var centroids = premise.Select(p => EvaluateCoefficient(p, prop => prop.Function.CalculateCentroid(Axis.X))).ToList();
         if (!Normalize)
-            return (centroids, 0);
-        var options = propositions.Select(p => p is FuzzyProposition {Function.UniverseOfDiscourse.IsFullyBounded: true} prop
+            return centroids;
+        var options = premise.Select(p => p is FuzzyProposition {Function.UniverseOfDiscourse.IsFullyBounded: true} prop
             ? prop.Function.UniverseOfDiscourse
-            : OptionFactory.None<Interval>()
+            : Option<Interval>.None()
         );
-        return ([..centroids.Zip(options, (centroid, option) => option.IsSomeVal(out var uoD) ? (centroid - uoD.LowerBound) / uoD.Width.Get : 0)], 0);
+        return centroids.Zip(options, (centroid, option) => option.IsSome(out var uoD) ? (centroid - uoD.LowerBound) / uoD.Width.Get : 0);
     }
 }

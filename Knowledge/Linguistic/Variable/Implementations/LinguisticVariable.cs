@@ -93,12 +93,12 @@ public class LinguisticVariable : IVariable
         SemanticalMappings.ContainsKey(term);
 
     public Option<IMembershipFunction> GetFunction(string term) =>
-        SemanticalMappings.TryGetValue(term, out var value) ? OptionFactory.SomeRef(value) : OptionFactory.None<IMembershipFunction>();
+        SemanticalMappings.TryGetValue(term, out var value) ? Option<IMembershipFunction>.Some(value) : Option<IMembershipFunction>.None();
 
     public Option<Interval> GetCoverage()
     {
         if (SemanticalMappings.Count == 0)
-            return OptionFactory.None<Interval>();
+            return Option<Interval>.None();
         var ranges = SemanticalMappings.Values.Select(e => e.EffectiveSupport).ToList();
         return new Interval(ranges.MinBy(i => i.LowerBound).LowerBound, ranges.MaxBy(i => i.UpperBound).UpperBound);
     }
@@ -114,7 +114,7 @@ public class LinguisticVariable : IVariable
             throw new ArgumentException("Cannot draw samples from zero points", nameof(points));
 
         var isUoDBounded = UniverseOfDiscourse.IsFullyBounded;
-        var coverageExists = GetCoverage().IsSomeVal(out var interval);
+        var coverageExists = GetCoverage().IsSome(out var interval);
         if (!(isUoDBounded || coverageExists))
             return [];
 

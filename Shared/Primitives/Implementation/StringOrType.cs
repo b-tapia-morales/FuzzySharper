@@ -4,7 +4,7 @@ using Shared.Primitives.Exceptions;
 namespace Shared.Primitives.Implementation;
 
 [GenerateOneOf]
-public partial class StringOrType : OneOfBase<string, Type>, IEquatable<StringOrType>, IEqualityComparer<StringOrType>
+public partial class StringOrType : OneOfBase<string, Type>, IEquatable<StringOrType>
 {
     public bool IsString => IsT0;
     public bool IsType => IsT1;
@@ -14,27 +14,25 @@ public partial class StringOrType : OneOfBase<string, Type>, IEquatable<StringOr
     public Type AsType => IsType ? AsT1 : throw new TypeMismatchException(nameof(StringOrType), nameof(Type), nameof(String));
 
     public override bool Equals(object? obj) =>
-        obj is StringOrType other && Equals(this, other);
+        obj is StringOrType other && Equals(other);
 
-    public bool Equals(StringOrType? other) =>
-        Equals(this, other);
-
-    public bool Equals(StringOrType? x, StringOrType? y)
+    public bool Equals(StringOrType? other)
     {
-        if (ReferenceEquals(x, y))
+        if (ReferenceEquals(this, other))
             return true;
-        if (x is null || y is null)
+        if (other is null)
             return false;
-        if (x.IsType && y.IsType)
-            return EqualityComparer<Type>.Default.Equals(x.AsType, y.AsType);
-        if (x.IsString && y.IsString)
-            return string.Equals(x.AsString, y.AsString, StringComparison.OrdinalIgnoreCase);
+        if (IsType && other.IsType)
+            return EqualityComparer<Type>.Default.Equals(AsType, other.AsType);
+        if (IsString && other.IsString)
+            return string.Equals(AsString, other.AsString, StringComparison.OrdinalIgnoreCase);
         return false;
     }
 
-    public override int GetHashCode() =>
-        GetHashCode(this);
-
-    public int GetHashCode(StringOrType obj) =>
-        obj.IsType ? obj.AsType.GetHashCode() : obj.AsString.ToLower().GetHashCode();
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        Switch(str => hash.Add(str, StringComparer.OrdinalIgnoreCase), type => hash.Add(type));
+        return hash.ToHashCode();
+    }
 }

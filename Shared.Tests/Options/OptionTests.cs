@@ -1,6 +1,7 @@
 ﻿using Shared.Options.Exceptions;
 using Shared.Options.Extensions;
 using Shared.Options.Factory;
+using Shared.Options.Implementations;
 
 namespace Shared.Tests.Options;
 
@@ -9,8 +10,8 @@ public class OptionTests
     [Fact]
     public void SameValuesYieldEquality()
     {
-        var opt1 = OptionFactory.SomeVal(1);
-        var opt2 = OptionFactory.SomeVal(1);
+        var opt1 = Option<int>.Some(1);
+        var opt2 = Option<int>.Some(1);
         Assert.Equal(opt1, opt2);
     }
 
@@ -18,8 +19,8 @@ public class OptionTests
     public void NullEqualsNone()
     {
         string? s = null;
-        var actual = OptionFactory.MaybeRef(s);
-        var expected = OptionFactory.None<string>();
+        var actual = Option<string>.Maybe(s);
+        var expected = Option<string>.None();
         Assert.Equal(expected, actual);
     }
 
@@ -27,8 +28,8 @@ public class OptionTests
     public void NullableEqualsNone()
     {
         double? x = null;
-        var actual = OptionFactory.MaybeVal(x);
-        var expected = OptionFactory.None<double>();
+        var actual = Option<double>.MaybeNullable(x);
+        var expected = Option<double>.None();
         Assert.Equal(expected, actual);
     }
 
@@ -36,29 +37,29 @@ public class OptionTests
     public void ExceptionThrownIfNoneFromOrElseThrow()
     {
         double? x = null;
-        var opt = OptionFactory.MaybeVal(x);
+        var opt = Option<double>.MaybeNullable(x);
         Assert.ThrowsAny<Exception>(() => opt.OrElseThrow(new InvalidOperationException()));
         Assert.ThrowsAny<Exception>(() => opt.OrElseThrow(() => new InvalidOperationException()));
     }
-    
+
     [Fact]
     public void OrElsePreservesValueIfSome()
     {
         double? x = 1.0;
-        var expected = OptionFactory.MaybeVal(1.0);
-        var actual1 = OptionFactory.MaybeVal(x).OrElse(2.0);
-        var actual2 = OptionFactory.MaybeVal(x).OrElse(() => 2.0);
+        var expected = Option<double>.Maybe(1.0);
+        var actual1 = Option<double>.MaybeNullable(x).OrElse(2.0);
+        var actual2 = Option<double>.MaybeNullable(x).OrElse(() => 2.0);
         Assert.Equal(expected, actual1);
-        Assert.Equal(expected, actual2);       
+        Assert.Equal(expected, actual2);
     }
-    
+
     [Fact]
     public void OrElseReplacesValueIfNone()
     {
         double? x = null;
-        var expected = OptionFactory.MaybeVal(1.0);
-        var actual1 = OptionFactory.MaybeVal(x).OrElse(1.0);
-        var actual2 = OptionFactory.MaybeVal(x).OrElse(() => 1.0);
+        var expected = Option<double>.Maybe(1.0);
+        var actual1 = Option<double>.MaybeNullable(x).OrElse(1.0);
+        var actual2 = Option<double>.MaybeNullable(x).OrElse(() => 1.0);
         Assert.Equal(expected, actual1);
         Assert.Equal(expected, actual2);
     }
@@ -68,8 +69,8 @@ public class OptionTests
     {
         const string firstName = "John";
         const string lastName = "Doe";
-        var actual = OptionFactory.MaybeRef(firstName).Select(name => $"{name} {lastName}");
-        var expected = OptionFactory.SomeRef($"{firstName} {lastName}");
+        var actual = Option<string>.Maybe(firstName).Select(name => $"{name} {lastName}");
+        var expected = Option<string>.Some($"{firstName} {lastName}");
         Assert.Equal(expected, actual);
     }
 
@@ -78,8 +79,8 @@ public class OptionTests
     {
         string? firstName = null;
         const string lastName = "Doe";
-        var actual = OptionFactory.MaybeRef(firstName).Select(name => $"{name} {lastName}");
-        var expected = OptionFactory.None<string>();
+        var actual = Option<string>.Maybe(firstName).Select(name => $"{name} {lastName}");
+        var expected = Option<string>.None();
         Assert.Equal(expected, actual);
     }
 
@@ -87,19 +88,18 @@ public class OptionTests
     public void WhereIsSomeIfPredicateIsTrue()
     {
         const string fullName = "John Doe";
-        var opt = OptionFactory.MaybeRef(fullName);
+        var opt = Option<string>.Maybe(fullName);
         var actual = opt.Where(s => s.Contains("Doe"));
-        var expected = opt;
-        Assert.Equal(expected, actual);
+        Assert.Equal(opt, actual);
     }
 
     [Fact]
     public void WhereIsNoneIfPredicateIsFalse()
     {
         const string fullName = "John Doe";
-        var opt = OptionFactory.SomeRef(fullName);
+        var opt = Option<string>.Some(fullName);
         var actual = opt.Where(s => s.Contains("Jones"));
-        var expected = OptionFactory.None<string>();
+        var expected = Option<string>.None();
         Assert.Equal(expected, actual);
     }
 

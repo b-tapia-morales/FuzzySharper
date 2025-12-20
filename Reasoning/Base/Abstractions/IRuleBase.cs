@@ -39,7 +39,7 @@ public interface IRuleBase<T> where T : class, IRule
 
     IDictionary<string, List<T>> BuildRuleDependencyMap();
 
-    IEnumerable<IRule> FilterByApplicability(IWorkingMemory memory);
+    IEnumerable<IRule> GetEvaluable(IWorkingMemory memory);
 
     public void UpdateLearning(AdaptationConfig config);
 

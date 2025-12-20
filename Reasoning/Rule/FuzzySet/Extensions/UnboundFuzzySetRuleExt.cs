@@ -5,7 +5,7 @@ using Reasoning.Rule.FuzzySet.Abstractions;
 
 namespace Reasoning.Rule.FuzzySet.Extensions;
 
-public static class UnboundFuzzySetRuleExt
+internal static class UnboundFuzzySetRuleExt
 {
     extension<T>(T rule) where T : class, IFuzzySetRule, IContextFreeRule<T>
     {

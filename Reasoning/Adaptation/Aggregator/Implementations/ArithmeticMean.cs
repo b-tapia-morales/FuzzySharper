@@ -10,6 +10,6 @@ public class ArithmeticMean : IWeightAggregator
 {
     public Option<FuzzyNumber> Aggregate(IReadOnlyCollection<AdaptationRecord> records) =>
         records.Count == 0
-            ? OptionFactory.None<FuzzyNumber>()
-            : OptionFactory.SomeVal(FuzzyNumber.Of(records.Select(e => e.Weight.Value).Average()));
+            ? Option<FuzzyNumber>.None()
+            : Option<FuzzyNumber>.Some(FuzzyNumber.Of(records.Select(e => e.Weight.Value).Average()));
 }

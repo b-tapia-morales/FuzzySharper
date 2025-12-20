@@ -3,8 +3,8 @@ using Reasoning.Rule.Functional.Policy.Abstractions;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class SupportWidthInit : ICoefficientInitPolicy
+public class SupportWidthInit : BaseCoefficientInitPolicy
 {
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions) =>
-        ([..propositions.Select(p => ICoefficientInitPolicy.EvaluateCoefficient(p, prop => prop.Function.RestrictedSupport.Width.Get))], 0);
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise) =>
+        premise.Select(p => EvaluateCoefficient(p, prop => prop.Function.RestrictedSupport.Width.Get));
 }

@@ -1,6 +1,6 @@
 ﻿namespace Reasoning.Rule.Exceptions;
 
-public class MissingAntecedentException : Exception
+public class MissingAntecedentException : InvalidOperationException
 {
     private const string Template =
         """

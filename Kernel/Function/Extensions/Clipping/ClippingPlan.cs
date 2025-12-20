@@ -12,8 +12,8 @@ public class ClippingPlan
     public bool HasLeftCut { get; private init; }
     public bool HasRightCut { get; private init; }
 
-    public Option<double> LeftCut { get; private init; } = OptionFactory.None<double>();
-    public Option<double> RightCut { get; private init; } = OptionFactory.None<double>();
+    public Option<double> LeftCut { get; private init; } = Option<double>.None();
+    public Option<double> RightCut { get; private init; } = Option<double>.None();
 
     public ClippingMode Mode { get; private init; }
 
@@ -44,8 +44,8 @@ public class ClippingPlan
         {
             HasLeftCut = hasLeftCut,
             HasRightCut = hasRightCut,
-            LeftCut = hasLeftCut ? ux0 : OptionFactory.None<double>(),
-            RightCut = hasRightCut ? ux1 : OptionFactory.None<double>(),
+            LeftCut = hasLeftCut ? ux0 : Option<double>.None(),
+            RightCut = hasRightCut ? ux1 : Option<double>.None(),
             Mode = hasCutPastCentroid || innerRegionIsSmall ? ClippingMode.Inner : ClippingMode.LeftPlusRight
         };
     }

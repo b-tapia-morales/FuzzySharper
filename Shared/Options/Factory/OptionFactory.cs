@@ -5,20 +5,26 @@ namespace Shared.Options.Factory;
 
 public static class OptionFactory
 {
-    extension<T>(Option<T> option) where T : class
+    extension<T>(Option<T> option)
     {
-        public static Option<T> SomeRef(T value)
+        public static Option<T> Some(T value)
         {
             ArgumentNullException.ThrowIfNull(value);
             return new Option<T>(value);
         }
 
-        public static Option<T> MaybeRef(T? value) =>
+        public static Option<T> Maybe(T? value) =>
             value == null ? Null.GetInstance : new Option<T>(value);
-
-        public bool IsSomeRef(out T value)
+        
+        public static Option<T> None()
         {
-            value = null!;
+            var underlyingType = GetNullableType<T>();
+            return underlyingType != null ? throw new NullableTypeException(underlyingType) : Null.GetInstance;
+        }
+        
+        public bool IsSome(out T value)
+        {
+            value = default!;
             if (option.IsNone)
                 return false;
             value = option.Get;
@@ -28,32 +34,11 @@ public static class OptionFactory
 
     extension<T>(Option<T> option) where T : struct
     {
-        public static Option<T> SomeVal(T value) =>
-            new(value);
+        public static Option<T> SomeNullable(T? value) =>
+            value.HasValue ? Option<T>.Some(value.Value) : throw new ArgumentNullException(nameof(value));
 
-        public static Option<T> SomeVal(T? value) =>
-            value.HasValue ? SomeVal(value.Value) : throw new ArgumentNullException(nameof(value));
-
-        public static Option<T> MaybeVal(T value) =>
-            new(value);
-
-        public static Option<T> MaybeVal(T? maybe) =>
-            maybe.HasValue ? MaybeVal(maybe.Value) : None<T>();
-
-        public bool IsSomeVal(out T value)
-        {
-            value = default;
-            if (option.IsNone)
-                return false;
-            value = option.Get;
-            return true;
-        }
-    }
-
-    public static Option<T> None<T>()
-    {
-        var underlyingType = GetNullableType<T>();
-        return underlyingType != null ? throw new NullableTypeException(underlyingType) : Null.GetInstance;
+        public static Option<T> MaybeNullable(T? maybe) =>
+            maybe.HasValue ? Option<T>.Maybe(maybe.Value) : Option<T>.None();
     }
 
     private static Type? GetNullableType<T>() => Nullable.GetUnderlyingType(typeof(T));

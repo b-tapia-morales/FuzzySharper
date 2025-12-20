@@ -1,23 +1,23 @@
 ﻿using Knowledge.Memory.Abstractions;
 using Reasoning.Base.Extensions;
-using Reasoning.Rule.FuzzySet;
 using Reasoning.Rule.FuzzySet.Abstractions;
+using Reasoning.Rule.FuzzySet.Components;
 using Utils.Graph;
 
 namespace Reasoning.Base.FuzzySet.Extensions;
 
 public static class FuzzySetRulesExt
 {
-    extension<T>(ICollection<T> rules) where T : class, IFuzzySetRule
+    extension(ICollection<IFuzzySetRule> rules)
     {
-        public IEnumerable<T> FilterByResolutionMethod(string variableName, IComparer<IFuzzySetRule> ruleComparer) =>
+        public IEnumerable<IFuzzySetRule> FilterByResolutionMethod(string variableName, IComparer<IFuzzySetRule> ruleComparer) =>
             rules
                 .Where(rule => string.Equals(rule.Consequent!.Target, variableName, StringComparison.OrdinalIgnoreCase))
-                .GroupBy(rule => ((FuzzySetConsequent) rule.Consequent!).Proposition.Term)
+                .GroupBy(rule => ((FuzzySetConsequent) rule.Consequent!).Proposition.Label, StringComparer.OrdinalIgnoreCase)
                 .Select(grouping => (Function: grouping.Key, Rule: grouping.MaxBy(g => g, ruleComparer)))
                 .Select(tuple => tuple.Rule)!;
 
-        public IEnumerable<T> FilterFacts(IWorkingMemory workingMemory)
+        public IEnumerable<IFuzzySetRule> FilterFacts(IWorkingMemory workingMemory)
         {
             var keys = workingMemory.NumericStorage.Keys().Select(e => e.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var rule in rules)
@@ -27,7 +27,7 @@ public static class FuzzySetRulesExt
             }
         }
 
-        public IEnumerable<T> FilterCircularDependencies(string variableName)
+        public IEnumerable<IFuzzySetRule> FilterCircularDependencies(string variableName)
         {
             var adjacencyList = rules.BuildDependencyGraph();
             var backEdges = GraphUtils.FindBackEdges(adjacencyList, variableName);

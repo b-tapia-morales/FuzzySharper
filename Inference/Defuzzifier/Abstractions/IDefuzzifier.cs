@@ -10,10 +10,20 @@ namespace Inference.Defuzzifier.Abstractions;
 public interface IDefuzzifier
 {
     Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
-        IValueAggregator aggregator, ImplicationMethod method, 
+        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules);
-
+    
     Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
-        IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method, 
+        IOperatorFamily family, ImplicationMethod method,
+        out ICollection<IFuzzySetRule> activatedRules);
+    
+    Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
+        IValueAggregator aggregator, ImplicationMethod method,
+        out ICollection<IFuzzySetRule> activatedRules);
+    
+    
+
+    Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory, 
+        ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules);
 }

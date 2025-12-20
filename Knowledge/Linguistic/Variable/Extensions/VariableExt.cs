@@ -42,7 +42,7 @@ public static class VariableExt
         if (emptyEntry != null)
             throw new EmptyEntryException();
 
-        var collidingEntry = functions.GroupBy(func => func.Name.ToLowerInvariant()).FirstOrDefault(group => group.Count() > 1);
+        var collidingEntry = functions.GroupBy(func => func.Name, StringComparer.OrdinalIgnoreCase).FirstOrDefault(group => group.Count() > 1);
         if (collidingEntry != null)
             throw new DuplicatedEntryException(name, collidingEntry.Key);
 
@@ -58,11 +58,11 @@ public static class VariableExt
 
     extension(IVariable variable)
     {
-        public IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d, 
+        public IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d,
             double uMax = 1) =>
             variable.AddFunction(TrapezoidFunction.Create(name, a, b, c, d, variable.UniverseOfDiscourse, uMax));
 
-        public IVariable AddLeftTrapezoidFunction(string name, double a, double b, 
+        public IVariable AddLeftTrapezoidFunction(string name, double a, double b,
             double uMax = 1) =>
             variable.AddFunction(LeftTrapezoidFunction.Create(name, a, b, variable.UniverseOfDiscourse, uMax));
 
@@ -78,7 +78,7 @@ public static class VariableExt
             double uMax = 1) =>
             variable.AddFunction(SingletonFunction.Create(name, center, variable.UniverseOfDiscourse, decimalPlaces, uMax));
 
-        public IVariable AddGaussianFunction(string name, double mu, double sigma, 
+        public IVariable AddGaussianFunction(string name, double mu, double sigma,
             double uMax = 1) =>
             variable.AddFunction(GaussianFunction.Create(name, mu, sigma, variable.UniverseOfDiscourse, uMax));
 
@@ -86,7 +86,7 @@ public static class VariableExt
             double uMax = 1) =>
             variable.AddFunction(GeneralizedBellFunction.Create(name, a, b, c, variable.UniverseOfDiscourse, uMax));
 
-        public IVariable AddSigmoidFunction(string name, double a, double c, 
+        public IVariable AddSigmoidFunction(string name, double a, double c,
             double uMax = 1) =>
             variable.AddFunction(LogisticFunction.Create(name, a, c, variable.UniverseOfDiscourse, uMax));
 

@@ -11,7 +11,7 @@ public class RecencyWeightedAverage : IWeightAggregator
     public Option<FuzzyNumber> Aggregate(IReadOnlyCollection<AdaptationRecord> records)
     {
         if (records.Count == 0)
-            return OptionFactory.None<FuzzyNumber>();
+            return Option<FuzzyNumber>.None();
 
         var numerator = records.Sum(e => (int) e.Iteration * e.Weight.Value);
         var denominator = records.Select(e => (int) e.Iteration).Average();

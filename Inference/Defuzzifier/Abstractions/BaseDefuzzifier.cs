@@ -1,12 +1,13 @@
 ﻿using Inference.Aggregator.Abstractions;
 using Inference.Aggregator.Components;
+using Inference.Aggregator.Factory;
 using Inference.Defuzzifier.Exceptions;
 using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Kernel.Operator.Family.Factory.Canonical;
 using Knowledge.Memory.Abstractions;
-using Reasoning.Rule.FuzzySet;
 using Reasoning.Rule.FuzzySet.Abstractions;
+using Reasoning.Rule.FuzzySet.Components;
 using Shared.Options.Extensions;
 using Shared.Options.Implementations;
 
@@ -16,13 +17,11 @@ namespace Inference.Defuzzifier.Abstractions;
 
 public abstract class BaseDefuzzifier : IDefuzzifier
 {
-    protected abstract Option<double> DefuzzifyMethod(
-        ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
+    protected abstract Option<double> DefuzzifyMethod(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
         IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules);
 
-    public Option<double> Defuzzify(
-        ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
+    public Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
         IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules)
     {
@@ -40,9 +39,21 @@ public abstract class BaseDefuzzifier : IDefuzzifier
     }
 
     public Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
+        IOperatorFamily family, ImplicationMethod method,
+        out ICollection<IFuzzySetRule> activatedRules) =>
+        Defuzzify(rules, memory, family, ValueAggregatorFactory.GetInstance(ValueAggregatorMethod.Mean), method, out activatedRules);
+    
+    public Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
         IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules) =>
         Defuzzify(rules, memory, CanonicalFactory.UseFamily(CanonicalType.Godel), aggregator, method, out activatedRules);
+
+    public Option<double> Defuzzify(ICollection<IFuzzySetRule> rules, IWorkingMemory memory, 
+        ImplicationMethod method,
+        out ICollection<IFuzzySetRule> activatedRules) => 
+        Defuzzify(rules, memory, ValueAggregatorFactory.GetInstance(ValueAggregatorMethod.Mean), method, out activatedRules);
+    
+    
 
     protected static IList<FiringStrength> EvaluateFiringStrengths(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
         IOperatorFamily family) =>

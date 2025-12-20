@@ -3,8 +3,8 @@ using Reasoning.Rule.Functional.Policy.Abstractions;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class ZeroInit : ICoefficientInitPolicy
+public class ZeroInit : BaseCoefficientInitPolicy
 {
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions) =>
-        ([..Enumerable.Range(0, propositions.Count).Select(_ => 0)], 0);
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise) =>
+        Enumerable.Range(0, premise.Count).Select(_ => 0D);
 }

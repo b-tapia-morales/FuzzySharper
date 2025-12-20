@@ -1,6 +1,6 @@
 ﻿namespace Reasoning.Rule.Exceptions;
 
-public class FinalizedRuleException : Exception
+public class FinalizedRuleException : InvalidOperationException
 {
     private const string Template =
         """

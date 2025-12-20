@@ -1,15 +1,15 @@
 ﻿using Knowledge.Linguistic.Base.Abstractions;
-using Reasoning.Comparer.Implementations.Deterministic;
 using Reasoning.Proposition.Components;
 using Reasoning.Rule.Abstractions;
 using Reasoning.Rule.Extensions;
 using Reasoning.Rule.FuzzySet.Abstractions;
+using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Reasoning.Rule.FuzzySet.Extensions;
 
 namespace Reasoning.Rule.FuzzySet.Implementations;
 
-public class UnboundFuzzySetRule :
-    AbstractFuzzySetRule, IUnboundFuzzySetRule<UnboundFuzzySetRule>, IBooleanPropositionRule<UnboundFuzzySetRule>
+public sealed class UnboundFuzzySetRule :
+    AbstractFuzzySetRule, IUnboundFuzzySetRule<UnboundFuzzySetRule>, IBooleanPropositionRule<UnboundFuzzySetRule>, IEquatable<UnboundFuzzySetRule>
 {
     public static UnboundFuzzySetRule Create() =>
         new();
@@ -25,6 +25,15 @@ public class UnboundFuzzySetRule :
         {
             CertaintyFactor = certaintyFactor
         };
+
+    public bool Equals(UnboundFuzzySetRule? other) =>
+        MemberwiseEquals(other);
+
+    public override bool Equals(object? obj) =>
+        obj is AbstractFuzzySetRule other && MemberwiseEquals(other);
+
+    public override int GetHashCode() =>
+        MemberwiseHashCode();
 
     public UnboundFuzzySetRule If(ILinguisticBase linguisticBase, string variableName, string termName, HedgeType hedgeType = HedgeType.None) =>
         UnboundRuleExt.If(this, linguisticBase, variableName, termName, hedgeType);

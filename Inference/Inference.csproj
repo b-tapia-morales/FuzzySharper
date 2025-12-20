@@ -11,4 +11,8 @@
       <ProjectReference Include="..\Reasoning\Reasoning.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Engine\Functional\" />
+    </ItemGroup>
+
 </Project>

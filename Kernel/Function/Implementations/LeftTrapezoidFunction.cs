@@ -40,12 +40,12 @@ public class LeftTrapezoidFunction : UnilateralFunction
     public override double SlopePeak => A;
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha) =>
-        alpha.Value.IsRoughlyGreaterThan(UMax) ? OptionFactory.None<double>() : double.NegativeInfinity;
+        alpha.Value.IsRoughlyGreaterThan(UMax) ? Option<double>.None() : double.NegativeInfinity;
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return A;
         return B - alpha.Value * (B - A);

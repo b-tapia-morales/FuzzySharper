@@ -24,7 +24,7 @@ public class CenterOfSums : BaseDefuzzifier
 
         var applicable = EvaluateFiringStrengths(rules, memory, family);
         if (applicable.Count == 0)
-            return OptionFactory.None<double>();
+            return Option<double>.None();
 
         var candidates = applicable.Select(tuple => (
                 Rule: tuple.Rule,
@@ -34,7 +34,7 @@ public class CenterOfSums : BaseDefuzzifier
             .Where(tuple => tuple.Area.IsRoughlyGreaterThan(0))
             .ToList();
         if (candidates.Count == 0)
-            return OptionFactory.None<double>();
+            return Option<double>.None();
 
         activatedRules = [..candidates.Select(tuple => tuple.Rule)];
 

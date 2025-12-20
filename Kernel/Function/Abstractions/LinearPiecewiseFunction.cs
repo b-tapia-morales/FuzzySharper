@@ -45,9 +45,9 @@ public abstract class LinearPiecewiseFunction(string name, Interval universe, do
 
     public override double SupportRight => RightEdge;
 
-    public override Option<double> CoreLeft => UMax.IsRoughlyOne() ? TopLeftCorner : OptionFactory.None<double>();
+    public override Option<double> CoreLeft => UMax.IsRoughlyOne() ? TopLeftCorner : Option<double>.None();
 
-    public override Option<double> CoreRight => UMax.IsRoughlyOne() ? TopRightCorner : OptionFactory.None<double>();
+    public override Option<double> CoreRight => UMax.IsRoughlyOne() ? TopRightCorner : Option<double>.None();
 
     override protected DeferredValue<double> DeferredArea => new(PolygonUtils.CalculateArea(Vertices));
 

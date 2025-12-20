@@ -47,10 +47,10 @@ public class SingletonFunction : LinearPiecewiseFunction
     override protected List<(double X, double Y)> Vertices => [(Left, 0), (Left, UMax), (Right, UMax), (Right, 0)];
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha) =>
-        alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax) ? OptionFactory.None<double>() : Left;
+        alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax) ? Option<double>.None() : Left;
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha) =>
-        alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax) ? OptionFactory.None<double>() : Right;
+        alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax) ? Option<double>.None() : Right;
 
     public override Func<double, double> LarsenProduct(FuzzyNumber lambda) =>
         x => x.IsRoughlyGreaterThan(Left) && x.IsRoughlyLesserThan(Right) ? lambda.Value : 0;

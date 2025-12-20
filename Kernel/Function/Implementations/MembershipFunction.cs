@@ -51,7 +51,7 @@ public abstract class MembershipFunction : IMembershipFunction
         (IsBoundedLeft || FloorsLeft) && (IsBoundedRight || FloorsRight);
 
     public virtual bool IsStrictlyUnimodal =>
-        Peak.IsSomeVal(out var interval) && interval.IsSingleton;
+        Peak.IsSome(out var interval) && interval.IsSingleton;
 
     public virtual bool IsOpenLeft =>
         UMax.IsRoughlyOne() && SaturatesLeft;
@@ -66,23 +66,23 @@ public abstract class MembershipFunction : IMembershipFunction
         UMax.IsRoughlyOne() && Peak.IsSome;
 
     public virtual bool IsPrototypical =>
-        UMax.IsRoughlyOne() && Peak.IsSomeVal(out var interval) && interval.IsSingleton;
+        UMax.IsRoughlyOne() && Peak.IsSome(out var interval) && interval.IsSingleton;
 
     public abstract Option<double> PeakLeft { get; }
 
     public abstract Option<double> PeakRight { get; }
 
     public virtual Option<Interval> Peak =>
-        HasGlobalMaximum ? new Interval(PeakLeft.Get, PeakRight.Get) : OptionFactory.None<Interval>();
+        HasGlobalMaximum ? new Interval(PeakLeft.Get, PeakRight.Get) : Option<Interval>.None();
 
     public Option<double> PeakLeftClipped =>
-        HasGlobalMaximum ? Math.Max(PeakLeft.Get, UniverseOfDiscourse.LowerBound) : OptionFactory.None<double>();
+        HasGlobalMaximum ? Math.Max(PeakLeft.Get, UniverseOfDiscourse.LowerBound) : Option<double>.None();
 
     public Option<double> PeakRightClipped =>
-        HasGlobalMaximum ? Math.Min(PeakRight.Get, UniverseOfDiscourse.UpperBound) : OptionFactory.None<double>();
+        HasGlobalMaximum ? Math.Min(PeakRight.Get, UniverseOfDiscourse.UpperBound) : Option<double>.None();
 
     public Option<Interval> PeakClipped =>
-        HasGlobalMaximum ? new Interval(PeakLeftClipped.Get, PeakRightClipped.Get) : OptionFactory.None<Interval>();
+        HasGlobalMaximum ? new Interval(PeakLeftClipped.Get, PeakRightClipped.Get) : Option<Interval>.None();
 
     public abstract double SupportLeft { get; }
 
@@ -114,7 +114,7 @@ public abstract class MembershipFunction : IMembershipFunction
     public abstract Option<double> CoreRight { get; }
 
     public virtual Option<Interval> Core =>
-        IsNormal ? new Interval(CoreLeft.Get, CoreRight.Get) : OptionFactory.None<Interval>();
+        IsNormal ? new Interval(CoreLeft.Get, CoreRight.Get) : Option<Interval>.None();
 
     public double CrossoverLeft =>
         AlphaCutLeft(UMax / 2).Get;
@@ -130,26 +130,26 @@ public abstract class MembershipFunction : IMembershipFunction
     public abstract Option<double> AlphaCutRight(FuzzyNumber alpha);
 
     public virtual Option<Interval> AlphaCut(FuzzyNumber alpha) =>
-        alpha.Value.IsRoughlyLesserOrEqualTo(UMax) ? new Interval(AlphaCutLeft(alpha).Get, AlphaCutRight(alpha).Get) : OptionFactory.None<Interval>();
+        alpha.Value.IsRoughlyLesserOrEqualTo(UMax) ? new Interval(AlphaCutLeft(alpha).Get, AlphaCutRight(alpha).Get) : Option<Interval>.None();
 
     public virtual Option<double> AlphaCutLeftClipped(FuzzyNumber alpha)
     {
-        if (!AlphaCutLeft(alpha).IsSomeVal(out var a0))
-            return OptionFactory.None<double>();
-        return a0.IsRoughlyGreaterOrEqualTo(RestrictedSupportLeft) ? a0 : OptionFactory.None<double>();
+        if (!AlphaCutLeft(alpha).IsSome(out var a0))
+            return Option<double>.None();
+        return a0.IsRoughlyGreaterOrEqualTo(RestrictedSupportLeft) ? a0 : Option<double>.None();
     }
 
     public virtual Option<double> AlphaCutRightClipped(FuzzyNumber alpha)
     {
-        if (!AlphaCutRight(alpha).IsSomeVal(out var a1))
-            return OptionFactory.None<double>();
-        return a1.IsRoughlyLesserOrEqualTo(RestrictedSupportRight) ? a1 : OptionFactory.None<double>();
+        if (!AlphaCutRight(alpha).IsSome(out var a1))
+            return Option<double>.None();
+        return a1.IsRoughlyLesserOrEqualTo(RestrictedSupportRight) ? a1 : Option<double>.None();
     }
 
     public virtual Option<Interval> AlphaCutClipped(FuzzyNumber alpha) =>
-        AlphaCutLeftClipped(alpha).IsSomeVal(out var a0) && AlphaCutRightClipped(alpha).IsSomeVal(out var a1)
+        AlphaCutLeftClipped(alpha).IsSome(out var a0) && AlphaCutRightClipped(alpha).IsSome(out var a1)
             ? new Interval(a0, a1)
-            : OptionFactory.None<Interval>();
+            : Option<Interval>.None();
 
     public abstract Func<double, double> LarsenProduct(FuzzyNumber lambda);
 

@@ -28,7 +28,7 @@ public static class MetricSelector
         public Option<double> GetClippedMetric(MeasurableFunction function)
         {
             if (!function.IsClipped)
-                return OptionFactory.None<double>();
+                return Option<double>.None();
             return type switch
             {
                 MetricType.Area => function.Area(),

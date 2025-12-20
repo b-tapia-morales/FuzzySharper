@@ -8,8 +8,8 @@ public class SupportMidpointOrdering : IFunctionComparer
 {
     public int CompareMethod(IMembershipFunction x, IMembershipFunction y)
     {
-        var firstExists = x.EffectiveSupport.Midpoint.IsSomeVal(out var a);
-        var secondExists = y.EffectiveSupport.Midpoint.IsSomeVal(out var b);
+        var firstExists = x.EffectiveSupport.Midpoint.IsSome(out var a);
+        var secondExists = y.EffectiveSupport.Midpoint.IsSome(out var b);
         return (firstExists, secondExists) switch
         {
             (false, false) => +0,

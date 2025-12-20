@@ -1,6 +1,6 @@
 ﻿namespace Reasoning.Rule.Exceptions;
 
-public class DuplicatedAntecedentException : Exception
+public class DuplicatedAntecedentException : InvalidOperationException
 {
     private const string Template =
         "The following rule creation policy has been violated: There can be one and only one proposition with the IF connective.";

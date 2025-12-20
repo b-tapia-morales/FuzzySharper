@@ -1,20 +1,19 @@
 ﻿using Kernel.Function.Extensions;
 using Reasoning.Proposition.Abstractions;
 using Reasoning.Rule.Functional.Policy.Abstractions;
-using static Reasoning.Rule.Functional.Policy.Abstractions.ICoefficientInitPolicy;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class AreaInit : ICoefficientInitPolicy
+public class AreaInit : BaseCoefficientInitPolicy
 {
     protected bool Normalized { get; init; }
 
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions)
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
     {
-        var areas = propositions.Select(p => EvaluateCoefficient(p, prop => prop.Function.CalculateArea())).ToList();
+        var areas = premise.Select(p => EvaluateCoefficient(p, prop => prop.Function.CalculateArea())).ToList();
         if (!Normalized)
-            return (areas, 0);
+            return areas;
         var maxArea = areas.Max();
-        return (areas.Select(a => a / maxArea).ToList(), 0);
+        return areas.Select(a => a / maxArea);
     }
 }

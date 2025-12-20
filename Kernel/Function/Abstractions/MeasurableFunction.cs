@@ -16,17 +16,17 @@ namespace Kernel.Function.Abstractions;
 public abstract class MeasurableFunction : MembershipFunction
 {
     protected virtual DeferredValue<double> DeferredArea { get; }
-    protected virtual Option<DeferredValue<double>> ClippedArea { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual Option<DeferredValue<double>> ClippedArea { get; } = Option<DeferredValue<double>>.None<DeferredValue<double>>();
     protected virtual DeferredValue<double> DeferredMomentX { get; }
-    protected virtual Option<DeferredValue<double>> ClippedMomentX { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual Option<DeferredValue<double>> ClippedMomentX { get; } = Option<DeferredValue<double>>.None<DeferredValue<double>>();
     protected virtual DeferredValue<double> DeferredMomentY { get; }
-    protected virtual Option<DeferredValue<double>> ClippedMomentY { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual Option<DeferredValue<double>> ClippedMomentY { get; } = Option<DeferredValue<double>>.None<DeferredValue<double>>();
     protected virtual DeferredValue<double> DeferredMomentXx { get; }
-    protected virtual Option<DeferredValue<double>> ClippedMomentXx { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual Option<DeferredValue<double>> ClippedMomentXx { get; } = Option<DeferredValue<double>>.None<DeferredValue<double>>();
     protected virtual DeferredValue<double> DeferredMomentXy { get; }
-    protected virtual Option<DeferredValue<double>> ClippedMomentXy { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual Option<DeferredValue<double>> ClippedMomentXy { get; } = Option<DeferredValue<double>>.None<DeferredValue<double>>();
     protected virtual DeferredValue<double> DeferredMomentYy { get; }
-    protected virtual Option<DeferredValue<double>> ClippedMomentYy { get; } = OptionFactory.None<DeferredValue<double>>();
+    protected virtual Option<DeferredValue<double>> ClippedMomentYy { get; } = Option<DeferredValue<double>>.None<DeferredValue<double>>();
     internal bool IsClipped { get; }
 
     protected MeasurableFunction(string name, Interval universe, double uMax) : base(name, universe, uMax)
@@ -44,23 +44,23 @@ public abstract class MeasurableFunction : MembershipFunction
         DeferredMomentYy = new DeferredValue<double>(() => this.CalculateSecondMoment(Axis.Y, Axis.Y), () => resolver(MetricOrder.Second));
 
         ClippedArea = IsClipped
-            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.Area), () => resolver(MetricOrder.Zeroth)))
-            : OptionFactory.None<DeferredValue<double>>();
+            ? Option<DeferredValue<double>>.Some(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.Area), () => resolver(MetricOrder.Zeroth)))
+            : Option<DeferredValue<double>>.None<DeferredValue<double>>();
         ClippedMomentX = IsClipped
-            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentX), () => resolver(MetricOrder.First)))
-            : OptionFactory.None<DeferredValue<double>>();
+            ? Option<DeferredValue<double>>.Some(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentX), () => resolver(MetricOrder.First)))
+            : Option<DeferredValue<double>>.None<DeferredValue<double>>();
         ClippedMomentY = IsClipped
-            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentY), () => resolver(MetricOrder.First)))
-            : OptionFactory.None<DeferredValue<double>>();
+            ? Option<DeferredValue<double>>.Some(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentY), () => resolver(MetricOrder.First)))
+            : Option<DeferredValue<double>>.None<DeferredValue<double>>();
         ClippedMomentXx = IsClipped
-            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentXx), () => resolver(MetricOrder.Second)))
-            : OptionFactory.None<DeferredValue<double>>();
+            ? Option<DeferredValue<double>>.Some(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentXx), () => resolver(MetricOrder.Second)))
+            : Option<DeferredValue<double>>.None<DeferredValue<double>>();
         ClippedMomentXy = IsClipped
-            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentXy), () => resolver(MetricOrder.Second)))
-            : OptionFactory.None<DeferredValue<double>>();
+            ? Option<DeferredValue<double>>.Some(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentXy), () => resolver(MetricOrder.Second)))
+            : Option<DeferredValue<double>>.None<DeferredValue<double>>();
         ClippedMomentYy = IsClipped
-            ? OptionFactory.SomeRef(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentYy), () => resolver(MetricOrder.Second)))
-            : OptionFactory.None<DeferredValue<double>>();
+            ? Option<DeferredValue<double>>.Some(new DeferredValue<double>(() => CalculateClippedMetric(clippingPlan, MetricType.MomentYy), () => resolver(MetricOrder.Second)))
+            : Option<DeferredValue<double>>.None<DeferredValue<double>>();
     }
 
     public virtual double Area(MetricScope scope = MetricScope.Clipped) =>
@@ -149,7 +149,7 @@ public abstract class MeasurableFunction : MembershipFunction
     {
         if (!DeferredArea.HasValue)
             DeferredArea.Compute();
-        if (ClippedArea.IsSomeRef(out var deferredArea) && !deferredArea.HasValue)
+        if (ClippedArea.IsSome(out var deferredArea) && !deferredArea.HasValue)
             deferredArea.Compute();
     }
 
@@ -157,11 +157,11 @@ public abstract class MeasurableFunction : MembershipFunction
     {
         if (!DeferredMomentX.HasValue)
             DeferredMomentX.Compute();
-        if (ClippedMomentX.IsSomeRef(out var deferredMomentX) && !deferredMomentX.HasValue)
+        if (ClippedMomentX.IsSome(out var deferredMomentX) && !deferredMomentX.HasValue)
             deferredMomentX.Compute();
         if (!DeferredMomentY.HasValue)
             DeferredMomentY.Compute();
-        if (ClippedMomentY.IsSomeRef(out var deferredMomentY) && !deferredMomentY.HasValue)
+        if (ClippedMomentY.IsSome(out var deferredMomentY) && !deferredMomentY.HasValue)
             deferredMomentY.Compute();
     }
 
@@ -169,15 +169,15 @@ public abstract class MeasurableFunction : MembershipFunction
     {
         if (!DeferredMomentXx.HasValue)
             DeferredMomentXx.Compute();
-        if (ClippedMomentXx.IsSomeRef(out var deferredMomentXx) && !deferredMomentXx.HasValue)
+        if (ClippedMomentXx.IsSome(out var deferredMomentXx) && !deferredMomentXx.HasValue)
             deferredMomentXx.Compute();
         if (!DeferredMomentXy.HasValue)
             DeferredMomentXy.Compute();
-        if (ClippedMomentXy.IsSomeRef(out var deferredMomentXy) && !deferredMomentXy.HasValue)
+        if (ClippedMomentXy.IsSome(out var deferredMomentXy) && !deferredMomentXy.HasValue)
             deferredMomentXy.Compute();
         if (!DeferredMomentYy.HasValue)
             DeferredMomentYy.Compute();
-        if (ClippedMomentYy.IsSomeRef(out var deferredMomentYy) && !deferredMomentYy.HasValue)
+        if (ClippedMomentYy.IsSome(out var deferredMomentYy) && !deferredMomentYy.HasValue)
             deferredMomentYy.Compute();
     }
 

@@ -24,7 +24,7 @@ public sealed class CategoricalStorage : IFactStorage
         key.IsType ? Facts.ContainsKey(key.AsType) : throw new InvalidKeyException(GetType().Name, nameof(Type), nameof(String));
 
     public Option<DoubleOrEnum> GetValue(StringOrType key) => 
-        Contains(key) ? OptionFactory.SomeRef<DoubleOrEnum>(Facts[key.AsType]) : OptionFactory.None<DoubleOrEnum>();
+        Contains(key) ? Option<DoubleOrEnum>.Some<DoubleOrEnum>(Facts[key.AsType]) : Option<DoubleOrEnum>.None();
 
     public void AddValue(StringOrType key, DoubleOrEnum value)
     {

@@ -1,11 +1,10 @@
 ﻿using Reasoning.Proposition.Abstractions;
 using Reasoning.Rule.Functional.Policy.Abstractions;
-using static Reasoning.Rule.Functional.Policy.Abstractions.ICoefficientInitPolicy;
 
 namespace Reasoning.Rule.Functional.Policy.Implementations;
 
-public class SupportMidpointInit : ICoefficientInitPolicy
+public class SupportMidpointInit : BaseCoefficientInitPolicy
 {
-    public (IList<double> Coefficients, double Bias) Initialize(IList<IProposition> propositions) => 
-        ([..propositions.Select(p => EvaluateCoefficient(p, prop => prop.Function.RestrictedSupport.Midpoint.Get))], 0);
+    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise) => 
+        premise.Select(p => EvaluateCoefficient(p, prop => prop.Function.RestrictedSupport.Midpoint.Get));
 }

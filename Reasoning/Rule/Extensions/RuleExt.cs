@@ -8,7 +8,7 @@ using Shared.Options.Factory;
 
 namespace Reasoning.Rule.Extensions;
 
-public static class RuleExt
+internal static class RuleExt
 {
     extension<T>(T rule) where T : class, IRule
     {
@@ -28,9 +28,9 @@ public static class RuleExt
             if (rule.Conditional != null)
                 throw new DuplicatedAntecedentException();
 
-            if (!linguisticBase.GetVariable(variableName).IsSomeRef(out var variable))
+            if (!linguisticBase.GetVariable(variableName).IsSome(out var variable))
                 throw new VariableNotFoundException(variableName);
-            if (!variable.GetFunction(termName).IsSomeRef(out var membershipFunction))
+            if (!variable.GetFunction(termName).IsSome(out var membershipFunction))
                 throw new EntryNotFoundException(variableName, termName);
 
             rule.Conditional = new FuzzyProposition(variableName, Connective.If, literal, linguisticHedge, membershipFunction);
@@ -55,9 +55,9 @@ public static class RuleExt
             if (rule.Conditional == null)
                 throw new MissingAntecedentException();
 
-            if (!linguisticBase.GetVariable(variableName).IsSomeRef(out var variable))
+            if (!linguisticBase.GetVariable(variableName).IsSome(out var variable))
                 throw new VariableNotFoundException(variableName);
-            if (!variable.GetFunction(termName).IsSomeRef(out var membershipFunction))
+            if (!variable.GetFunction(termName).IsSome(out var membershipFunction))
                 throw new EntryNotFoundException(variableName, termName);
 
             rule.Connectives.Add(new FuzzyProposition(variableName, connective, literal, linguisticHedge, membershipFunction));

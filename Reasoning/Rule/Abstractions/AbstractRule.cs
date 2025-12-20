@@ -1,14 +1,20 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Kernel.Number;
+using Kernel.Operator.Conorm.Abstractions;
+using Kernel.Operator.Conorm.Implementations.Canonical;
 using Kernel.Operator.Family.Abstractions;
 using Kernel.Operator.Negation.Abstractions;
 using Kernel.Operator.Negation.Implementations.Canonical;
+using Kernel.Operator.Norm.Abstractions;
+using Kernel.Operator.Norm.Implementations.Canonical;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Aggregator.Abstractions;
 using Reasoning.Adaptation.Components;
-using Reasoning.Comparer.Implementations.Deterministic;
 using Reasoning.Proposition.Abstractions;
+using Reasoning.Proposition.Components;
 using Reasoning.Rule.Extensions;
+using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
@@ -21,10 +27,46 @@ public abstract class AbstractRule : IRule
     public ICollection<IProposition> Connectives { get; } = new List<IProposition>();
     public IRuleOutput? Consequent { get; set; }
     public bool IsFinalized { get; set; }
-    public Option<RulePriority> Priority { get; protected init; } = OptionFactory.None<RulePriority>();
-    public Option<double> CertaintyFactor { get; protected init; } = OptionFactory.None<double>();
+    public Option<RulePriority> Priority { get; protected init; } = Option<RulePriority>.None();
+    public Option<double> CertaintyFactor { get; protected init; } = Option<double>.None();
     public DateTimeOffset CreationTime { get; } = DateTimeOffset.Now;
-    public AdaptationState AdaptationState { get; set; } = new();
+    public AdaptationState AdaptationState { get; } = new();
+
+    public IReadOnlyList<IProposition> Premise
+    {
+        get
+        {
+            this.Validate();
+            return field ??= [Conditional!, ..Connectives];
+        }
+    }
+
+    public int PremiseLength
+    {
+        get
+        {
+            this.Validate();
+            return Connectives.Count + 1;
+        }
+    }
+
+    public IReadOnlyList<StringOrType> PremiseVariables
+    {
+        get
+        {
+            this.Validate();
+            return field ??= [..Premise.DistinctBy(e => e.Identifier).Select(e => e.Identifier)];
+        }
+    }
+
+    public IReadOnlyDictionary<StringOrType, IReadOnlyList<IProposition>> PremiseDict
+    {
+        get
+        {
+            this.Validate();
+            return field ??= Premise.GroupBy(e => e.Identifier).ToDictionary(g => g.Key, IReadOnlyList<IProposition> (g) => g.ToList());
+        }
+    }
 
     public bool IsPremiseEvaluable(IWorkingMemory memory)
     {
@@ -44,13 +86,7 @@ public abstract class AbstractRule : IRule
     public bool ConsequentContains(string variableName)
     {
         this.Validate();
-        return Consequent!.ConsequentContains(variableName);
-    }
-
-    public int PremiseLength()
-    {
-        this.Validate();
-        return Connectives.Count + 1;
+        return Consequent!.Contains(variableName);
     }
 
     public IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory, INegation negation)
@@ -58,9 +94,7 @@ public abstract class AbstractRule : IRule
         this.Validate();
         return !IsPremiseEvaluable(memory)
             ? ImmutableList<FuzzyNumber>.Empty
-            : Connectives
-                .Prepend(Conditional!)
-                .Select(e => e.Evaluate(memory, negation).Get);
+            : Premise.Select(e => e.Evaluate(memory, negation).Get);
     }
 
     public IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory, IOperatorFamily operatorFamily) =>
@@ -68,10 +102,48 @@ public abstract class AbstractRule : IRule
 
     public IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory) =>
         ApplyUnaryOperators(memory, Negation.Standard);
+    
+    public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory,
+        INegation negation, INorm norm, IConorm conorm)
+    {
+        this.Validate();
+        var numbers = new Queue<FuzzyNumber>(ApplyUnaryOperators(memory, negation));
+        switch (numbers.Count)
+        {
+            case 0:
+                return Option<FuzzyNumber>.None();
+            case 1:
+                return numbers.First();
+        }
 
-    public void UpdateLearning(uint maxHistorySize, IWeightAggregator aggregator) =>
-        AdaptationState.Update(maxHistorySize, aggregator);
+        var connectives = new Queue<Connective>(Connectives.Select(e => e.Connective));
+        while (numbers.Count > 1)
+        {
+            var a = numbers.Dequeue();
+            var b = numbers.Dequeue();
+            var operation = connectives.Dequeue() == Connective.And ? norm.Intersection(a, b) : conorm.Union(a, b);
+            numbers.Enqueue(operation);
+        }
 
-    public void ResetLearning() =>
+        Debug.Assert(numbers.Count == 1);
+        return numbers.Dequeue();
+    }
+
+    public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory, IOperatorFamily operatorFamily) =>
+        EvaluatePremiseWeight(memory, operatorFamily.Negation, operatorFamily.Norm, operatorFamily.Conorm);
+
+    public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory) =>
+        EvaluatePremiseWeight(memory, Negation.Standard, Norm.Minimum, Conorm.Maximum);
+
+    public void RecomputeAdaptation(uint maxHistorySize, IWeightAggregator aggregator) =>
+        AdaptationState.Recompute(maxHistorySize, aggregator);
+
+    public void ResetAdaptation() =>
         AdaptationState.Reset();
+    
+    public override string ToString()
+    {
+        this.Validate();
+        return $"{Conditional} {(Connectives.Count != 0 ? $"{string.Join(' ', Connectives)} " : string.Empty)}{Consequent}";
+    }
 }

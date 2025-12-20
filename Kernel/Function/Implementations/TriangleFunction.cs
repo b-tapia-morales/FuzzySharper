@@ -56,7 +56,7 @@ public class TriangleFunction : LinearPiecewiseFunction
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return B;
         return A + alpha.Value * (B - A);
@@ -65,7 +65,7 @@ public class TriangleFunction : LinearPiecewiseFunction
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
-            return OptionFactory.None<double>();
+            return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return B;
         return C - alpha.Value * (C - B);
