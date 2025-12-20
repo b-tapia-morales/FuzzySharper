@@ -318,5 +318,5 @@ the Backward Chaining, and the Proof Search from the Reverse Level Order Travers
 
 ## Test run
 
-The library provides an example by default, found in [this](FuzzyLogic/Test/One) directory.
+The library provides an example by default, found in [this](FuzzyLogic/Test/Two) directory.
 This rule base was extracted from [the following paper](http://www.progmat.uaem.mx:8080/Vol11num2/vol11num2art8.pdf).

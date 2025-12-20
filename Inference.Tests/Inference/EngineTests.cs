@@ -1,0 +1,69 @@
+﻿using System.Collections;
+using System.Globalization;
+using Inference.Aggregator.Factory;
+using Inference.Defuzzifier.Factory;
+using Inference.Engine.Fuzzy.Builder;
+using Kernel.Function.Implication.Factory;
+using Kernel.Operator.Family.Factory.Canonical;
+using Knowledge.Memory.Implementations;
+using Microsoft.Extensions.DependencyInjection;
+using Reasoning.Base.FuzzySet.Abstractions;
+using Shared.Options.Factory;
+using Xunit.Abstractions;
+
+namespace Inference.Tests.Inference;
+
+public class EngineTests(ITestOutputHelper outputHelper)
+{
+    private static readonly ServiceProvider ServiceProvider = EngineProvider.ConfigureProvider();
+    private static readonly IFuzzySetRuleBase Rules = ServiceProvider.GetService<IFuzzySetRuleBase>()!;
+
+    [Theory]
+    [ClassData(typeof(MassiveUnionData))]
+    public void DefuzzifiedValueIsInRange(CanonicalType canonicalType, ImplicationMethod implicationMethod, DefuzzificationMethod defuzzificationMethod, 
+        ValueAggregatorMethod aggregatorMethod, double foodRating, double serviceRating)
+    {
+        var canonicalFamily = CanonicalFactory.UseFamily(canonicalType);
+        var workingMemory = WorkingMemory.Create(("food quality", foodRating), ("service quality", serviceRating));
+        var ruleBase = Rules.DeepCopy();
+        var engine = FuzzyConsequentEngineBuilder
+            .Create()
+            .WithRuleBase(ruleBase)
+            .WithWorkingMemory(workingMemory)
+            .WithCanonicalFamily(canonicalType)
+            .WithImplication(implicationMethod)
+            .WithDefuzzification(defuzzificationMethod)
+            .WithValueAggregator(aggregatorMethod)
+            .Build();
+        var tuples = engine.RuleBase.ProductionRules.Select(r => (
+            Rule: r,
+            Weight: r.EvaluatePremiseWeight(workingMemory, canonicalFamily)));
+        outputHelper.WriteLine(string.Join(Environment.NewLine, tuples.Select(t => $"{t.Rule} : {t.Weight}")));
+        var success = engine.Defuzzify("Tip").IsSome(out var value);
+        outputHelper.WriteLine(value.ToString(CultureInfo.InvariantCulture));
+        if (success)
+            Assert.InRange(value, 0, 35);
+    }
+}
+
+file class MassiveUnionData : IEnumerable<object[]>
+{
+    private static readonly IList<int> Ratings = Enumerable.Range(1, 10).ToList();
+    private static readonly IReadOnlyList<CanonicalType> OperatorFamilies = Enum.GetValues<CanonicalType>();
+    private static readonly IReadOnlyList<ImplicationMethod> ImplicationMethods = Enum.GetValues<ImplicationMethod>();
+    private static readonly IReadOnlyList<DefuzzificationMethod> DefuzzificationMethods = Enum.GetValues<DefuzzificationMethod>();
+    private static readonly IReadOnlyList<ValueAggregatorMethod> AggregatorMethods = Enum.GetValues<ValueAggregatorMethod>();
+
+    private static readonly IEnumerable<object[]> Union =
+        from x in OperatorFamilies
+        from y in ImplicationMethods
+        from z in DefuzzificationMethods
+        from w in AggregatorMethods 
+        from a in Ratings
+        from b in Ratings
+        select new object[] {x, y, z, w, (double) a, (double) b};
+
+    public IEnumerator<object[]> GetEnumerator() => Union.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
