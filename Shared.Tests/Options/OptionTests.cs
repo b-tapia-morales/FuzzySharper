@@ -104,9 +104,13 @@ public class OptionTests
     }
 
     [Fact]
-    public void NoneThrowsOnNullableTypes()
+    public void ThrowsOnNullableTypes()
     {
-        Assert.Throws<NullableTypeException>(OptionFactory.None<double?>);
-        Assert.Throws<NullableTypeException>(OptionFactory.None<int?>);
+        Assert.Throws<NullableTypeException>(() => Option<int?>.Some(1));
+        Assert.Throws<NullableTypeException>(() => Option<double?>.Some(1.0));
+        Assert.Throws<NullableTypeException>(() => Option<int?>.Maybe(1));
+        Assert.Throws<NullableTypeException>(() => Option<double?>.Maybe(1.0));
+        Assert.Throws<NullableTypeException>(Option<double?>.None);
+        Assert.Throws<NullableTypeException>(Option<int?>.None);
     }
 }

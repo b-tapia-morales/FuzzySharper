@@ -86,27 +86,35 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
         var stack = this.TraverseReverseLevelOrder();
         while (stack.TryPop(out var node))
         {
+            // Node is leaf -> node is proven only if it's known as a fact.
             if (node.IsLeaf())
             {
                 node.IsProven = memory.Contains(node.Identifier);
                 continue;
             }
-
-            var variableName = node.Identifier.AsString;
-            var rules = node.Rules.FilterByResolutionMethod(variableName, comparer).ToList();
-            if (rules.Count == 0)
+            
+            // Node has derivational dependencies, but no rules to infer its value -> node remains unproven.
+            if (node.Rules.Count == 0)
             {
                 node.IsProven = false;
                 continue;
             }
+            
+            // Node has derivational dependencies AND rules to infer its value.
+            // Resolve competing rules, then use surviving rules in the defuzzification process to infer the node's value.
+            // The defuzzification process is unsuccessful -> node remains unproven.
+            var variableName = node.Identifier.AsString;
+            var rules = node.Rules.FilterByResolutionMethod(variableName, comparer).ToList();
+            if (!defuzzifier.Defuzzify(rules, memory, operatorFamily, aggregator, implicationMethod, out var activatedRules).IsSome(out var crispValue))
+                continue;
 
-            if (defuzzifier.Defuzzify(rules, memory, operatorFamily, aggregator, implicationMethod, out var activatedRules).IsSome(out var crispValue))
-                memory.AddNumericFact(variableName, crispValue);
-
+            // The node is proven -> mark it as a fact by adding its value.
+            memory.AddNumericFact(variableName, crispValue);
             AppendRecords(activatedRules, memory, operatorFamily, iteration);
             node.IsProven = true;
         }
 
+        // Unable to infer the node's value -> node remains unproven.
         if (!memory.GetNumericFact(Identifier.AsString).IsSome(out var fact))
             return Option<double>.None();
         IsProven = true;

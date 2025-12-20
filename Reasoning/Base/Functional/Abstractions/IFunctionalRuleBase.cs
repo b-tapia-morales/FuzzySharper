@@ -10,5 +10,4 @@ namespace Reasoning.Base.Functional.Abstractions;
 
 public interface IFunctionalRuleBase : IRuleBase<IFunctionalRule>
 {
-    Option<double> AggregateOutput(string target, IWorkingMemory workingMemory, INegation negation, INorm norm, IConorm conorm);
 }

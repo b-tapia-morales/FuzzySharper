@@ -10,16 +10,20 @@ public static class OptionFactory
         public static Option<T> Some(T value)
         {
             ArgumentNullException.ThrowIfNull(value);
+            CheckNullable<T>();
             return new Option<T>(value);
         }
 
-        public static Option<T> Maybe(T? value) =>
-            value == null ? Null.GetInstance : new Option<T>(value);
-        
+        public static Option<T> Maybe(T? value)
+        {
+            CheckNullable<T>();
+            return value == null ? Null.GetInstance : new Option<T>(value);
+        }
+
         public static Option<T> None()
         {
-            var underlyingType = GetNullableType<T>();
-            return underlyingType != null ? throw new NullableTypeException(underlyingType) : Null.GetInstance;
+            CheckNullable<T>();
+            return Null.GetInstance;
         }
         
         public bool IsSome(out T value)
@@ -42,4 +46,11 @@ public static class OptionFactory
     }
 
     private static Type? GetNullableType<T>() => Nullable.GetUnderlyingType(typeof(T));
+
+    private static void CheckNullable<T>()
+    {
+        var underlyingType = GetNullableType<T>();
+        if (underlyingType != null)
+            throw new NullableTypeException(underlyingType);
+    }
 }
