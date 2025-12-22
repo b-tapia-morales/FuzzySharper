@@ -30,19 +30,19 @@ public class FuzzyConsequentEngine : AbstractInferenceEngine, IFuzzyConsequentEn
     public override uint CurrentIteration { get; set; }
     public override Option<AdaptationConfig> AdaptationConfig { get; set; } = Option<AdaptationConfig>.None();
 
-    public Option<double> Defuzzify(string variableName, bool provideExplanation = true)
+    public Option<double> Defuzzify(string target, bool provideExplanation = true)
     {
-        if (WorkingMemory.GetNumericFact(variableName).IsSome(out var value))
+        if (WorkingMemory.GetNumericFact(target).IsSome(out var value))
             return value;
         var workingMemory = WorkingMemory.DeepCopy();
         var rules = new List<IFuzzySetRule>(RuleBase.ProductionRules);
         rules = rules.FilterFacts(workingMemory).ToList();
-        rules = rules.FilterCircularDependencies(variableName).ToList();
+        rules = rules.FilterCircularDependencies(target).ToList();
         var operatorFamily = OperatorFamily.DeepCopy();
         var ruleComparer = DeterministicFactory.GetInstance(DeterministicMethod, workingMemory, operatorFamily);
         var defuzzifier = DefuzzificationFactory.GetInstance(DefuzzificationMethod);
         var aggregator = ValueAggregatorFactory.GetInstance(AggregatorMethod);
-        var rootNode = DerivationTree.BuildTree(variableName, rules);
+        var rootNode = DerivationTree.BuildTree(target, rules);
         var inferredValue = rootNode.InferFact(workingMemory, ruleComparer, defuzzifier, aggregator, operatorFamily, ImplicationMethod, CurrentIteration);
         if (IsLearningEnabled)
             UpdateLearning();

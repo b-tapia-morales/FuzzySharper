@@ -15,52 +15,52 @@ public class RuleCreationTests
     [Fact]
     public void CreationThrowsOnMissingConditional()
     {
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).And("Room Temperature", "Warm"));
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).Or("Room Temperature", "Warm"));
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).AndNot("Room Temperature", "Hot"));
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).OrNot("Room Temperature", "Hot"));
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).And(Window.Open));
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).Or(Window.Open));
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).AndNot(Occupancy.Occupied));
-        Assert.Throws<MissingAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).OrNot(Occupancy.Occupied));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).And("Room Temperature", "Warm"));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).Or("Room Temperature", "Warm"));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).AndNot("Room Temperature", "Hot"));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).OrNot("Room Temperature", "Hot"));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).And(Window.Open));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).Or(Window.Open));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).AndNot(Occupancy.Occupied));
+        Assert.Throws<MissingAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).OrNot(Occupancy.Occupied));
     }
 
     [Fact]
     public void CreationThrowsOnDuplicatedConditional()
     {
-        Assert.Throws<DuplicatedAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).If("room temperature", "Warm").If("outside temperature", "freezing"));
-        Assert.Throws<DuplicatedAntecedentException>(() => BoundFuzzySetRule.Create(Linguistics).If(Window.Open).If(Occupancy.Occupied));
+        Assert.Throws<DuplicatedAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).If("room temperature", "Warm").If("outside temperature", "freezing"));
+        Assert.Throws<DuplicatedAntecedentException>(() => BoundedFuzzySetRule.Create(Linguistics).If(Window.Open).If(Occupancy.Occupied));
     }
     
     [Fact]
     public void CreationThrowsOnVariableNotFound()
     {
-        Assert.Throws<VariableNotFoundException>(() => BoundFuzzySetRule.Create(Linguistics).If("Air conditioner temperature", "Low"));
-        Assert.Throws<VariableNotFoundException>(() => BoundFuzzySetRule.Create(Linguistics).If("Thermostat temperature", "Low"));
+        Assert.Throws<VariableNotFoundException>(() => BoundedFuzzySetRule.Create(Linguistics).If("Air conditioner temperature", "Low"));
+        Assert.Throws<VariableNotFoundException>(() => BoundedFuzzySetRule.Create(Linguistics).If("Thermostat temperature", "Low"));
     }
 
     [Fact]
     public void CreationThrowsOnFunctionNotFound()
     {
-        Assert.Throws<EntryNotFoundException>(() => BoundFuzzySetRule.Create(Linguistics).If("Room Temperature", "Freezing"));
-        Assert.Throws<EntryNotFoundException>(() => BoundFuzzySetRule.Create(Linguistics).If("Outside Temperature", "Hell on earth"));
+        Assert.Throws<EntryNotFoundException>(() => BoundedFuzzySetRule.Create(Linguistics).If("Room Temperature", "Freezing"));
+        Assert.Throws<EntryNotFoundException>(() => BoundedFuzzySetRule.Create(Linguistics).If("Outside Temperature", "Hell on earth"));
     }
 
     [Fact]
     public void CreationThrowsOnVariableOverlap()
     {
-        Assert.Throws<VariableOverlapException>(() => BoundFuzzySetRule.Create(Linguistics).If("Room Temperature", "Warm").Then("Room Temperature", "Cold"));
-        Assert.Throws<VariableOverlapException>(() => BoundFuzzySetRule.Create(Linguistics).If("Humidity", "Dry").Then("humidity", "humid"));
+        Assert.Throws<VariableOverlapException>(() => BoundedFuzzySetRule.Create(Linguistics).If("Room Temperature", "Warm").Then("Room Temperature", "Cold"));
+        Assert.Throws<VariableOverlapException>(() => BoundedFuzzySetRule.Create(Linguistics).If("Humidity", "Dry").Then("humidity", "humid"));
     }
 
     [Fact]
     public void CreationThrowsOnAdditionsInFinalizedRule()
     {
-        Assert.Throws<FinalizedRuleException>(() => BoundFuzzySetRule.Create(Linguistics)
+        Assert.Throws<FinalizedRuleException>(() => BoundedFuzzySetRule.Create(Linguistics)
             .If("Room Temperature", "Warm")
             .Then("Heating power", "Low")
             .And(Window.Open));
-        Assert.Throws<FinalizedRuleException>(() => BoundFuzzySetRule.Create(Linguistics).If("Room Temperature", "Warm")
+        Assert.Throws<FinalizedRuleException>(() => BoundedFuzzySetRule.Create(Linguistics).If("Room Temperature", "Warm")
             .Then("Heating power", "Low")
             .And("Outside Temperature", "Freezing"));
     }

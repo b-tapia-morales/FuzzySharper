@@ -19,9 +19,9 @@ public interface IRuleBase<T> where T : class, IRule
 
     void RemoveAll(params IEnumerable<T> rules);
 
-    IEnumerable<T> FindByPremise(StringOrType variableName);
+    IEnumerable<T> FindByPremise(StringOrType identifier);
 
-    IEnumerable<T> FindByConclusion(string variableName);
+    IEnumerable<T> FindByConclusion(string target);
 
     ISet<StringOrType> GetBaseVariables();
 
@@ -33,15 +33,25 @@ public interface IRuleBase<T> where T : class, IRule
 
     ISet<string> GetFuzzyVariables();
 
-    ISet<StringOrType> FindDependentVariables(string variableName);
+    ISet<StringOrType> FindDependentVariables(string target);
 
     IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph();
 
     IDictionary<string, List<T>> BuildRuleDependencyMap();
 
     IEnumerable<IRule> GetEvaluable(IWorkingMemory memory);
+    
+    IEnumerable<T> GetActivated(uint iteration);
 
-    public void UpdateLearning(AdaptationConfig config);
+    IEnumerable<T> GetUnactivated(uint iteration);
 
-    public void ResetLearning();
+    IEnumerable<T> GetDormant(IWorkingMemory memory, uint iteration);
+
+    IEnumerable<T> GetNeverActivated();
+
+    IEnumerable<T> GetEverActivated();
+
+    void RecomputeAdaptation(AdaptationConfig config);
+
+    void ResetAdaptation();
 }

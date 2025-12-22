@@ -16,8 +16,8 @@ public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisite
     {
         get
         {
-            if (_cachedValue.IsSome)
-                return _cachedValue.Get;
+            if (_cachedValue.IsSome(out var value))
+                return value;
             Compute();
             return _cachedValue.Get;
         }
@@ -47,9 +47,6 @@ public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisite
     public void OverrideValue(T value) =>
         _cachedValue = value;
 
-    public bool TryGetValue(out T value)
-    {
-        value = _cachedValue.IsSome ? _cachedValue.Get : default!;
-        return _cachedValue.IsSome;
-    }
+    public bool TryGetValue(out T value) => 
+        _cachedValue.IsSome(out value);
 }

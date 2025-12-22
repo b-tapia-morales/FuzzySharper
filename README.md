@@ -6,19 +6,26 @@ Fuzzy Sharper is a library that allows you to create your own Fuzzy Expert Syste
 
 ## About the project
 
-This project aims to make the life of a knowledge engineer easier by providing the tools necessary to develop an expert
-system regardless of the knowledge domain that is currently being developed in. It doesn't aim to perform the tasks that
-are normally associated with a knowledge engineer, such as the acquisition and representation of the knowledge, but
-rather to provide the tools to implement such knowledge in code.
+**FuzzySharper** is a fuzzy logic inference library built around explicit composition of inference components.
+
+It exposes rules, propositions, operators, implication methods, among others, as independent parts that can be combined
+to form an inference engine. The library avoids enforcing a single inference model and instead relies on common
+abstractions to support different rule styles and evaluation strategies under a shared structure.
+
+Configuration is primarily done through composition, allowing components to be exchanged or extended without modifying
+the surrounding system. The goal is to keep inference behavior explicit and predictable, while remaining flexible in how
+inference systems are assembled.
 
 ## Prerequisites
 
-The library uses .NET SDK 7.
+The library uses .NET SDK 10.
 
-The following open source libraries are used in this project:
+The following open-source libraries are used in this project:
 
 - [SmartEnum](https://github.com/ardalis/SmartEnum)
 - [Math.Net Numerics](https://github.com/mathnet/mathnet-numerics)
+- [CsvHelper](https://github.com/JoshClose/CsvHelper)
+- [OneOf](https://github.com/mcintyre321/OneOf/)
 
 ## Folder structure
 
@@ -28,295 +35,546 @@ TODO
 
 ## Usage
 
+### Membership Functions
+
+A **Membership function** defines how a numeric (crisp) value *x* maps to a *Membership degree* *μ(x)* in a *Fuzzy set*.
+
+Within a **Linguistic variable**, membership functions are used to express the meaning of *Linguistic terms* over a
+given *Universe of discourse*.
+Each linguistic term is associated with exactly one membership function, which determines how input values are
+interpreted during inference.
+
+In *FuzzySharper*, Membership functions are treated as first-class objects.
+A function encapsulates both its shape and the operations required to evaluate membership degrees, compute
+characteristic metrics (such as centroid or support), and participate in *Inference* and *Defuzzification*. Once
+created, membership functions are immutable, ensuring consistent behavior throughout an inference run.
+
+The library currently provides built-in support for the following membership function types:
+
+- **Triangular**
+- **Trapezoidal**
+- **Left-Open Trapezoidal**
+- **Right-Open Trapezoidal**
+- **Gaussian**
+- **Generalized Bell**
+- **Logistic**
+- **Singleton**
+
+All membership functions conform to a common abstraction, allowing custom function types to be introduced without
+affecting the surrounding inference logic.
+
 ### Linguistic Variables
 
-A Linguistic Variable is a variable whose values are expressed in natural language, and it can be declared as follows:
+A **Linguistic variable** is a variable whose values are words or sentences in a natural language.
+Each of these values — referred to as *Linguistic terms* — is defined by a *Membership function* over a shared *Universe
+of discourse*.
+
+A linguistic variable acts as a container that groups a set of named linguistic terms and associates each term with
+exactly one membership function.
+During inference, crisp input values are evaluated against these membership functions to obtain *Membership degrees*.
+
+A linguistic variable can be declared as follows:
 
 ```csharp
 var water = LinguisticVariable.Create("Water")
-    .AddTrapezoidalFunction("Cold", 0, 0, 20, 40)
-    .AddTriangularFunction("Warm", 30, 50, 70)
-    .AddTrapezoidalFunction("Hot", 50, 80, 100, 100)
+    .AddTrapezoidalFunction("Cold", -10, -10, 5, 15)
+    .AddTriangularFunction("Mild", 10, 20, 30)
+    .AddTrapezoidalFunction("Hot", 25, 35, 50, 50);
+
+var humidity = LinguisticVariable.Create("Humidity")
+    .AddTrapezoidalFunction("Dry", 0, 0, 20, 40)
+    .AddTriangularFunction("Normal", 30, 50, 70)
+    .AddTrapezoidalFunction("Humid", 60, 80, 100, 100);
 ```
 
-The first line declares the linguistic variable with the name "Water", and the two following lines declare the set of
-linguistic terms that belong to it.
-These terms must be unique in name, and they are intrinsically associated with membership functions (in this case,
-triangular and trapezoidal ones).
+Lines 1 and 6 declare linguistic variables named `Temperature` and `Humidity`, respectively.
+The next lines define the set of linguistic terms that belong to this variable.
+Each term is identified by a unique name and is intrinsically associated with a membership function — this association
+is commonly referred to as a *Semantic mapping*.
 
-The provided numerical values as parameters have a certain meaning depending on the shape that the Membership Function
-describes.
-For example, in the case of the triangular function, the values 30, 50, and 70 describe the coordinates of the
-triangle: (0, 30), (50, 1), (70, 0).
-The middle value is always situated at height 1 because all Membership Functions are normal, that is, there's at least
-one *x* value such that μ(*x*) = 1.
+The numerical parameters supplied when defining a term describe the shape of its membership function and are interpreted
+according to the selected function type.
+For example, for `Water`, `Cold` represents a *Trapezoid* with vertices at `(-10, -10)`, `(-10, 1)`, `(5, 1)`, and
+`(15, 0)`,
+while `Mild` represents a *Triangle* with vertices at `(10, 0)`, `(20, 1)`, and `(30, 0)`.
+
+While the exact values produced by a membership function depend on its definition,
+all membership functions follow the same basic idea: they are evaluated over a shared domain, and the degree of
+membership is determined by the function’s shape.
+This way, the value being evaluated and the strength of its membership are treated as related but distinct aspects.
 
 ### Linguistic Base
 
-A Linguistic Base can be instantiated as follows:
+A **Linguistic base** is a collection of linguistic variables.
+
+The linguistic base stores linguistic variables by name and provides a single point of access to them.
+It contains no inference logic and does not evaluate rules or propositions.
+
+Linguistic variables are typically added to the linguistic base during system setup. Other components access the
+linguistic base to retrieve linguistic variables and their associated membership functions when needed.
+
+A linguistic base can be created and populated explicitly:
 
 ```csharp
-public static ILinguisticBase Create()
-```
-
-This will create an instance of a Linguistic Base with no linguistic variables.
-It is preferable to create a Linguistic Base preloading data.
-The preferred method for doing so is as follows:
-
-A class must be declared that inherits from `LinguisticBase`. For example, let's declare the following class:
-
-```csharp
-public class LinguisticBaseImpl : LinguisticBase
-```
-
-The class `LinguisticBase` declares a method that is meant to be hidden by an implementing class (using the `new`
-keyword), which is the following:
-
-```csharp
-public new static ILinguisticBase Initialize()
-{
-    var water = LinguisticVariable.Create("Water")
-        .AddTrapezoidalFunction("Cold", 0, 0, 20, 40)
-        .AddTriangularFunction("Warm", 30, 50, 70)
-        .AddTrapezoidalFunction("Hot", 50, 80, 100, 100)
-    return Create().AddAll(water);
- }
-```
-
-This method will now instantiate and preload all linguistic variables belonging to the Linguistic Base inside the method
-above.
-
-### Rule Creation
-
-A fuzzy rule is created from fuzzy propositions and logical connectors. The following is an example:
-
-```csharp
-FuzzyRule
-    .Create(RulePriotity.High)
-    .If(FuzzyProposition.Is(linguisticBase, "Water", "Cold"))
-    .Or(FuzzyProposition.IsNot(linguisticBase, "Water", "Hot"))
-    .Then(FuzzyProposition.Is(linguisticBase, "Power", "High"));
-```
-
-The `If`, `Or`, `Then` method names reference the logical connectors that are currently supported by the library.
-Not shown in the example above, but also currently supported, is the `And` method.
-All these methods take an instance of a `FuzzyProposition` as an argument.
-
-A `FuzzyProposition` can be created by providing an instance of a `LinguisticBase`, the `LinguisticVariable` that is
-contained in the linguistic base, and the linguistic term, which is associated by an implicit semantic rule to the
-linguistic variable.
-The `Is`, `IsNot` method names reference the literals in propositional logic, in which a proposition can be either an
-affirmation or a negation.
-
-For example, at line 4, the fuzzy proposition can be read in natural language as follows:
-
-```Water IS NOT Hot```
-
-The entire rule can be read in natural language as follows:
-
-```IF Water IS Cold OR Water IS NOT Hot THEN Power IS High```
-
-Both the fuzzy propositions and the fuzzy rules will be shown exactly as above by calling the `ToString()` method on
-them.
-
-The `Create()` method creates an instance of a `FuzzyRule`, and it can be given an enumeration member of the type
-`RulePriority`, which is an `enum`.
-There are three possible enumeration members:
-
-- **Low**.
-- **Normal**.
-- **High**.
-
-This defines a strategy for resolving conflicts between rules, since it may be the case that two rules with the same
-consequent can be applicable from the given facts.
-Providing this `enum` value is optional, and it will default to `Normal` if omitted.
-
-### Rule Base
-
-A Rule Base can be instantiated as follows:
-
-```csharp
-public static IRuleBase Create(ComparingMethod method = Priority)
-```
-
-`ComparingMethod` is an `enum` that represents the resolution method for conflicts between rules, since it may be the
-case that two rules with the same consequent are stored in the rule base.
-
-There are three possible enumeration members:
-
-- **Priority**: Indicates that the rule with the highest priority will prevail.
-- **LargestPremise**: Indicates that the rule with the greatest number of connectives in the premise will prevail.
-- **ShortestPremise**: Indicates that the rule with the lowest number of connectives in the premise will prevail.
-
-This will create an instance of a Working Memory with no rules.
-
-This class declares a method that is meant to be hidden by an implementing class (using the `new` keyword), which is the
-following:
-
-```csharp
-public static IRuleBase Initialize(ILinguisticBase linguisticBase, ComparingMethod method = Priority)
-```
-
-Now, we must hide the base method by re-declaring the base method and preload all data inside it.
-
-```csharp
-public new static IRuleBase Initialize(ILinguisticBase linguisticBase, ComparingMethod method = Priority)
-{
-    var r1 = FuzzyRule.Create(RulePriotity.High)
-        .If(FuzzyProposition.Is(linguisticBase, "Water", "Cold"))
-        .Or(FuzzyProposition.IsNot(linguisticBase, "Water", "Hot"))
-        .Then(FuzzyProposition.Is(linguisticBase, "Power", "High"));
-    var r2 = FuzzyRule.Create(RulePriority.Normal)
-        .If(FuzzyProposition.Is(linguisticBase, "Water", "Hot"))
-        .Then(FuzzyProposition.Is(linguisticBase, "Power", "Low"));
-    return Create(method).AddAll(r1, r2);
-}
-```
-
-### Knowledge Base
-
-The Knowledge Base is simply an aggregation of both a Linguistic Base and a Rule Base.
-The preferred method of creating an instance of a Knowledge Base is as follows:
-
-```csharp
-public static IKnowledgeBase Create(ILinguisticBase linguisticBase, IRuleBase ruleBase)
+var linguisticBase = LinguisticBase
+    .Create(water, humidity);
 ```
 
 ### Working Memory
 
-A Working Memory represents all the knowledge about the domain as facts, whether they are provided by the user or
-inferred by the system.
+A Working Memory represents the current knowledge about a *Domain* in the form of *Facts*.
+These facts describe the current state of the domain that may change over time.
 
-A Working Memory can be instantiated as follows:
+Facts are stored using identifiers that correspond to domain concepts—such as linguistic variables or enumerated
+states—whose current values characterize the state of the domain.
+By updating the working memory, the user provides the information that rules can later reason about.
+
+#### Creating a Working Memory
+
+A working memory can be created empty and populated incrementally:
 
 ```csharp
-public static IWorkingMemory Create(EntryResolutionMethod method = Replace)
+var memory = WorkingMemory.Create();
 ```
 
-This will create an instance of a Working Memory with no given facts. All facts are stored in
-a `IDictionary<string, double>` collection, and they are uniquely identifiable by their name. There cannot be two
-facts with the same name.
+#### Adding Facts
 
-`EntryResolutionMethod` is an `enum` that represents the resolution method for new entries whose keys collide with
-previous entries' keys in the working memory, because, as it was previously established, there cannot be two facts with
-the same name.
-There are two possible enumeration members:
+Numeric facts describe measured values and are identified by a string key that matches the name of the linguistic
+variable they describe.
 
-- **Preserve**: Indicates that the previous entries will be preserved.
-- **Replace**: Indicates that the new entries will replace the previous ones.
+```csharp
+memory.AddNumericFact("Room Temperature", 21.5);
+memory.AddNumericFact("Outside Temperature", -2.0);
+```
 
-if none is specified, the default enumeration member is `Replace`.
+Alternatively, numeric facts can be added in batches using key-value tuples:
 
-If the user desires to preload a Working Memory with data, two methods can be used:
+```csharp
+memory.AddNumericFacts(("Room Temperature", 21.5), ("Outside Temperature", -2.0));
+```
+
+Categorical facts describe discrete states and are expressed using enum values:
+
+```csharp
+memory.AddCategoricalFact(Occupancy.Occupied);
+memory.AddCategoricalFact(Window.Closed);
+```
+
+Categorical facts can also be added in batches:
+
+```csharp
+memory.AddCategoricalFacts(Occupancy.Ocupied, Window.Closed);
+```
+
+#### Retrieving Facts
+
+Facts can be retrieved directly from the working memory:
+
+```csharp
+var temperature = memory.GetNumericFact("Room Temperature");
+var occupancy   = memory.GetCategoricalFact<Occupancy>();
+```
+
+If a fact is not present, the returned value reflects its absence.
 
 #### Load from a CSV file
 
-The following method loads all data via a CSV file:
+Facts can also be loaded from CSV files to initialize a working memory with a predefined domain state:
 
 ```csharp
-public static IWorkingMemory InitializeFromFile(string folderPath, EntryResolutionMethod method = Replace)
+memory.ReadNumericFactsFromFile("data/inputs.csv");
+memory.ReadCategoricalFactsFromFile("data/states.csv");
 ```
 
-`folderPath` is a `string` indicating the route of the file. A file preloaded with data would look as follows:
+### Rules
 
-| <!-- --> | <!-- --> |
-|----------|----------|
-| Age      | 18       |
-| Height   | 175      |
-| Weight   | 70       |
+A rule expresses a conditional relationship between a set of propositions (the *Premise*) and a *Consequent*.
+Rules are evaluated during inference using the linguistic variables, membership functions, and facts available to the
+system.
 
-#### Load from code
+#### Bounded and Unbounded Rules
 
-The following method is marked as meant to be hidden by an implementing class:
+Rules can be created either unbounded or bounded to a linguistic base.
+
+An **Unbounded rule** does not carry any implicit reference to a linguistic base.
+When appending fuzzy propositions to such a rule, the linguistic base must be provided explicitly so that linguistic
+variables and linguistic terms can be resolved.
 
 ```csharp
-static abstract IWorkingMemory Initialize(EntryResolutionMethod method = Replace)
+UnboundedFuzzySetRule.Create()
+    .If(linguisticBase, "Temperature", "Mild");
 ```
 
-A class can be declared that inherits from `WorkingMemory` by initializing all data at instantiation.
-For example, let's declare the following class:
+A **Bounded rule** is created with an associated linguistic base.
+Once bound, fuzzy propositions can be appended without explicitly specifying where linguistic variables are retrieved
+from.
 
 ```csharp
-public class WorkingMemoryImpl : WorkingMemory
+BoundedFuzzySetRule.Create(linguisticBase)
+    .If("Temperature", "Mild");
 ```
 
-Now, we must hide the base method by re-declaring the base method and preload all data inside it.
+#### Propositions
+
+A proposition represents a condition evaluated as part of a rule’s premise.
+Propositions can be either fuzzy or boolean.
+
+##### Fuzzy Proposition
+
+A *Fuzzy proposition* references a *Linguistic variable* and one of its *Linguistic terms*.
+During inference, it is evaluated by computing the *Membership degree* of the current input value in its corresponding
+membership function.
 
 ```csharp
-public new static IWorkingMemory Initialize(EntryResolutionMethod method = Replace)
-{
-    var workingMemory = Create();
-    workingMemory.AddFact("Age", 18);
-    workingMemory.AddFact("Height", 175);
-    workingMemory.AddFact("Weight", 70);
-    return workingMemory;
-}
+.If("Humidity", "High")
 ```
+
+##### Boolean Propositions
+
+Rules may also include *Boolean propositions*, which represent categorical facts.
+Boolean propositions are defined using enums, where the *Type* and the *Constant value* of an <code>enum</code> play a
+role similar to a linguistic variable and term, respectively.
+
+```csharp
+.And(Ventilation.On)
+```
+
+Boolean propositions are independent of linguistic bases and can be freely combined with fuzzy propositions within the
+same rule.
+
+#### Fuzzy Set Rules (Mamdani-style)
+
+A **Fuzzy set rule** uses fuzzy sets in both its *Premise* and its *Consequent*.
+The consequent specifies a linguistic term that will be activated when the rule fires.
+
+```csharp
+BoundedFuzzySetRule.Create(linguisticBase)
+    .If("Temperature", "Cold")
+    .And("Humidity", "High")
+    .And(Ventilation.Off)
+    .Then("Heating Power", "High");
+```
+
+The previous rule can be read as:
+
+    If the Temperature is Cold and the Humidity is Humid, and the Ventilation is Off, then Heating power is/should be set to High.
+
+The previous rule can be read entirely as a natural language statement.
+When evaluated, the *Membership degrees* of its propositions are aggregated into a single truth value for the premise,
+which in turn determines the *Firing strength* of the rule.
+This firing strength is later used in later stages of inference.
+
+#### Functional Rules (Sugeno-style)
+
+A **Functional rule** defines its consequent as a function of the input variables rather than as a fuzzy set.
+The consequent consists of a coefficients list and a bias.
+
+Coefficients can be provided explicitly:
+
+```csharp
+BoundedFunctionalRule.Create(linguisticBase)
+    .If("Temperature", "Cool")
+    .And("Outside Temperature", "Freezing")
+    .Then([1.5, 2.0], 1.0);
+```
+
+The previous rule can be read as:
+
+    If the Temperature is Cool and the Outside Temperature is Freezing, then the Heating power = 1.5 * Temperature + 2.0 * Outside Temperature + 1.0.
+
+While the premise of a functional rule can be expressed in natural language, its consequent cannot.
+The output is produced by evaluating the function defined by the rule rather than by activating a linguistic term.
+
+Alternatively, coefficients can be initialized using an initialization policy:
+
+```csharp
+BoundedFunctionalRule.Create(linguisticBase)
+    .If("Temperature", "Cool")
+    .And("Outside Temperature", "Freezing")
+    .Then(CoefficientInitMethod.Centroid);
+```
+
+### Rule Base
+
+A Rule Base is a container for rules that have already been instantiated.
+Its responsibility is to store, organize, and expose rule collections so they can be queried and consumed by other parts
+of the system.
+
+At its core, a rule base operates over a single rule type and provides a common set of operations for managing rules and
+inspecting their relationships.
+
+#### Rule Base Variants
+
+As with rules themselves, rule bases are specialized according to the kind of rules they contain.
+
+The base interface for a rule base is:
+
+```csharp
+public interface IRuleBase<T> where T : class, IRule;
+```
+
+Two primary variants are provided, both extending the same base interface:
+
+```csharp
+public interface IFuzzySetRuleBase : IRuleBase<IFuzzySetRule>;
+public interface IFunctionalRuleBase : IRuleBase<IFunctionalRule>;
+```
+
+A Fuzzy Set Rule Base stores Mamdani-style rules with linguistic consequents, while a Functional Rule Base stores
+Sugeno-style rules whose consequents are mathematical functions.
+Each variant operates on a homogeneous set of rules and can expose behavior specific to that rule type when needed.
+
+#### Rule Storage and Lifecycle
+
+The rule base acts as a container for instantiated rules.
+It allows rules to be added and removed and exposes the full collection when direct access is required.
+
+```csharp
+ICollection<T> ProductionRules { get; }
+void Add(T rule);
+void AddAll(ICollection<T> rules);
+void AddAll(params IEnumerable<T> rules);
+bool Remove(T rule);
+void RemoveAll(params IEnumerable<T> rules);
+```
+
+#### Rule Discovery and Filtering
+
+Rules can be queried based on the variables they reference in their premises or conclusions.
+This makes it possible to retrieve subsets of rules relevant to a specific variable without inspecting individual rule
+definitions.
+
+```csharp
+IEnumerable<T> FindByPremise(StringOrType identifier);
+IEnumerable<T> FindByConclusion(string target);
+```
+
+*Note*: `StringOrType` represents an identifier that can be either a `string` or a `Type`.
+This reflects the two kinds of propositions supported by the system, as described in the
+[Propositions](#propositions) section:
+
+- For **Fuzzy propositions**, the identifier is a `string` corresponding to the name of a linguistic variable.
+- For **Boolean propositions**, the identifier is a `Type` corresponding to the enum that defines the proposition.
+
+#### Variable Introspection
+
+The rule base can report which variables appear across the rule set, distinguishing between variables that serve as
+inputs and those that are inferred by conclusions.
+Boolean and fuzzy variables are also exposed separately.
+
+```csharp
+ISet<StringOrType> GetBaseVariables();
+ISet<string> GetInferredVariables();
+ISet<StringOrType> GetAllVariables();
+ISet<Type> GetBooleanVariables();
+ISet<string> GetFuzzyVariables();
+```
+
+#### Dependency Analysis
+
+Rules often form dependency chains through shared variables.
+The rule base can expose these relationships explicitly, allowing variable-level and rule-level dependencies to be
+inspected.
+
+```csharp
+ISet<StringOrType> FindDependentVariables(string target);
+IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph();
+IDictionary<string, List<T>> BuildRuleDependencyMap();
+```
+
+#### Evaluation Readiness
+
+Given a **Working memory**, the rule base can determine which rules are eligible for evaluation based on the
+availability of the required facts.
+
+```csharp
+IEnumerable<IRule> GetEvaluable(IWorkingMemory memory);
+```
+
+#### Rule Activation Tracking
+
+The rule base can track rule activation across inference iterations.
+This makes it possible to distinguish between rules that have fired, have not fired, or are currently inactive.
+
+```csharp
+IEnumerable<T> GetActivated(uint iteration);
+IEnumerable<T> GetUnactivated(uint iteration);
+IEnumerable<T> GetDormant(IWorkingMemory memory, uint iteration);
+IEnumerable<T> GetNeverActivated();
+IEnumerable<T> GetEverActivated();
+```
+
+#### Learning and Adaptation Support
+
+The rule base can record information about rule evaluations across inference iterations. This information is supplied by
+the inference engine during execution and is stored for later inspection.
+
+```csharp
+void RecomputeAdaptation(AdaptationConfig config);
+void ResetAdaptation();
+```
+
+Adaptation relies on evaluation data recorded during inference; the rule base itself does not compute or assign
+evaluation values.
 
 ### Inference Engine
 
-The Inference Engine is the core component of the library.
-Conceptually, an Inference Engine defines control strategies or search techniques, which search through the knowledge
-base to arrive at decisions.
-The method of inference applied is **Backward-Chaining**, which a goal-driven process which starts with a list of
-goals (or a hypothesis) and works backwards from the consequent to the antecedent to see if any data support any of
-these consequents.
-It follows the process described below:
+An **Inference Engine** is responsible for executing reasoning over a set of rules using the current domain state.
+It coordinates the evaluation of rule premises, the application of consequents, and—when working with fuzzy-set
+rules—the production of crisp output values.
 
-```
-while (no untried hypothesis) and (unresolved)
-    for each hypothesis
-        for each rule with hypothesis as consequent
-            try to support rule’s conditions from known facts or via recursion (trying all possible bindings)
-            if all supported then assert consequent
-```
+At present, the library provides an inference engine for fuzzy-set (**Mamdani-style**) consequents.
+Support for functional (**Sugeno-style**) inference engines is planned and currently underdevelopment.
 
-The result of this process is a Derivation Tree, which is an N-ary tree which has an *n* number of child nodes, which
-represent the sub-goals that are necessary to prove a given goal.
-The leaf nodes represent the facts, while the internal nodes represent a collection of rules.
-Note that the rules in this collection must have the same consequent.
+#### Inference Model
 
-Backward Chaining is performed by using Depth-First Search, and it generates a Derivation Tree as a result.
-The Proof Search is performed by using a Reverse Level Order Traversal over the Derivation Tree.
-For more information on the implementation details, see the class [ITreeNode<T>](FuzzyLogic/Tree/ITreeNode.cs) and the
-methods: `CreateDerivationTree` and `InferFact`.
+The inference process is **Goal-driven** and follows a **Backward-chaining** strategy.
+Reasoning starts from one or more target variables and proceeds by identifying rules capable of supporting those goals,
+evaluating their premises against the available facts, and combining their effects.
 
-#### Instantiation process
+For fuzzy-set rules, each evaluated rule produces a *fuzzy rule output*.
+These outputs are aggregated into a single fuzzy result for the target variable, which is then defuzzified to obtain a
+crisp value.
+**Defuzzification** is the primary externally visible outcome of the inference engine.
 
-At its core, the Inference Engine is simply an aggregation of both a Knowledge Base and a Working Memory.
-The preferred method of creating an instance of a Knowledge Base is as follows:
+#### Building an Inference Engine
+
+Inference engines are constructed using a dedicated builder, allowing configuration to be expressed declaratively
+through chained method calls.
+
+A minimal example of constructing a **Fuzzy-consequent inference engine** is shown below:
 
 ```csharp
-public static IEngine Create(IKnowledgeBase knowledgeBase, IWorkingMemory workingMemory, DefuzzificationMethod method = MeanOfMaxima)
+var engine =
+    FuzzyConsequentEngineBuilder
+        .Create()
+        .WithRuleBase(ruleBase)
+        .WithWorkingMemory(memory)
+        .WithOperatorFamily(CanonicalType.Godel)
+        .WithImplicationMethod(ImplicationMethod.Mamdani)
+        .WithAggregationMethod(ValueAggregatorMethod.Mean)
+        .WithDefuzzificationMethod(DefuzzificationMethod.CenterOfLargestArea)
+        .Build();
 ```
 
-`DefuzzificationMethod` is an `enum` that represents the defuzzification method for aggregating the collection of rules
-with the same consequent, and defuzzifying them into a crisp value.
+The builder requires a *Rule Base* and a *Working Memory* to be supplied.
+All other aspects of the engine configuration are optional and fall back to sensible defaults when not explicitly
+specified.
 
-There are five possible enumeration members:
+##### Configuration Options
 
-- **FirstOfMaxima**, **LastOfMaxima**, **MeanOfMaxima**:
+Each configuration step controls a specific aspect of the inference process:
+
+##### Operator Family
+
+This determines how logical connectives (`AND`, `OR`, `NOT`, `THEN`) are evaluated when combining premise conditions.
+FuzzySharper provides support for the following canonical families of fuzzy operators.
+
+- Gödel: `AND`: $x \otimes_G y = \min(x, y)$; `OR`: $x \oplus_G y = \max(x, y)$, `THEN`: $x \to_G y =
+  \begin{cases}
+  1, & \text{if } x \le y \\
+  y, & \text{if } x > y
+  \end{cases}
+  $
+  $\\[0.8cm]$
+- Łukasiewicz: `AND`: $x \otimes_L y = \max(0, x + y - 1)$; `OR`: $x \oplus_L y = \min(1, x + y)$, `THEN`: $x \to_L y =
+  \min(1, 1 - x + y)$
+  $\\[0.8cm]$
+- Nilpotent: `AND`: $x \otimes_N y =
+  \begin{cases}
+  \min(x, y), & \text{if } x + y > 1 \\
+  0, & \text{if } x + y \le 1
+  \end{cases}$; `OR`: $x \oplus_N y =
+  \begin{cases}
+  \max(x, y), & \text{if } x + y < 1 \\
+  1, & \text{if } x + y \ge 1
+  \end{cases}$, `THEN`: $x \to_N y = \max(1 - x, y)$
+  $\\[0.8cm]$
+- Product: `AND`: $x \otimes_P y = x \cdot y$; `OR`: $x \oplus_P y = x + y - x \cdot y$, `THEN`: $x \to_P y =
+  \begin{cases}
+  1, & \text{if } x \le y \\
+  \frac{y}{x}, & \text{if } x > y
+  \end{cases}$
+
+All families use the standard negation: `NOT`: $\neg x = 1 - x$
+
+##### Custom Operator Families
+
+In addition to the built-in canonical families, FuzzySharper allows users to define custom conjunction, disjunction,
+implication, and negation operators.
+
+```csharp
+public FuzzyConsequentEngineBuilder WithDisjunction(INorm norm);
+public FuzzyConsequentEngineBuilder WithConjunction(IConorm conorm);
+public FuzzyConsequentEngineBuilder WithResiduum(IResiduum residuum);
+public FuzzyConsequentEngineBuilder WithOperators(INegation negation, INorm norm, IConorm conorm, IResiduum residuum);
+```
+
+This provides a high degree of flexibility, at the cost of stepping outside the well-established behavior of the
+predefined operator families.
+
+##### Implication Method
+
+The implication method determines how the truth value of a rule’s premise is applied to its consequent.
+In fuzzy-set rules, this step transforms the membership function associated with the rule’s conclusion based on how
+strongly the premise is satisfied.
+The resulting fuzzy sets are later combined and defuzzified to produce a final crisp value.
+
+Only the following implication methods are currently supported:
+
+- **Mamdani**
+- **Larsen**
+
+##### Defuzzification Method
+
+The defuzzification method determines how the fuzzy outputs produced by all fired rules with the same consequent are
+aggregated into a single crisp value.
+This step represents one of the final stages of fuzzy inference and is the primary externally visible result of the inference
+engine.
+
+Defuzzification is configured by selecting a method that defines how the aggregated fuzzy output is converted into a
+crisp value.
+The following defuzzification strategies are supported:
+
+- **First of Maxima**, **Last of Maxima**, **Mean of Maxima**:
+  Methods that operate on the consequent membership function associated with the highest premise truth value.
   See [here](https://codecrucks.com/maxima-methods-for-defuzzification-fom-lom-and-mom/) for technical details.
-- **CenterOfSums**: See [here](https://codecrucks.com/center-of-sums-cos-method-for-defuzzification/) for technical
+- **Center of Sums**:
+  Computes the *Centroid* of the combined area contributed by each rule.
+  See [here](https://codecrucks.com/center-of-sums-cos-method-for-defuzzification/) for technical
   details.
-- **CenterOfLargestArea**: See [here](https://codecrucks.com/center-of-largest-area-method-for-defuzzification/) for
+- **Center of Largest Area**:
+  Computes the *Centroid* of the consequent membership function with the *Largest area* after implication is applied.
+- See [here](https://codecrucks.com/center-of-largest-area-method-for-defuzzification/) for
   technical details.
 
-if none is specified, the default enumeration member is `MeanOfMaxima`.
+#### Value Aggregation Method
 
-Finally, the method for inferring new facts is as follows:
+The value aggregator defines how a final crisp value is selected when a defuzzification method yields multiple equally valid candidates.
+
+This situation can occur when more than one consequent membership function attains the same maximum value, the nature of which depends on the selected defuzzification method—
+for example, First/Last/Mean of Maxima rely on the highest premise truth value, while Center of Largest Area selects the function with the largest area.
+In such cases, the value aggregator acts as a tie-breaking strategy.
+
+The following aggregation methods are supported:
+
+- **Leftmost**: Selects the value associated with the leftmost candidate.
+- **Mean**: Computes the arithmetic mean of all candidate values.
+- **Rightmost**: Selects the value associated with the rightmost candidate.
+
+#### Defuzzification (Execution)
+
+Once the engine has been fully constructed and configured, inference is performed by invoking the Defuzzify method on the fuzzy consequent engine:
 
 ```csharp
-public double? Defuzzify(string variableName, bool provideExplanation = true)
+Option<double> Defuzzify(string target, bool provideExplanation = true);
 ```
 
-This will return a non-null value which represents the defuzzified, crisp number associated to the variable name
-represented as a `string`, if such variable is currently present in the Working Memory as a fact, or if it was
-successfully inferred as a fact resulting from the inference process.
-The method provides an explanation facility by default, which shows in the console the resulting Derivation Tree from
-the Backward Chaining, and the Proof Search from the Reverse Level Order Traversal of such Tree.
+This operation represents the final execution step of the fuzzy inference process.
+Given the name of an output variable, the engine: evaluates all applicable rules; applies implication to their consequent membership functions; resolves any ambiguities according to the configured value aggregation strategy; produces a single crisp value using the selected defuzzification method.
 
-## Test run
+If no rules contribute to the specified variable, or if inference cannot be completed, the method returns and empty `Option`.
 
-The library provides an example by default, found in [this](FuzzyLogic/Test/Two) directory.
-This rule base was extracted from [the following paper](http://www.progmat.uaem.mx:8080/Vol11num2/vol11num2art8.pdf).
+The optional `provideExplanation` flag controls whether explanatory metadata is shown to the user after the inference process has been completed.
+This has no effect on the numerical result itself, but it enables downstream inspection of how the final value was obtained when explanation support is enabled.
+For fuzzy-set–based inference, this method constitutes the primary externally observable result of the engine.
