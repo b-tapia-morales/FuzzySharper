@@ -24,4 +24,6 @@ public interface IProposition
     FuzzyNumber Evaluate(DoubleOrEnum value, INegation negation);
 
     FuzzyNumber Evaluate(DoubleOrEnum value) => Evaluate(value, Negation.Standard);
+    
+    IProposition DeepCopy();
 }

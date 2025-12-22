@@ -12,7 +12,7 @@ using Shared.Primitives.Implementation;
 namespace Reasoning.Proposition.Implementations;
 
 public sealed class FuzzyProposition(string variable, Connective connective, Literal literal, LinguisticHedge linguisticHedge, IMembershipFunction function)
-    : IProposition, IEquatable<FuzzyProposition>
+    : IEquatable<FuzzyProposition>, IProposition
 {
     public StringOrType Identifier { get; } = variable;
     public Connective Connective { get; } = connective;
@@ -69,4 +69,7 @@ public sealed class FuzzyProposition(string variable, Connective connective, Lit
 
     public FuzzyNumber Evaluate(double crispValue) =>
         Evaluate(crispValue, Negation.Standard);
+
+    public IProposition DeepCopy() => 
+        new FuzzyProposition(Variable, Connective, Literal, LinguisticHedge, Function);
 }

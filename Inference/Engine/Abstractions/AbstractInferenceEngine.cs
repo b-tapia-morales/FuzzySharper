@@ -37,7 +37,7 @@ public abstract class AbstractInferenceEngine : IInferenceEngine
 
     public void ResetLearning()
     {
-        RuleBase.ResetLearning();
+        RuleBase.ResetAdaptation();
         CurrentIteration = 0;
     }
 
@@ -45,6 +45,6 @@ public abstract class AbstractInferenceEngine : IInferenceEngine
     {
         if (!IsLearningEnabled || !AdaptationConfig.IsSome(out var config))
             return;
-        RuleBase.UpdateLearning(config);
+        RuleBase.RecomputeAdaptation(config);
     }
 }

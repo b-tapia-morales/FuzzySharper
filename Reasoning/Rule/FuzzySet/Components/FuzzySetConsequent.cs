@@ -1,8 +1,8 @@
 ﻿using Kernel.Number;
-using Kernel.Operator.Negation.Implementations.Canonical;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Proposition.Implementations;
 using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.Functional.Implementations;
 
 namespace Reasoning.Rule.FuzzySet.Components;
 
@@ -10,12 +10,6 @@ public class FuzzySetConsequent(FuzzyProposition proposition) : IRuleOutput
 {
     public FuzzyProposition Proposition { get; } = proposition;
     public string Target { get; } = proposition.Identifier.AsString;
-
-    public bool IsEvaluable(IWorkingMemory memory) =>
-        Proposition.IsEvaluable(memory);
-
-    public FuzzyNumber Evaluate(double crispValue) =>
-        Proposition.Evaluate(crispValue, Negation.Standard);
 
     public override bool Equals(object? obj) =>
         Proposition.Equals(obj);
@@ -25,4 +19,13 @@ public class FuzzySetConsequent(FuzzyProposition proposition) : IRuleOutput
 
     public override string ToString() =>
         Proposition.ToString();
+
+    public bool IsEvaluable(IWorkingMemory memory) =>
+        Proposition.IsEvaluable(memory);
+
+    public FuzzyNumber Evaluate(double crispValue) =>
+        Proposition.Evaluate(crispValue);
+
+    public IRuleOutput DeepCopy() =>
+        new FuzzySetConsequent((FuzzyProposition) Proposition.DeepCopy());
 }

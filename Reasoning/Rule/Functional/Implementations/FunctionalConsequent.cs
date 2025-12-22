@@ -1,4 +1,5 @@
 ﻿using Knowledge.Memory.Abstractions;
+using Reasoning.Rule.Abstractions;
 using Reasoning.Rule.Functional.Abstractions;
 using Shared.Approx;
 using Shared.Options.Factory;
@@ -8,24 +9,14 @@ using Shared.Options.Implementations;
 
 namespace Reasoning.Rule.Functional.Implementations;
 
-public class FunctionalConsequent : IFunctionalConsequent, IEquatable<FunctionalConsequent>
+public class FunctionalConsequent : IFunctionalConsequent, IEquatable<FunctionalConsequent>, IRuleOutput
 {
     private const int DecimalPlaces = (int) DoubleApproxExt.DefaultPrecision;
 
     public required string Target { get; init; }
     public required IReadOnlyDictionary<string, double> CoefficientDict { get; init; }
-    public double Bias { get; set; } = 0D;
+    public double Bias { get; set; }
     public uint Arity { get; init; }
-
-    public bool IsEvaluable(IWorkingMemory memory) =>
-        CoefficientDict.All(pair => memory.Contains(pair.Key));
-
-    public Option<double> Evaluate(IWorkingMemory memory)
-    {
-        if (!IsEvaluable(memory))
-            return Option<double>.None();
-        return CoefficientDict.Select(pair => pair.Value * memory.GetNumericFact(pair.Key).Get).Sum() + Bias;
-    }
 
     public bool Equals(FunctionalConsequent? other)
     {
@@ -71,6 +62,25 @@ public class FunctionalConsequent : IFunctionalConsequent, IEquatable<Functional
             : $"{CoefficientDict.Select(pair => $"{pair.Value:4D} * {pair.Key} + ")}";
         return $"THEN {Target} = {coefficients}{Bias:4D}";
     }
+
+    public bool IsEvaluable(IWorkingMemory memory) =>
+        CoefficientDict.All(pair => memory.Contains(pair.Key));
+
+    public Option<double> Evaluate(IWorkingMemory memory)
+    {
+        if (!IsEvaluable(memory))
+            return Option<double>.None();
+        return CoefficientDict.Select(pair => pair.Value * memory.GetNumericFact(pair.Key).Get).Sum() + Bias;
+    }
+
+    public IRuleOutput DeepCopy() => 
+        new FunctionalConsequent
+        {
+            Target = Target,
+            CoefficientDict = CoefficientDict.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase),
+            Bias = Bias,
+            Arity = Arity
+        };
 
     private static decimal Normalize(double value) =>
         decimal.Round(new decimal(value), DecimalPlaces, MidpointRounding.ToZero);

@@ -24,13 +24,13 @@ namespace Reasoning.Rule.Abstractions;
 public abstract class AbstractRule : IRule
 {
     public IProposition? Conditional { get; set; }
-    public ICollection<IProposition> Connectives { get; } = new List<IProposition>();
+    public ICollection<IProposition> Connectives { get; protected init; } = new List<IProposition>();
     public IRuleOutput? Consequent { get; set; }
     public bool IsFinalized { get; set; }
     public Option<RulePriority> Priority { get; protected init; } = Option<RulePriority>.None();
     public Option<double> CertaintyFactor { get; protected init; } = Option<double>.None();
-    public DateTimeOffset CreationTime { get; } = DateTimeOffset.Now;
-    public AdaptationState AdaptationState { get; } = new();
+    public DateTimeOffset CreationTime { get; protected init; } = DateTimeOffset.Now;
+    public AdaptationState AdaptationState { get; protected init; } = new();
 
     public IReadOnlyList<IProposition> Premise
     {

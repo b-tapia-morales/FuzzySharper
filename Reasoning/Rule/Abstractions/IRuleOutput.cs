@@ -6,4 +6,6 @@ public interface IRuleOutput
     
     bool Contains(string target) => 
         string.Equals(Target, target, StringComparison.OrdinalIgnoreCase);
+
+    IRuleOutput DeepCopy();
 }

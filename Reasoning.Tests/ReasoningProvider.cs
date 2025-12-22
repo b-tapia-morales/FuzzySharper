@@ -63,51 +63,51 @@ public static class ReasoningProvider
 
     private static IFuzzySetRuleBase InitializeRules(ILinguisticBase linguisticBase)
     {
-        var a = BoundFuzzySetRule.Create(linguisticBase)
+        var a = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Cold")
             .And(Occupancy.Occupied)
             .Then("Heating power", "High");
-        var b = BoundFuzzySetRule.Create(linguisticBase)
+        var b = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room Temperature", "Cool")
             .And("Outside Temperature", "Freezing")
             .Then("Heating power", "High");
-        var c = BoundFuzzySetRule.Create(linguisticBase)
+        var c = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Comfortable")
             .And("Humidity", "Normal")
             .Then("Heating power", "Low");
-        var d = BoundFuzzySetRule.Create(linguisticBase)
+        var d = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Comfortable")
             .AndNot(Window.Open)
             .Then("Heating power", "Low");
-        var e = BoundFuzzySetRule.Create(linguisticBase)
+        var e = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Warm")
             .Or("Room temperature", "Hot")
             .Then("Heating power", "Low");
-        var f = BoundFuzzySetRule.Create(linguisticBase)
+        var f = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Cold")
             .And(Window.Open)
             .Then("Heating power", "Medium");
-        var g = BoundFuzzySetRule.Create(linguisticBase)
+        var g = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Cold")
             .And("Humidity", "Humid")
             .Then("Heating power", "Medium");
-        var h = BoundFuzzySetRule.Create(linguisticBase)
+        var h = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Outside temperature", "Chilly")
             .And("Room temperature", "Cool")
             .Then("Heating power", "Medium");
-        var i = BoundFuzzySetRule.Create(linguisticBase)
+        var i = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Cold")
             .And(Occupancy.Occupied)
             .Then("Heating power", "Medium");
-        var j = BoundFuzzySetRule.Create(linguisticBase)
+        var j = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Outside temperature", "Mild")
             .And("Room temperature", "Comfortable")
             .Then("Heating power", "Low");
-        var k = BoundFuzzySetRule.Create(linguisticBase)
+        var k = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Humidity", "Dry")
             .And("Room temperature", "Cool")
             .Then("Heating power", "Medium");
-        var l = BoundFuzzySetRule.Create(linguisticBase)
+        var l = BoundedFuzzySetRule.Create(linguisticBase)
             .If("Room temperature", "Hot")
             .And(Window.Open)
             .Then("Heating power", "Low");

@@ -9,7 +9,7 @@ public class AdaptationState
 {
     public Option<FuzzyNumber> LatestWeight { get; private set; } = Option<FuzzyNumber>.None();
     public Option<FuzzyNumber> AggregatedWeight { get; private set; } = Option<FuzzyNumber>.None();
-    public LinkedList<AdaptationRecord> LearningHistory { get; } = [];
+    public LinkedList<AdaptationRecord> LearningHistory { get; private init; } = [];
     public uint FireCount { get; private set; }
     
     public void Recompute(uint maxHistorySize, IWeightAggregator aggregator)
@@ -25,6 +25,15 @@ public class AdaptationState
         LearningHistory.Clear();
         FireCount = 0;
     }
+
+    public AdaptationState DeepCopy() =>
+        new()
+        {
+            LatestWeight = LatestWeight,
+            AggregatedWeight = AggregatedWeight,
+            LearningHistory = new LinkedList<AdaptationRecord>(LearningHistory),
+            FireCount = FireCount
+        };
     
     internal void Append(FuzzyNumber weight, uint iteration)
     {

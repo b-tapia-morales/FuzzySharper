@@ -46,14 +46,14 @@ public static class EngineProvider
 
     private static IFuzzySetRuleBase InitializeRuleBase(ILinguisticBase linguisticBase)
     {
-        var r1 = BoundFuzzySetRule.Create(linguisticBase)
+        var r1 = BoundedFuzzySetRule.Create(linguisticBase)
             .If("food quality", "bad")
             .Or("service quality", "poor")
             .Then("tip", "low");
-        var r2 = BoundFuzzySetRule.Create(linguisticBase)
+        var r2 = BoundedFuzzySetRule.Create(linguisticBase)
             .If("service quality", "acceptable")
             .Then("tip", "medium");
-        var r3 = BoundFuzzySetRule.Create(linguisticBase)
+        var r3 = BoundedFuzzySetRule.Create(linguisticBase)
             .If("food quality", "great")
             .Or("service quality", "amazing")
             .Then("tip", "high");

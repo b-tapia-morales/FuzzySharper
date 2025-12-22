@@ -9,8 +9,7 @@ using Shared.Primitives.Implementation;
 
 namespace Reasoning.Proposition.Implementations;
 
-public sealed class BooleanProposition<T>(T value, Connective connective, Literal literal) :
-    IProposition, IEquatable<BooleanProposition<T>> where T : struct, Enum, IConvertible
+public sealed class BooleanProposition<T>(T value, Connective connective, Literal literal) : IEquatable<BooleanProposition<T>>, IProposition where T : struct, Enum, IConvertible
 {
     public StringOrType Identifier { get; } = typeof(T);
     public Connective Connective { get; } = connective;
@@ -52,8 +51,11 @@ public sealed class BooleanProposition<T>(T value, Connective connective, Litera
 
     private FuzzyNumber Evaluate(T value)
     {
-        var booleanValue = Value.Equals(value);
+        var booleanValue = EqualityComparer<T>.Default.Equals(Value, value);
         var literalValue = Literal == Literal.IsNot ? !booleanValue : booleanValue;
         return Convert.ToDouble(literalValue);
     }
+
+    public IProposition DeepCopy() => 
+        new BooleanProposition<T>(Value, Connective, Literal);
 }

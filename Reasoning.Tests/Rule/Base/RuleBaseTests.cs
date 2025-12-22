@@ -66,7 +66,7 @@ public class RuleBaseTests(ITestOutputHelper output)
     public void VariableKnownAsFactIsFilteredOut()
     {
         var ruleBase = Rules.DeepCopy();
-        var factRule = BoundFuzzySetRule.Create(Linguistics)
+        var factRule = BoundedFuzzySetRule.Create(Linguistics)
             .If("Humidity", "humid")
             .Then("Room temperature", "cold");
         ruleBase.Add(factRule);
@@ -80,7 +80,7 @@ public class RuleBaseTests(ITestOutputHelper output)
     public void CircularDependencyIsFilteredOut()
     {
         var ruleBase = Rules.DeepCopy();
-        var circularRule = BoundFuzzySetRule.Create(Linguistics)
+        var circularRule = BoundedFuzzySetRule.Create(Linguistics)
             .If("Heating power", "Low")
             .Then("Room temperature", "cold");
         ruleBase.Add(circularRule);

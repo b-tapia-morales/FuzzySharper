@@ -1,6 +1,7 @@
 ﻿using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
 using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.Components;
 using Shared.Primitives.Implementation;
 
 namespace Reasoning.Base.Extensions;
@@ -66,6 +67,9 @@ public static class RulesExt
         public IEnumerable<T> FindByConclusion(string variableName) =>
             rules.Where(e => e.ConsequentContains(variableName)).ToList();
 
+        public IEnumerable<T> GetEvaluable(IWorkingMemory memory) =>
+            rules.Where(e => e.IsPremiseEvaluable(memory));
+
         public IEnumerable<T> GetActivated(uint iteration) =>
             rules.Where(r => r.AdaptationState.LearningHistory.Count > 0 && r.AdaptationState.LearningHistory.Last!.Value.Iteration == iteration);
 
@@ -78,9 +82,6 @@ public static class RulesExt
             var activated = rules.GetActivated(iteration);
             return eligible.Except(activated);
         }
-
-        public IEnumerable<T> GetEvaluable(IWorkingMemory memory) =>
-            rules.Where(e => e.IsPremiseEvaluable(memory));
 
         public IEnumerable<T> GetNeverActivated() =>
             rules.Where(r => r.AdaptationState.LearningHistory.Count == 0);
@@ -99,5 +100,11 @@ public static class RulesExt
             foreach (var rule in rules)
                 rule.ResetAdaptation();
         }
+    }
+
+    extension<T>(ICollection<T> rules) where T : class, IRule<T>
+    {
+        public ICollection<T> DeepCopy(LifecycleMode lifecycleMode = LifecycleMode.New) =>
+            [..rules.Select(e => e.DeepCopy(lifecycleMode))];
     }
 }

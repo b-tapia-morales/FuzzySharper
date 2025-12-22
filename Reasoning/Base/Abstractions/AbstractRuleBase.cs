@@ -39,11 +39,11 @@ public abstract class AbstractRuleBase<T> : IRuleBase<T> where T : class, IRule
             ProductionRules.Remove(rule);
     }
 
-    public IEnumerable<T> FindByPremise(StringOrType variableName) => 
-        ProductionRules.FindByPremise(variableName);
+    public IEnumerable<T> FindByPremise(StringOrType identifier) =>
+        ProductionRules.FindByPremise(identifier);
 
-    public IEnumerable<T> FindByConclusion(string variableName) => 
-        ProductionRules.FindByConclusion(variableName);
+    public IEnumerable<T> FindByConclusion(string target) =>
+        ProductionRules.FindByConclusion(target);
 
     public ISet<StringOrType> GetBaseVariables() =>
         ProductionRules.GetBaseVariables();
@@ -60,21 +60,36 @@ public abstract class AbstractRuleBase<T> : IRuleBase<T> where T : class, IRule
     public ISet<string> GetFuzzyVariables() =>
         ProductionRules.GetFuzzyVariables();
 
-    public ISet<StringOrType> FindDependentVariables(string variableName) =>
-        ProductionRules.FindDependentVariables(variableName);
+    public ISet<StringOrType> FindDependentVariables(string target) =>
+        ProductionRules.FindDependentVariables(target);
 
     public IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph() =>
         ProductionRules.BuildDependencyGraph();
-    
+
     public IDictionary<string, List<T>> BuildRuleDependencyMap() =>
         ProductionRules.BuildRuleDependencyMap();
 
     public IEnumerable<IRule> GetEvaluable(IWorkingMemory memory) =>
         ProductionRules.GetEvaluable(memory);
 
-    public void UpdateLearning(AdaptationConfig config) =>
+    public IEnumerable<T> GetActivated(uint iteration) =>
+        ProductionRules.GetActivated(iteration);
+
+    public IEnumerable<T> GetUnactivated(uint iteration) =>
+        ProductionRules.GetUnactivated(iteration);
+
+    public IEnumerable<T> GetDormant(IWorkingMemory memory, uint iteration) =>
+        ProductionRules.GetDormant(memory, iteration);
+
+    public IEnumerable<T> GetNeverActivated() =>
+        ProductionRules.GetNeverActivated();
+
+    public IEnumerable<T> GetEverActivated() =>
+        ProductionRules.GetEverActivated();
+
+    public void RecomputeAdaptation(AdaptationConfig config) =>
         ProductionRules.RecomputeAdaptation(config);
 
-    public void ResetLearning() =>
+    public void ResetAdaptation() =>
         ProductionRules.ResetAdaptation();
 }
