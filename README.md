@@ -29,9 +29,51 @@ The following open-source libraries are used in this project:
 
 ## Folder structure
 
+The project is organized with each major subsystem isolated into its own top-level directory.
+Test projects mirror the production structure to preserve locality and intent.
+
 ```
-TODO
++---Inference
+¦   +---Aggregator
+¦   +---Defuzzifier
+¦   +---Engine
+¦   +---Tree
++---Inference.Tests
++---Kernel
+¦   +---Function
+¦   +---Number
+¦   +---Operator
++---Kernel.Tests
++---Knowledge
+¦   +---Csv
+¦   +---FactStorage
+¦   +---Linguistic
+¦   +---Memory
++---Knowledge.Tests
++---Reasoning
+¦   +---Adaptation
+¦   +---Base
+¦   +---Proposition
+¦   +---Rule
++---Reasoning.Tests
++---Shared
++---Shared.Tests
++---Utils
 ```
+
+### High-level overview
+
+- **Inference**: Contains the execution layer of the fuzzy inference process, including aggregation, defuzzification,
+  and inference engine orchestration.
+- **Kernel**: Defines the mathematical and logical primitives used throughout the system, such as definitions of a fuzzy
+  number, membership functions, and logical operators.
+- **Knowledge**: Responsible for fact modeling, working memory management, the linguistic base, linguistic variables,
+  and CSV-based data ingestion.
+- **Reasoning**: Encapsulates rule modeling, propositions, and the structures used to record and represent learned
+  information produced during inference.
+- **Shared**: Cross-cutting abstractions and utilities shared across multiple subsystems.
+- **Utils**: General-purpose helpers that do not belong to a specific domain module.
+- ***.Tests**: Each test project mirrors its corresponding module and contains unit and behavioral tests.
 
 ## Usage
 
@@ -226,7 +268,7 @@ During inference, it is evaluated by computing the *Membership degree* of the cu
 membership function.
 
 ```csharp
-.If("Humidity", "High")
+.If("Humidity", "Humid")
 ```
 
 ##### Boolean Propositions
@@ -250,7 +292,7 @@ The consequent specifies a linguistic term that will be activated when the rule 
 ```csharp
 BoundedFuzzySetRule.Create(linguisticBase)
     .If("Temperature", "Cold")
-    .And("Humidity", "High")
+    .And("Humidity", "Humid")
     .And(Ventilation.Off)
     .Then("Heating Power", "High");
 ```
@@ -470,31 +512,22 @@ Each configuration step controls a specific aspect of the inference process:
 This determines how logical connectives (`AND`, `OR`, `NOT`, `THEN`) are evaluated when combining premise conditions.
 FuzzySharper provides support for the following canonical families of fuzzy operators.
 
-- Gödel: `AND`: $x \otimes_G y = \min(x, y)$; `OR`: $x \oplus_G y = \max(x, y)$, `THEN`: $x \to_G y =
-  \begin{cases}
-  1, & \text{if } x \le y \\
-  y, & \text{if } x > y
-  \end{cases}
-  $
-  $\\[0.8cm]$
-- Łukasiewicz: `AND`: $x \otimes_L y = \max(0, x + y - 1)$; `OR`: $x \oplus_L y = \min(1, x + y)$, `THEN`: $x \to_L y =
-  \min(1, 1 - x + y)$
-  $\\[0.8cm]$
-- Nilpotent: `AND`: $x \otimes_N y =
-  \begin{cases}
-  \min(x, y), & \text{if } x + y > 1 \\
-  0, & \text{if } x + y \le 1
-  \end{cases}$; `OR`: $x \oplus_N y =
-  \begin{cases}
-  \max(x, y), & \text{if } x + y < 1 \\
-  1, & \text{if } x + y \ge 1
-  \end{cases}$, `THEN`: $x \to_N y = \max(1 - x, y)$
-  $\\[0.8cm]$
-- Product: `AND`: $x \otimes_P y = x \cdot y$; `OR`: $x \oplus_P y = x + y - x \cdot y$, `THEN`: $x \to_P y =
-  \begin{cases}
-  1, & \text{if } x \le y \\
-  \frac{y}{x}, & \text{if } x > y
-  \end{cases}$
+- Gödel:
+    - `AND`: $x \otimes_G y = \min(x, y)$
+    - `OR`: $x \oplus_G y = \max(x, y)$
+    - `THEN`: $x \to_G y = \begin{cases} 1 & \text{if } x \le y \\ y & \text{if } x > y \end{cases}$
+- Łukasiewicz:
+    - `AND`: $x \otimes_L y = \max(0, x + y - 1)$
+    - `OR`: $x \oplus_L y = \min(1, x + y)$
+    - `THEN`: $x \to_L y = \min(1, 1 - x + y)$
+- Nilpotent:
+    - `AND`: $x \otimes_N y = \begin{cases} \min(x, y) & \text{if } x + y > 1 \\ 0 & \text{if } x + y \le 1 \end{cases}$
+    - `OR`: $x \oplus_N y = \begin{cases} \max(x, y) & \text{if } x + y < 1 \\ 1 & \text{if } x + y \ge 1\end{cases}$
+    - `THEN`: $x \to_N y = \max(1 - x, y)$
+- Product:
+    - `AND`: $x \otimes_P y = x \cdot y$
+    - `OR`: $x \oplus_P y = x + y - x \cdot y$
+    - `THEN`: $x \to_P y = \begin{cases} 1 & \text{if } x \le y \\ \frac{y}{x} & \text{if } x > y \end{cases}$
 
 All families use the standard negation: `NOT`: $\neg x = 1 - x$
 
@@ -529,7 +562,8 @@ Only the following implication methods are currently supported:
 
 The defuzzification method determines how the fuzzy outputs produced by all fired rules with the same consequent are
 aggregated into a single crisp value.
-This step represents one of the final stages of fuzzy inference and is the primary externally visible result of the inference
+This step represents one of the final stages of fuzzy inference and is the primary externally visible result of the
+inference
 engine.
 
 Defuzzification is configured by selecting a method that defines how the aggregated fuzzy output is converted into a
@@ -550,10 +584,13 @@ The following defuzzification strategies are supported:
 
 #### Value Aggregation Method
 
-The value aggregator defines how a final crisp value is selected when a defuzzification method yields multiple equally valid candidates.
+The value aggregator defines how a final crisp value is selected when a defuzzification method yields multiple equally
+valid candidates.
 
-This situation can occur when more than one consequent membership function attains the same maximum value, the nature of which depends on the selected defuzzification method—
-for example, First/Last/Mean of Maxima rely on the highest premise truth value, while Center of Largest Area selects the function with the largest area.
+This situation can occur when more than one consequent membership function attains the same maximum value, the nature of
+which depends on the selected defuzzification method—
+for example, First/Last/Mean of Maxima rely on the highest premise truth value, while Center of Largest Area selects the
+function with the largest area.
 In such cases, the value aggregator acts as a tie-breaking strategy.
 
 The following aggregation methods are supported:
@@ -564,17 +601,40 @@ The following aggregation methods are supported:
 
 #### Defuzzification (Execution)
 
-Once the engine has been fully constructed and configured, inference is performed by invoking the Defuzzify method on the fuzzy consequent engine:
+Once the engine has been fully constructed and configured, inference is performed by invoking the Defuzzify method on
+the fuzzy consequent engine:
 
 ```csharp
 Option<double> Defuzzify(string target, bool provideExplanation = true);
 ```
 
 This operation represents the final execution step of the fuzzy inference process.
-Given the name of an output variable, the engine: evaluates all applicable rules; applies implication to their consequent membership functions; resolves any ambiguities according to the configured value aggregation strategy; produces a single crisp value using the selected defuzzification method.
+Given the name of an output variable, the engine: evaluates all applicable rules; applies implication to their
+consequent membership functions; resolves any ambiguities according to the configured value aggregation strategy;
+produces a single crisp value using the selected defuzzification method.
 
-If no rules contribute to the specified variable, or if inference cannot be completed, the method returns and empty `Option`.
+If no rules contribute to the specified variable, or if inference cannot be completed, the method returns and empty
+`Option`.
 
-The optional `provideExplanation` flag controls whether explanatory metadata is shown to the user after the inference process has been completed.
-This has no effect on the numerical result itself, but it enables downstream inspection of how the final value was obtained when explanation support is enabled.
+The optional `provideExplanation` flag controls whether explanatory metadata is shown to the user after the inference
+process has been completed.
+This has no effect on the numerical result itself, but it enables downstream inspection of how the final value was
+obtained when explanation support is enabled.
 For fuzzy-set–based inference, this method constitutes the primary externally observable result of the engine.
+
+## Roadmap
+
+The following items describe planned areas of evolution for FuzzySharper.
+
+1. **Functional (Sugeno-Style) Inference Engine**. *(In progress)*
+   - Completion of a first-class inference engine supporting functional consequents.
+   - **Deterministic evaluation** with **no training phase**.
+2. **Mamdani → Sugeno Knowledge Derivation**.
+   - Derivation of functional consequents from an existing Mamdani rule base.
+   - **One-shot conversion** based on an **already defined** model.
+3. **Sugeno Engine Training from Data**.
+   - Construction of Sugeno engines directly from datasets.
+   - **Incremental or batch training**, constrained to interpretable functional rules.
+4. **Tsukamoto-Style Implication Support**.
+   - Support for Tsukamoto-style monotonic consequents within fuzzy inference.
+   - **Deterministic evaluation** with **no training phase**.
