@@ -509,27 +509,45 @@ Each configuration step controls a specific aspect of the inference process:
 
 ##### Operator Family
 
-This determines how logical connectives (`AND`, `OR`, `NOT`, `THEN`) are evaluated when combining premise conditions.
-FuzzySharper provides support for the following canonical families of fuzzy operators.
+This determines how the logical connectives `NOT` ($\neg$), `AND` ($\otimes$), `OR` ($\oplus$), and `THEN` ($\to$) are
+evaluated when combining premise conditions.
+FuzzySharper provides support for the following canonical families of fuzzy operators:
 
 - Gödel:
-    - `AND`: $x \otimes_G y = \min(x, y)$
-    - `OR`: $x \oplus_G y = \max(x, y)$
-    - `THEN`: $x \to_G y = \begin{cases} 1 & \text{if } x \le y \\ y & \text{if } x > y \end{cases}$
+  $$x \otimes_G y = \min(x, y)$$
+  $$x \oplus_G y = \max(x, y)$$
+  $$x \to_G y =
+  \begin{cases}
+  1 & \text{if } x \le y \\
+  y & \text{if } x > y
+  \end{cases}$$
 - Łukasiewicz:
-    - `AND`: $x \otimes_L y = \max(0, x + y - 1)$
-    - `OR`: $x \oplus_L y = \min(1, x + y)$
-    - `THEN`: $x \to_L y = \min(1, 1 - x + y)$
+  $$x \otimes_L y = \max(0, x + y - 1)$$
+  $$x \oplus_L y = \min(1, x + y)$$
+  $$x \to_L y = \min(1, 1 - x + y)$$
 - Nilpotent:
-    - `AND`: $x \otimes_N y = \begin{cases} \min(x, y) & \text{if } x + y > 1 \\ 0 & \text{if } x + y \le 1 \end{cases}$
-    - `OR`: $x \oplus_N y = \begin{cases} \max(x, y) & \text{if } x + y < 1 \\ 1 & \text{if } x + y \ge 1\end{cases}$
-    - `THEN`: $x \to_N y = \max(1 - x, y)$
+  $$x \otimes_N y =
+  \begin{cases}
+  \min(x, y)    & \text{if } x + y > 1 \\
+  0 & \text{if } x + y \le 1
+  \end{cases}$$
+  $$x \oplus_N y =
+  \begin{cases}
+  \max(x, y) & \text{if } x + y < 1 \\
+  1 & \text{if } x + y \ge 1
+  \end{cases}$$
+  $$x \to_N y = \max(1 - x, y)$$
 - Product:
-    - `AND`: $x \otimes_P y = x \cdot y$
-    - `OR`: $x \oplus_P y = x + y - x \cdot y$
-    - `THEN`: $x \to_P y = \begin{cases} 1 & \text{if } x \le y \\ \frac{y}{x} & \text{if } x > y \end{cases}$
+  $$x \otimes_P y = x \cdot y$$
+  $$x \oplus_P y = x + y - x \cdot y$$
+  $$x \to_P y =
+  \begin{cases}
+  1 & \text{if } x \le y \\
+  \frac{y}{x} & \text{if } x > y
+  \end{cases}$$
 
-All families use the standard negation: `NOT`: $\neg x = 1 - x$
+All families use the standard negation:
+$$\neg x = 1 - x$$
 
 ##### Custom Operator Families
 
@@ -579,7 +597,7 @@ The following defuzzification strategies are supported:
   details.
 - **Center of Largest Area**:
   Computes the *Centroid* of the consequent membership function with the *Largest area* after implication is applied.
-- See [here](https://codecrucks.com/center-of-largest-area-method-for-defuzzification/) for
+  See [here](https://codecrucks.com/center-of-largest-area-method-for-defuzzification/) for
   technical details.
 
 #### Value Aggregation Method
@@ -627,14 +645,14 @@ For fuzzy-set–based inference, this method constitutes the primary externally 
 The following items describe planned areas of evolution for FuzzySharper.
 
 1. **Functional (Sugeno-Style) Inference Engine**. *(In progress)*
-   - Completion of a first-class inference engine supporting functional consequents.
-   - **Deterministic evaluation** with **no training phase**.
+    - Completion of a first-class inference engine supporting functional consequents.
+    - **Deterministic evaluation** with **no training phase**.
 2. **Mamdani → Sugeno Knowledge Derivation**.
-   - Derivation of functional consequents from an existing Mamdani rule base.
-   - **One-shot conversion** based on an **already defined** model.
+    - Derivation of functional consequents from an existing Mamdani rule base.
+    - **One-shot conversion** based on an **already defined** model.
 3. **Sugeno Engine Training from Data**.
-   - Construction of Sugeno engines directly from datasets.
-   - **Incremental or batch training**, constrained to interpretable functional rules.
+    - Construction of Sugeno engines directly from datasets.
+    - **Incremental or batch training**, constrained to interpretable functional rules.
 4. **Tsukamoto-Style Implication Support**.
-   - Support for Tsukamoto-style monotonic consequents within fuzzy inference.
-   - **Deterministic evaluation** with **no training phase**.
+    - Support for Tsukamoto-style monotonic consequents within fuzzy inference.
+    - **Deterministic evaluation** with **no training phase**.
