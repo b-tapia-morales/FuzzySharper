@@ -19,12 +19,8 @@ public static class FuzzySetRulesExt
 
         public IEnumerable<IFuzzySetRule> FilterFacts(IWorkingMemory workingMemory)
         {
-            var keys = workingMemory.NumericStorage.Keys().Select(e => e.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            foreach (var rule in rules)
-            {
-                if (!keys.Contains(rule.Consequent!.Target))
-                    yield return rule;
-            }
+            var keys = workingMemory.NumericStorage.Keys.Select(e => e.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            return rules.Where(r => !keys.Contains(r.Consequent!.Target));
         }
 
         public IEnumerable<IFuzzySetRule> FilterCircularDependencies(string variableName)

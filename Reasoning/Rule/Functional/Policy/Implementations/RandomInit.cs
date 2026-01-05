@@ -1,4 +1,4 @@
-﻿using Reasoning.Proposition.Abstractions;
+﻿using Reasoning.Proposition.Implementations;
 using Reasoning.Rule.Functional.Policy.Abstractions;
 using Utils.RandomGenerator;
 
@@ -15,7 +15,7 @@ public class RandomInit(uint decimals) : BaseCoefficientInitPolicy
 
     public static RandomInit Default => new(1);
 
-    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
+    public override IEnumerable<double> Initialize(IReadOnlyList<FuzzyProposition> premise)
     {
         var bound = Math.Pow(10, -Decimals);
         return Enumerable.Range(0, premise.Count).Select(_ => RandomUtils.NextDouble(-bound, bound));

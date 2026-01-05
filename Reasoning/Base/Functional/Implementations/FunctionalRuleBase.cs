@@ -24,7 +24,4 @@ public sealed class FunctionalRuleBase : AbstractRuleBase<IFunctionalRule>, IFun
 
     public static FunctionalRuleBase Create(ICollection<IFunctionalRule> rules) =>
         new(rules);
-    
-    public IFunctionalRuleBase DeepCopy() => 
-        Create(ProductionRules);
 }

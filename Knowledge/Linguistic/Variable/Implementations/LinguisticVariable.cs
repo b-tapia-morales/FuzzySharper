@@ -1,8 +1,11 @@
-﻿using Kernel.Function.Abstractions;
+﻿using System.Diagnostics;
+using Kernel.Function.Abstractions;
 using Kernel.Function.Comparer.Factory;
+using Kernel.Function.Implementations;
 using Kernel.Number;
 using Knowledge.Linguistic.Variable.Abstractions;
-using Knowledge.Linguistic.Variable.Extensions;
+using Knowledge.Linguistic.Variable.Exceptions;
+using Shared.Approx;
 using Shared.Intervals.Extensions;
 using Shared.Intervals.Implementations;
 using Shared.Options.Factory;
@@ -10,90 +13,138 @@ using Shared.Options.Implementations;
 
 namespace Knowledge.Linguistic.Variable.Implementations;
 
-public class LinguisticVariable : IVariable
+public sealed class LinguisticVariable : IVariable
 {
-    public string Name { get; }
+    private Dictionary<string, IMembershipFunction> SemanticalMappings { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    public IDictionary<string, IMembershipFunction> SemanticalMappings { get; } =
-        new Dictionary<string, IMembershipFunction>(StringComparer.OrdinalIgnoreCase);
+    public string Name { get; }
 
     public Interval UniverseOfDiscourse { get; }
 
-    public ISet<string> Terms =>
+    public IReadOnlySet<string> Terms =>
         SemanticalMappings.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    public uint TermCount =>
+        (uint)SemanticalMappings.Count;
 
     private LinguisticVariable() =>
         throw new InvalidOperationException();
 
-    internal LinguisticVariable(string name) : this(name, Interval.Default)
+    private LinguisticVariable(string name) : this(name, Interval.Default)
     {
     }
 
-    internal LinguisticVariable(string name, Interval universe)
+    private LinguisticVariable(string name, Interval universe)
     {
         Name = name;
         UniverseOfDiscourse = universe;
     }
 
-    public static IVariable Create(string name) =>
-        VariableExt.Create(name);
+    public static IVariable Create(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        return new LinguisticVariable(name);
+    }
 
-    public static IVariable Create(string name, Interval universe) =>
-        VariableExt.Create(name, universe);
-
-    public static IVariable Create(string name, double lower, double upper) =>
-        VariableExt.Create(name, new Interval(lower, upper));
-
-    public static IVariable Create(string name, Interval universe, ICollection<IMembershipFunction> functions) =>
-        VariableExt.Create(name, universe, functions);
-
-    public static IVariable Create(string name, double lower, double upper, ICollection<IMembershipFunction> functions) =>
-        VariableExt.Create(name, new Interval(lower, upper), functions);
-
-    public static IVariable Create(string name, Interval universe, params IEnumerable<IMembershipFunction> functions) =>
-        VariableExt.Create(name, universe, functions.ToList());
-
-    public static IVariable Create(string name, double lower, double upper, params IEnumerable<IMembershipFunction> functions) =>
-        VariableExt.Create(name, new Interval(lower, upper), functions.ToList());
-
-    public static IVariable Create(string name, ICollection<IMembershipFunction> functions) =>
-        VariableExt.Create(name, Interval.Default, functions);
+    public static IVariable Create(string name, Interval universe)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        return new LinguisticVariable(name, universe);
+    }
 
     public static IVariable Create(string name, params IEnumerable<IMembershipFunction> functions) =>
-        VariableExt.Create(name, Interval.Default, functions.ToList());
+        Create(name, Interval.Default, functions.ToList());
 
-    public IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d, double uMax = 1) =>
-        VariableExt.AddTrapezoidFunction(this, name, a, b, c, d, uMax);
+    public static IVariable Create(string name, ICollection<IMembershipFunction> functions) =>
+        Create(name, Interval.Default, functions);
 
-    public IVariable AddLeftTrapezoidFunction(string name, double a, double b, double uMax = 1) =>
-        VariableExt.AddLeftTrapezoidFunction(this, name, a, b, uMax);
+    public static IVariable Create(string name, Interval universe, params IEnumerable<IMembershipFunction> functions) =>
+        Create(name, universe, functions.ToList());
 
-    public IVariable AddRightTrapezoidFunction(string name, double a, double b, double uMax = 1) =>
-        VariableExt.AddRightTrapezoidFunction(this, name, a, b, uMax);
+    public static IVariable Create(string name, Interval universe, ICollection<IMembershipFunction> functions)
+    {
+        ArgumentNullException.ThrowIfNull(functions);
 
-    public IVariable AddTriangularFunction(string name, double a, double b, double c, double uMax = 1) =>
-        VariableExt.AddTriangularFunction(this, name, a, b, c, uMax);
+        if (string.IsNullOrWhiteSpace(name))
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-    public IVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U, double uMax = 1) =>
-        VariableExt.AddSingletonFunction(this, name, center, decimalPlaces, uMax);
+        var emptyEntry = functions.FirstOrDefault(func => string.IsNullOrWhiteSpace(func.Name));
+        if (emptyEntry != null)
+            throw new EmptyEntryException();
 
-    public IVariable AddGaussianFunction(string name, double mu, double sigma, double uMax = 1) =>
-        VariableExt.AddGaussianFunction(this, name, mu, sigma, uMax);
+        var collidingEntry = functions.GroupBy(func => func.Name, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault(group => group.Count() > 1);
+        if (collidingEntry != null)
+            throw new DuplicatedEntryException(name, collidingEntry.Key);
 
-    public IVariable AddGeneralizedBellFunction(string name, double a, double b, double c, double uMax = 1) =>
-        VariableExt.AddGeneralizedBellFunction(this, name, a, b, c, uMax);
+        var outsideEntry = functions.FirstOrDefault(func => IsOutsideUniverse(func, universe));
+        if (outsideEntry != null)
+            throw new VariableRangeException(name, universe, outsideEntry.Name, outsideEntry.RestrictedSupport,
+                nameof(outsideEntry));
 
-    public IVariable AddSigmoidFunction(string name, double a, double c, double uMax = 1) =>
-        VariableExt.AddSigmoidFunction(this, name, a, c, uMax);
+        var variable = new LinguisticVariable(name, universe);
+        foreach (var function in functions)
+            variable.AddMapping(function);
+        return variable;
+    }
 
-    public IVariable AddFunction(IMembershipFunction function) =>
-        VariableExt.AddFunction(this, function);
+    public IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d,
+        double uMax = 1) =>
+        AddFunction(TrapezoidFunction.Create(name, a, b, c, d, UniverseOfDiscourse, uMax));
 
-    public bool ContainsFunction(string term) =>
+    public IVariable AddLeftTrapezoidFunction(string name, double a, double b,
+        double uMax = 1) =>
+        AddFunction(LeftTrapezoidFunction.Create(name, a, b, UniverseOfDiscourse, uMax));
+
+    public IVariable AddRightTrapezoidFunction(string name, double a, double b,
+        double uMax = 1) =>
+        AddFunction(LeftTrapezoidFunction.Create(name, a, b, UniverseOfDiscourse, uMax));
+
+    public IVariable AddTriangularFunction(string name, double a, double b, double c,
+        double uMax = 1) =>
+        AddFunction(TriangleFunction.Create(name, a, b, c, UniverseOfDiscourse, uMax));
+
+    public IVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U,
+        double uMax = 1) =>
+        AddFunction(SingletonFunction.Create(name, center, UniverseOfDiscourse, decimalPlaces, uMax));
+
+    public IVariable AddGaussianFunction(string name, double mu, double sigma,
+        double uMax = 1) =>
+        AddFunction(GaussianFunction.Create(name, mu, sigma, UniverseOfDiscourse, uMax));
+
+    public IVariable AddGeneralizedBellFunction(string name, double a, double b, double c,
+        double uMax = 1) =>
+        AddFunction(GeneralizedBellFunction.Create(name, a, b, c, UniverseOfDiscourse, uMax));
+
+    public IVariable AddLogisticFunction(string name, double a, double c, double uMax = 1) =>
+        AddFunction(LogisticFunction.Create(name, a, c, UniverseOfDiscourse, uMax));
+
+    public IVariable AddFunction(IMembershipFunction function)
+    {
+        AddMapping(function);
+        return this;
+    }
+
+    public void AddMapping(IMembershipFunction function)
+    {
+        Debug.Assert(!string.IsNullOrWhiteSpace(function.Name));
+
+        if (ContainsMapping(function.Name))
+            throw new DuplicatedEntryException(Name, function.Name);
+        if (IsOutsideUniverse(function, UniverseOfDiscourse))
+            throw new VariableRangeException(Name, UniverseOfDiscourse, function.Name, function.RestrictedSupport,
+                nameof(function));
+
+        SemanticalMappings.Add(function.Name, function);
+    }
+
+    public bool ContainsMapping(string term) =>
         SemanticalMappings.ContainsKey(term);
 
-    public Option<IMembershipFunction> GetFunction(string term) =>
-        SemanticalMappings.TryGetValue(term, out var value) ? Option<IMembershipFunction>.Some(value) : Option<IMembershipFunction>.None();
+    public Option<IMembershipFunction> GetMapping(string term) =>
+        SemanticalMappings.TryGetValue(term, out var value)
+            ? Option<IMembershipFunction>.Some(value)
+            : Option<IMembershipFunction>.None();
 
     public Option<Interval> GetCoverage()
     {
@@ -110,9 +161,7 @@ public class LinguisticVariable : IVariable
 
     public IEnumerable<double> SampleDomain(uint points = 1000)
     {
-        if (points == 0)
-            throw new ArgumentException("Cannot draw samples from zero points", nameof(points));
-
+        ArgumentOutOfRangeException.ThrowIfLessThan(points, 1U);
         var isUoDBounded = UniverseOfDiscourse.IsFullyBounded;
         var coverageExists = GetCoverage().IsSome(out var interval);
         if (!(isUoDBounded || coverageExists))
@@ -127,7 +176,7 @@ public class LinguisticVariable : IVariable
                 return [x0, x1];
         }
 
-        var n = (int) points - 1;
+        var n = checked((int)points - 1);
         var step = (x1 - x0) / n;
         return Enumerable.Range(0, n).Select(i => x0 + i * step);
     }
@@ -137,13 +186,16 @@ public class LinguisticVariable : IVariable
             .OrderBy(func => func, OrderingFactory.GetInstance(method))
             .Select(func => func.Name);
 
-    public IEnumerable<(double x, IList<string> Terms)> ActiveFunctionCount(uint points = 1000, uint maxAllowed = 2)
+    public IEnumerable<(double x, IList<string> Terms)> ActiveFunctionCount(uint points = 1000,
+        uint maxOverlapAllowed = 2)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxOverlapAllowed, 1U);
         var functions = SemanticalMappings.Values.ToList();
         foreach (var point in SampleDomain(points))
         {
-            var overlap = functions.Where(func => func.EffectiveSupport.Contains(point)).Select(func => func.Name).ToList();
-            if (overlap.Count > maxAllowed)
+            var overlap = functions.Where(func => func.EffectiveSupport.Contains(point)).Select(func => func.Name)
+                .ToList();
+            if (overlap.Count > maxOverlapAllowed)
                 yield return (point, overlap);
         }
     }
@@ -155,4 +207,13 @@ public class LinguisticVariable : IVariable
                                           Linguistic Variable: {Name}
                                           {string.Join(Environment.NewLine, SemanticalMappings.Values)}
                                           """;
+
+    private static bool IsOutsideUniverse(IMembershipFunction function, Interval universe)
+    {
+        if (!function.IsZeroConvergent)
+            return false;
+        var (lower, upper) = function.RestrictedSupport.ToTuple();
+        var (min, max) = universe.ToTuple();
+        return lower.IsRoughlyGreaterOrEqualTo(max) || upper.IsRoughlyLesserOrEqualTo(min);
+    }
 }

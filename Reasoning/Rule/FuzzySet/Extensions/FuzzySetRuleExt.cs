@@ -30,7 +30,7 @@ internal static class FuzzySetRuleExt
 
             if (!linguisticBase.GetVariable(variableName).IsSome(out var variable))
                 throw new VariableNotFoundException(variableName);
-            if (!variable.GetFunction(termName).IsSome(out var membershipFunction))
+            if (!variable.GetMapping(termName).IsSome(out var membershipFunction))
                 throw new EntryNotFoundException(variableName, termName);
 
             rule.Consequent = new FuzzySetConsequent(new FuzzyProposition(variableName, Connective.Then, literal, linguisticHedge, membershipFunction));

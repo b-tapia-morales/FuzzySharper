@@ -10,6 +10,9 @@ public sealed class NumericStorage : IFactStorage
 {
     private Dictionary<string, double> Facts { get; }
 
+    public IReadOnlySet<StringOrType> Keys => 
+        new HashSet<StringOrType>(Facts.Keys.Select(e => (StringOrType) e));
+
     public NumericStorage() : this(new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase))
     {
     }
@@ -17,14 +20,11 @@ public sealed class NumericStorage : IFactStorage
     private NumericStorage(Dictionary<string, double> facts) =>
         Facts = new Dictionary<string, double>(facts, StringComparer.OrdinalIgnoreCase);
 
-    public ISet<StringOrType> Keys() =>
-        new HashSet<StringOrType>(Facts.Keys.Select(e => (StringOrType) e));
-
     public bool Contains(StringOrType key) =>
         key.IsString ? Facts.ContainsKey(key.AsString) : throw new InvalidKeyException(GetType().Name, nameof(String), nameof(Type));
 
     public Option<DoubleOrEnum> GetValue(StringOrType key) =>
-        Contains(key) ? Option<DoubleOrEnum>.Some<DoubleOrEnum>(Facts[key.AsString]) : Option<DoubleOrEnum>.None();
+        Contains(key) ? Option<DoubleOrEnum>.Some(Facts[key.AsString]) : Option<DoubleOrEnum>.None();
 
     public void AddValue(StringOrType key, DoubleOrEnum value)
     {

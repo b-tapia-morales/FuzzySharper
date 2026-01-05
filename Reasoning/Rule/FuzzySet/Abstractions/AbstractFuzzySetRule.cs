@@ -10,6 +10,7 @@ using Kernel.Operator.Residuum.Abstractions;
 using Kernel.Operator.Residuum.Implementations;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.Components;
 using Reasoning.Rule.Extensions;
 using Reasoning.Rule.FuzzySet.Components;
 using Shared.Options.Factory;
@@ -49,6 +50,11 @@ public abstract class AbstractFuzzySetRule : AbstractRule, IFuzzySetRule
 
     public Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory) =>
         EvaluateRuleWeight(memory, Negation.Standard, Norm.Minimum, Conorm.Maximum, Residuum.Godel);
+
+    public override abstract IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.New);
+
+    IRule IRule.DeepCopy(LifecycleMode mode) => 
+        DeepCopy(mode);
 
     protected bool MemberwiseEquals(IFuzzySetRule? other)
     {

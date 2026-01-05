@@ -10,7 +10,7 @@ public class DuplicateVariableException : Exception
 
     private const string TemplateMultiple =
         """
-        An attempt has been made to add Linguistic Variable whose names are already in use to the Linguistic Base.
+        An attempt has been made to add Linguistic Variables whose names are already in use to the Linguistic Base.
         The Linguistic Variable names found to be duplicates are the following: «{0}»
         """;
 

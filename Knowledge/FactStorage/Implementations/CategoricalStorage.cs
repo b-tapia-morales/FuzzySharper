@@ -10,6 +10,9 @@ public sealed class CategoricalStorage : IFactStorage
 {
     private Dictionary<Type, Enum> Facts { get; }
 
+    public IReadOnlySet<StringOrType> Keys =>
+        new HashSet<StringOrType>(Facts.Keys.Select(e => (StringOrType) e));
+
     public CategoricalStorage() : this(new Dictionary<Type, Enum>())
     {
     }
@@ -17,14 +20,11 @@ public sealed class CategoricalStorage : IFactStorage
     private CategoricalStorage(Dictionary<Type, Enum> facts) =>
         Facts = new Dictionary<Type, Enum>(facts);
 
-    public ISet<StringOrType> Keys() =>
-        new HashSet<StringOrType>(Facts.Keys.Select(e => (StringOrType) e));
-
     public bool Contains(StringOrType key) =>
         key.IsType ? Facts.ContainsKey(key.AsType) : throw new InvalidKeyException(GetType().Name, nameof(Type), nameof(String));
 
-    public Option<DoubleOrEnum> GetValue(StringOrType key) => 
-        Contains(key) ? Option<DoubleOrEnum>.Some<DoubleOrEnum>(Facts[key.AsType]) : Option<DoubleOrEnum>.None();
+    public Option<DoubleOrEnum> GetValue(StringOrType key) =>
+        Contains(key) ? Option<DoubleOrEnum>.Some(Facts[key.AsType]) : Option<DoubleOrEnum>.None();
 
     public void AddValue(StringOrType key, DoubleOrEnum value)
     {
@@ -45,9 +45,9 @@ public sealed class CategoricalStorage : IFactStorage
         return true;
     }
 
-    public bool Remove(StringOrType key) => 
+    public bool Remove(StringOrType key) =>
         key.IsType ? Facts.Remove(key.AsType) : throw new InvalidKeyException(GetType().Name, nameof(Type), nameof(String));
-    
+
     public void Clear() =>
         Facts.Clear();
 

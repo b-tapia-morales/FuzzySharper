@@ -28,7 +28,7 @@ public class LinguisticBaseTests
     [InlineData("tip")]
     public void AddingThrowsOnVariableCollision(string name)
     {
-        var variable = LinguisticVariable.Create(name);
+        var variable = LinguisticVariable.Create(name).AddTriangularFunction("Some name", 0, 5, 10);
         Assert.Throws<DuplicateVariableException>(() => LinguisticBase.Add(variable));
     }
 
@@ -40,9 +40,9 @@ public class LinguisticBaseTests
     {
         foreach (var term in terms)
         {
-            Assert.True(LinguisticBase.ContainsFunction(variable, term));
-            Assert.True(LinguisticBase.GetFunction(variable, term).IsSome);
-            var exception = Record.Exception(() => LinguisticBase.GetFunction(variable, term).Get);
+            Assert.True(LinguisticBase.ContainsMapping(variable, term));
+            Assert.True(LinguisticBase.GetMapping(variable, term).IsSome);
+            var exception = Record.Exception(() => LinguisticBase.GetMapping(variable, term).Get);
             Assert.Null(exception);
         }
     }

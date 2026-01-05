@@ -1,5 +1,4 @@
 ﻿using Kernel.Function.Extensions;
-using Reasoning.Proposition.Abstractions;
 using Reasoning.Proposition.Implementations;
 using Reasoning.Rule.Functional.Policy.Abstractions;
 using Shared.Intervals.Implementations;
@@ -13,12 +12,12 @@ public class CentroidInit : BaseCoefficientInitPolicy
 {
     protected bool Normalize { get; init; }
 
-    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
+    public override IEnumerable<double> Initialize(IReadOnlyList<FuzzyProposition> premise)
     {
-        var centroids = premise.Select(p => EvaluateCoefficient(p, prop => prop.Function.CalculateCentroid(Axis.X))).ToList();
+        var centroids = premise.Select(prop => prop.Function.CalculateCentroid(Axis.X)).ToList();
         if (!Normalize)
             return centroids;
-        var options = premise.Select(p => p is FuzzyProposition {Function.UniverseOfDiscourse.IsFullyBounded: true} prop
+        var options = premise.Select(prop => prop is {Function.UniverseOfDiscourse.IsFullyBounded: true}
             ? prop.Function.UniverseOfDiscourse
             : Option<Interval>.None()
         );

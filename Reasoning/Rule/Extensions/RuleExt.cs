@@ -30,7 +30,7 @@ internal static class RuleExt
 
             if (!linguisticBase.GetVariable(variableName).IsSome(out var variable))
                 throw new VariableNotFoundException(variableName);
-            if (!variable.GetFunction(termName).IsSome(out var membershipFunction))
+            if (!variable.GetMapping(termName).IsSome(out var membershipFunction))
                 throw new EntryNotFoundException(variableName, termName);
 
             rule.Conditional = new FuzzyProposition(variableName, Connective.If, literal, linguisticHedge, membershipFunction);
@@ -57,7 +57,7 @@ internal static class RuleExt
 
             if (!linguisticBase.GetVariable(variableName).IsSome(out var variable))
                 throw new VariableNotFoundException(variableName);
-            if (!variable.GetFunction(termName).IsSome(out var membershipFunction))
+            if (!variable.GetMapping(termName).IsSome(out var membershipFunction))
                 throw new EntryNotFoundException(variableName, termName);
 
             rule.Connectives.Add(new FuzzyProposition(variableName, connective, literal, linguisticHedge, membershipFunction));

@@ -1,7 +1,6 @@
 ﻿using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
-using Reasoning.Base.FuzzySet.Abstractions;
 using Shared.Options.Implementations;
 
 namespace Inference.Engine.Abstractions;

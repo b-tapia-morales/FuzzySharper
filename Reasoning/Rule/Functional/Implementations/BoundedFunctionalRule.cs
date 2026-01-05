@@ -11,7 +11,6 @@ namespace Reasoning.Rule.Functional.Implementations;
 
 public class BoundedFunctionalRule :
     AbstractFunctionalRule<BoundedFunctionalRule>,
-    IRule<BoundedFunctionalRule>,
     IContextFreeRule<BoundedFunctionalRule>,
     IContextBoundRule<BoundedFunctionalRule>,
     IBooleanPropositionRule<BoundedFunctionalRule>,
@@ -48,10 +47,10 @@ public class BoundedFunctionalRule :
     public override int GetHashCode() =>
         MemberwiseHashCode();
 
-    public BoundedFunctionalRule DeepCopy(LifecycleMode lifecycleMode = LifecycleMode.New)
+    public override IFunctionalRule DeepCopy(LifecycleMode mode = LifecycleMode.New)
     {
         this.Validate();
-        var adaptationState = lifecycleMode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
+        var adaptationState = mode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
         return new BoundedFunctionalRule
         {
             LinguisticBase = LinguisticBase,
@@ -61,7 +60,7 @@ public class BoundedFunctionalRule :
             IsFinalized = true,
             Priority = Priority,
             CertaintyFactor = CertaintyFactor,
-            CreationTime = lifecycleMode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
+            CreationTime = mode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };
     }

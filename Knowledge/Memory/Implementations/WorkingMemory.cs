@@ -19,6 +19,7 @@ public class WorkingMemory : IWorkingMemory
     public IFactStorage CategoricalStorage { get; } = new CategoricalStorage();
     public IFactStorage NumericStorage { get; } = new NumericStorage();
     public EntryResolutionMethod Method { get; }
+    public IReadOnlySet<StringOrType> Keys => new HashSet<StringOrType>(NumericStorage.Keys.Union(CategoricalStorage.Keys));
 
     private WorkingMemory(EntryResolutionMethod method = EntryResolutionMethod.Replace) =>
         Method = method;
@@ -115,7 +116,7 @@ public class WorkingMemory : IWorkingMemory
         NumericStorage.Contains(key);
 
     public Option<double> GetNumericFact(string key) =>
-        NumericStorage.GetValue(key).IsSome(out var value) ? Option<double>.Some((double) value) : Option<double>.None();
+        NumericStorage.GetValue(key).IsSome(out var value) ? (double) value : Option<double>.None();
 
     public void AddNumericFact(string key, double value)
     {
@@ -162,7 +163,7 @@ public class WorkingMemory : IWorkingMemory
         CategoricalStorage.Contains(typeof(T));
 
     public Option<T> GetCategoricalFact<T>() where T : struct, Enum, IConvertible =>
-        CategoricalStorage.GetValue(typeof(T)).IsSome(out var value) ? Option<T>.Some((T) value) : Option<T>.None();
+        CategoricalStorage.GetValue(typeof(T)).IsSome(out var value) ? (T) value : Option<T>.None();
 
     public void AddCategoricalFact<T>(T value) where T : struct, Enum, IConvertible
     {
@@ -204,9 +205,6 @@ public class WorkingMemory : IWorkingMemory
 
     public IWorkingMemory DeepCopy() =>
         new WorkingMemory(CategoricalStorage.DeepCopy(), NumericStorage.DeepCopy(), Method);
-
-    public ISet<StringOrType> Keys() =>
-        new HashSet<StringOrType>(NumericStorage.Keys().Union(CategoricalStorage.Keys()));
 
     public bool Contains(StringOrType key) =>
         key.IsString ? NumericStorage.Contains(key) : CategoricalStorage.Contains(key);

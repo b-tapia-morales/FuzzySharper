@@ -7,6 +7,7 @@ using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Aggregator.Abstractions;
 using Reasoning.Adaptation.Components;
 using Reasoning.Proposition.Abstractions;
+using Reasoning.Rule.Components;
 using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
@@ -51,4 +52,6 @@ public interface IRule
     void RecomputeAdaptation(uint maxHistorySize, IWeightAggregator aggregator);
 
     void ResetAdaptation();
+
+    IRule DeepCopy(LifecycleMode mode = LifecycleMode.New);
 }

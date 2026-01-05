@@ -5,88 +5,97 @@ using Shared.Options.Implementations;
 namespace Knowledge.Linguistic.Base.Abstractions;
 
 /// <summary>
-/// A class representation for a data-storage base in which all linguistic variables and their corresponding
-/// linguistic entries and membership functions are stored.
+/// Represents a <b>Linguistic Base</b>, a centralized repository that stores and manages
+/// a collection of <see cref="IVariable">Linguistic Variables</see> and their associated
+/// semantic mappings.
 /// </summary>
 public interface ILinguisticBase
 {
     /// <summary>
-    /// The collection where the linguistic variables will be stored.
+    /// Gets the set of names of all currently registered linguistic variables.
     /// </summary>
-    IDictionary<string, IVariable> LinguisticVariables { get; }
-
+    IReadOnlySet<string> Variables { get; }
+    
     /// <summary>
-    /// Determines whether the base contains a linguistic variable with the <see cref="IVariable.Name" /> provided as a
-    /// parameter.
+    /// Gets the total number of registered linguistic variables.
     /// </summary>
-    /// <param name="name">The name of the linguistic variable</param>
-    /// <returns>true if the base contains a linguistic variable with the given name; otherwise, false.</returns>
-    /// <seealso cref="IVariable.Name" />
+    uint VariableCount { get; }
+    
+    /// <summary>
+    /// Determines whether the base contains a linguistic variable with the specified name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the linguistic variable.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if a variable with the given name exists in the base; otherwise, <see langword="false"/>.
+    /// </returns>
     bool ContainsVariable(string name);
 
     /// <summary>
-    /// Retrieves the linguistic variable with the <see cref="IVariable.Name" /> provided as a parameter.
+    /// Retrieves the linguistic variable with the specified name.
     /// </summary>
-    /// <param name="name">The name of the linguistic variable</param>
-    /// <returns>The linguistic variable itself if the base contains linguistic variable with the given name; otherwise, null.</returns>
-    /// <seealso cref="IVariable.Name" />
+    /// <param name="name">
+    /// The name of the linguistic variable.
+    /// </param>
+    /// <returns>
+    /// An <see cref="Option{T}"/> containing the requested variable if it exists; otherwise, an <i>empty</i> Option..
+    /// </returns>
     Option<IVariable> GetVariable(string name);
     
     /// <summary>
-    /// Verifies whether both of the following conditions are satisfied:
-    /// <list type="number">
-    /// <item>
-    /// <description>
-    /// A linguistic variable with the name provided as the first parameter exists in the linguistic base.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// The specified linguistic variable contains a linguistic term with the name provided as the second parameter.
-    /// </description>
-    /// </item>
-    /// </list>
+    /// Determines whether the base contains a linguistic variable with the specified name and, if so, whether that
+    /// variable contains a semantic mapping for the specified linguistic term.
     /// </summary>
-    /// <param name="variableName">The name of the linguistic variable</param>
-    /// <param name="termName">The name of the linguistic term contained in the linguistic variable</param>
+    /// <param name="variableName">
+    /// The name of the linguistic variable.
+    /// </param>
+    /// <param name="termName">
+    /// The name of the linguistic term.
+    /// </param>
     /// <returns>
-    /// <see langword="true" /> if the linguistic base contains the specified variable,
-    /// and the variable contains the specified term;
-    /// otherwise, <see langword="false" />.
+    /// <see langword="true"/> if the variable exists and defines the specified term; otherwise, <see langword="false"/>.
     /// </returns>
-    /// <seealso cref="LinguisticVariables" />
-    /// <seealso cref="IVariable.SemanticalMappings" />
-    bool ContainsFunction(string variableName, string termName);
+    bool ContainsMapping(string variableName, string termName);
 
     /// <summary>
-    /// Retrieves the membership function associated with the specified linguistic term
-    /// only if both of the following conditions are satisfied:
-    /// <list type="number">
-    /// <item>
-    /// <description>
-    /// A linguistic variable with the name provided as the first parameter exists in the linguistic base.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <description>
-    /// The specified linguistic variable contains a linguistic term with the name provided as the second parameter.
-    /// </description>
-    /// </item>
-    /// </list>
-    /// Otherwise; returns null.
+    /// Retrieves the membership function associated with the specified linguistic term,
+    /// provided that the base contains a linguistic variable with the specified name and
+    /// that variable contains a semantic mapping for the specified term.
     /// </summary>
-    /// <param name="variableName">The name of the linguistic variable</param>
-    /// <param name="termName">The name of the linguistic term contained in the linguistic variable</param>
+    /// <param name="variableName">
+    /// The name of the linguistic variable.
+    /// </param>
+    /// <param name="termName">
+    /// The name of the linguistic term whose membership function is to be retrieved.
+    /// </param>
     /// <returns>
-    /// The linguistic term if the conditions described above are met; otherwise, <see langword="null" />.
+    /// An <see cref="Option{T}"/> containing the membership function associated with the specified linguistic term
+    /// if both conditions are met; otherwise, an <i>empty</i> Option.
     /// </returns>
-    /// <seealso cref="LinguisticVariables" />
-    /// <seealso cref="IVariable.SemanticalMappings" />
-    Option<IMembershipFunction> GetFunction(string variableName, string termName);
+    Option<IMembershipFunction> GetMapping(string variableName, string termName);
 
+    /// <summary>
+    /// Adds a linguistic variable to the base.
+    /// </summary>
+    /// <param name="variable">
+    /// The linguistic variable to add.
+    /// </param>
     void Add(IVariable variable);
 
+    /// <summary>
+    /// Adds a collection of linguistic variables to the base.
+    /// </summary>
+    /// <param name="variables">
+    /// The variables to add.
+    /// </param>
     void AddAll(ICollection<IVariable> variables);
 
-    void AddAll(params IEnumerable<IVariable> variables) => AddAll(variables.ToList());
+    /// <summary>
+    /// Adds zero or more linguistic variables to the base.
+    /// </summary>
+    /// <param name="variables">
+    /// The variables to add.
+    /// </param>
+    void AddAll(params IEnumerable<IVariable> variables);
 }

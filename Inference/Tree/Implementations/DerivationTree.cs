@@ -43,8 +43,8 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
     {
         return BuildTreeNode(rootIdentifier, rules.BuildDependencyGraph(), rules.BuildRuleDependencyMap());
 
-        static DerivationTree BuildTreeNode(StringOrType currentId, IDictionary<StringOrType, List<StringOrType>> dependencyGraph,
-            IDictionary<string, List<IFuzzySetRule>> ruleDependencyMap)
+        static DerivationTree BuildTreeNode(StringOrType currentId, IReadOnlyDictionary<StringOrType, IReadOnlyList<StringOrType>> dependencyGraph,
+            IReadOnlyDictionary<string, IReadOnlyList<IFuzzySetRule>> ruleDependencyMap)
         {
             var currentNode = new DerivationTree(currentId);
 
@@ -92,14 +92,14 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
                 node.IsProven = memory.Contains(node.Identifier);
                 continue;
             }
-            
+
             // Node has derivational dependencies, but no rules to infer its value -> node remains unproven.
             if (node.Rules.Count == 0)
             {
                 node.IsProven = false;
                 continue;
             }
-            
+
             // Node has derivational dependencies AND rules to infer its value.
             // Resolve competing rules, then use surviving rules in the defuzzification process to infer the node's value.
             // The defuzzification process is unsuccessful -> node remains unproven.

@@ -11,7 +11,6 @@ public interface IWorkingMemory : IFactStorage
 {
     public IFactStorage NumericStorage { get; }
     public IFactStorage CategoricalStorage { get; }
-
     /// <summary>
     /// The method that resolves conflicting entries with the same declared key.
     /// </summary>

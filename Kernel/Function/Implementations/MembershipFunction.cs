@@ -75,14 +75,42 @@ public abstract class MembershipFunction : IMembershipFunction
     public virtual Option<Interval> Peak =>
         HasGlobalMaximum ? new Interval(PeakLeft.Get, PeakRight.Get) : Option<Interval>.None();
 
-    public Option<double> PeakLeftClipped =>
-        HasGlobalMaximum ? Math.Max(PeakLeft.Get, UniverseOfDiscourse.LowerBound) : Option<double>.None();
+    public Option<double> PeakLeftClipped
+    {
+        get
+        {
+            if (!HasGlobalMaximum)
+                return Option<double>.None();
 
-    public Option<double> PeakRightClipped =>
-        HasGlobalMaximum ? Math.Min(PeakRight.Get, UniverseOfDiscourse.UpperBound) : Option<double>.None();
+            if (PeakRight.Get.IsRoughlyLesserThan(UniverseOfDiscourse.LowerBound))
+                return UniverseOfDiscourse.LowerBound;
+
+            return PeakLeft.Get.IsRoughlyLesserOrEqualTo(UniverseOfDiscourse.LowerBound)
+                ? PeakLeft.Get
+                : UniverseOfDiscourse.LowerBound;
+        }
+    }
+
+    public Option<double> PeakRightClipped
+    {
+        get
+        {
+            if (!HasGlobalMaximum)
+                return Option<double>.None();
+
+            if (PeakLeft.Get.IsRoughlyGreaterThan(UniverseOfDiscourse.UpperBound))
+                return UniverseOfDiscourse.UpperBound;
+
+            return PeakRight.Get.IsRoughlyLesserOrEqualTo(UniverseOfDiscourse.UpperBound)
+                ? PeakRight.Get
+                : UniverseOfDiscourse.UpperBound;
+        }
+    }
 
     public Option<Interval> PeakClipped =>
-        HasGlobalMaximum ? new Interval(PeakLeftClipped.Get, PeakRightClipped.Get) : Option<Interval>.None();
+        PeakLeftClipped.IsSome(out var left) && PeakRightClipped.IsSome(out var right)
+            ? new Interval(left, right)
+            : Option<Interval>.None();
 
     public abstract double SupportLeft { get; }
 
@@ -130,7 +158,9 @@ public abstract class MembershipFunction : IMembershipFunction
     public abstract Option<double> AlphaCutRight(FuzzyNumber alpha);
 
     public virtual Option<Interval> AlphaCut(FuzzyNumber alpha) =>
-        alpha.Value.IsRoughlyLesserOrEqualTo(UMax) ? new Interval(AlphaCutLeft(alpha).Get, AlphaCutRight(alpha).Get) : Option<Interval>.None();
+        alpha.Value.IsRoughlyLesserOrEqualTo(UMax)
+            ? new Interval(AlphaCutLeft(alpha).Get, AlphaCutRight(alpha).Get)
+            : Option<Interval>.None();
 
     public virtual Option<double> AlphaCutLeftClipped(FuzzyNumber alpha)
     {
@@ -189,7 +219,8 @@ public abstract class MembershipFunction : IMembershipFunction
                 "The name of the function cannot be null or contain only whitespaces");
     }
 
-    private static Func<double, double> PrecomputedMamdani(MembershipFunction function, FuzzyNumber alpha, bool clipToUniverse = false)
+    private static Func<double, double> PrecomputedMamdani(MembershipFunction function, FuzzyNumber alpha,
+        bool clipToUniverse = false)
     {
         if (alpha.Value.IsRoughlyZero())
             return _ => 0;

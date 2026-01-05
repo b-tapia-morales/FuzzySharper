@@ -12,4 +12,9 @@
       <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Linguistic\Base\Extensions\" />
+      <Folder Include="Linguistic\Variable\Extensions\" />
+    </ItemGroup>
+
 </Project>

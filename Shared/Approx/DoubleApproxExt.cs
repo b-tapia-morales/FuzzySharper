@@ -1,4 +1,5 @@
-﻿using static System.Math;
+﻿using Shared.Intervals.Implementations;
+using static System.Math;
 
 namespace Shared.Approx;
 
@@ -79,6 +80,12 @@ public static class DoubleApproxExt
 
         public bool IsRoughlyGreaterOrEqualTo(double b, uint precision = DefaultPrecision) =>
             a.IsRoughlyGreaterOrEqualTo(b, Pow(10, -precision));
+
+        public bool IsRoughlyBetween(double lower, double upper, uint precision = DefaultPrecision) =>
+            a.IsRoughlyLesserOrEqualTo(lower, precision) && a.IsRoughlyLesserOrEqualTo(upper, precision);
+
+        public bool IsRoughlyInRange(Interval interval, uint precision = DefaultPrecision) =>
+            a.IsRoughlyBetween(interval.LowerBound, interval.UpperBound, precision);
 
         private double SnapTo(double b, double tolerance = DefaultTolerance) =>
             a.RoughlyEquals(b, tolerance) ? b : a;

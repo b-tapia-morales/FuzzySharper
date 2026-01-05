@@ -10,7 +10,7 @@ public static class RulesExt
 {
     extension<T>(ICollection<T> rules) where T : class, IRule
     {
-        public ISet<StringOrType> GetBaseVariables()
+        public IReadOnlySet<StringOrType> GetBaseVariables()
         {
             var conditionals = rules.Select(rule => rule.Conditional!.Identifier);
             var connectives = rules.Where(e => e.Connectives.Count > 0).SelectMany(e => e.Connectives).Select(rule => rule.Identifier);
@@ -18,10 +18,10 @@ public static class RulesExt
             return conditionals.Concat(connectives).Except(consequents).ToHashSet();
         }
 
-        public ISet<string> GetInferredVariables() =>
+        public IReadOnlySet<string> GetInferredVariables() =>
             rules.Select(e => e.Consequent!).Select(rule => rule.Target).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        public ISet<StringOrType> GetAllVariables()
+        public IReadOnlySet<StringOrType> GetAllVariables()
         {
             var conditionals = rules.Select(rule => rule.Conditional!.Identifier);
             var connectives = rules.Where(e => e.Connectives.Count > 0).SelectMany(e => e.Connectives).Select(rule => rule.Identifier);
@@ -29,13 +29,13 @@ public static class RulesExt
             return conditionals.Concat(connectives).Concat(consequents).ToHashSet();
         }
 
-        public ISet<Type> GetBooleanVariables() =>
+        public IReadOnlySet<Type> GetBooleanVariables() =>
             rules.GetBaseVariables().Where(e => e.IsType).Select(e => e.AsType).ToHashSet();
 
-        public ISet<string> GetFuzzyVariables() =>
+        public IReadOnlySet<string> GetFuzzyVariables() =>
             rules.GetAllVariables().Where(e => e.IsString).Select(e => e.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        public ISet<StringOrType> FindDependentVariables(string variableName)
+        public IReadOnlySet<StringOrType> FindDependentVariables(string variableName)
         {
             var filteredRules = rules.FindByConclusion(variableName).ToList();
             if (filteredRules.Count == 0)
@@ -45,20 +45,20 @@ public static class RulesExt
             return antecedents.Concat(connectives).ToHashSet();
         }
 
-        public IDictionary<string, List<T>> BuildRuleDependencyMap()
+        public IReadOnlyDictionary<string, IReadOnlyList<T>> BuildRuleDependencyMap()
         {
             var dict = new Dictionary<string, List<T>>(StringComparer.OrdinalIgnoreCase);
             foreach (var variable in rules.GetFuzzyVariables())
                 dict[variable] = rules.FindByConclusion(variable).ToList();
 
-            return dict;
+            return dict.ToDictionary(pair => pair.Key, IReadOnlyList<T> (pair) => pair.Value);
         }
 
-        public IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph()
+        public IReadOnlyDictionary<StringOrType, IReadOnlyList<StringOrType>> BuildDependencyGraph()
         {
             var consequents = rules.GetInferredVariables().ToDictionary(e => (StringOrType) e, e => new List<StringOrType>(rules.FindDependentVariables(e)));
             var antecedents = rules.GetBaseVariables().ToDictionary(e => e, _ => new List<StringOrType>());
-            return consequents.Concat(antecedents).ToDictionary(e => e.Key, e => e.Value);
+            return consequents.Concat(antecedents).ToDictionary(e => e.Key, IReadOnlyList<StringOrType> (e) => e.Value);
         }
 
         public IEnumerable<T> FindByPremise(StringOrType variableName) =>
@@ -100,11 +100,11 @@ public static class RulesExt
             foreach (var rule in rules)
                 rule.ResetAdaptation();
         }
-    }
 
-    extension<T>(ICollection<T> rules) where T : class, IRule<T>
-    {
-        public ICollection<T> DeepCopy(LifecycleMode lifecycleMode = LifecycleMode.New) =>
-            [..rules.Select(e => e.DeepCopy(lifecycleMode))];
+        public ICollection<T> ShallowCopy() =>
+            [..rules];
+
+        public ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.New) =>
+            [..rules.DeepCopy(mode)];
     }
 }

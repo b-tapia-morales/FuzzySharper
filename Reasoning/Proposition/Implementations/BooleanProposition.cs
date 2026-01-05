@@ -7,6 +7,8 @@ using Shared.Options.Factory;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
 
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Reasoning.Proposition.Implementations;
 
 public sealed class BooleanProposition<T>(T value, Connective connective, Literal literal) : IEquatable<BooleanProposition<T>>, IProposition where T : struct, Enum, IConvertible
@@ -43,19 +45,19 @@ public sealed class BooleanProposition<T>(T value, Connective connective, Litera
     public bool IsEvaluable(IWorkingMemory memory) =>
         memory.ContainsCategoricalFact<T>();
 
-    public Option<FuzzyNumber> Evaluate(IWorkingMemory memory, INegation negation) =>
-        !memory.GetCategoricalFact<T>().IsSome(out var crispValue) ? Option<FuzzyNumber>.None() : Evaluate(crispValue, negation);
+    Option<FuzzyNumber> IProposition.Evaluate(IWorkingMemory memory, INegation negation) =>
+        !memory.GetCategoricalFact<T>().IsSome(out var enumValue) ? Option<FuzzyNumber>.None() : Evaluate(enumValue);
 
-    public FuzzyNumber Evaluate(DoubleOrEnum value, INegation negation) =>
+    FuzzyNumber IProposition.Evaluate(DoubleOrEnum value, INegation negation) =>
         value.IsEnum ? Evaluate((T) value.AsEnum) : throw new ArgumentException("");
 
-    private FuzzyNumber Evaluate(T value)
+    public FuzzyNumber Evaluate(T value)
     {
         var booleanValue = EqualityComparer<T>.Default.Equals(Value, value);
         var literalValue = Literal == Literal.IsNot ? !booleanValue : booleanValue;
         return Convert.ToDouble(literalValue);
     }
 
-    public IProposition DeepCopy() => 
+    public IProposition DeepCopy() =>
         new BooleanProposition<T>(Value, Connective, Literal);
 }

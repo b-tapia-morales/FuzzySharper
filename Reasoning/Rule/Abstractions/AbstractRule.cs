@@ -13,6 +13,7 @@ using Reasoning.Adaptation.Aggregator.Abstractions;
 using Reasoning.Adaptation.Components;
 using Reasoning.Proposition.Abstractions;
 using Reasoning.Proposition.Components;
+using Reasoning.Rule.Components;
 using Reasoning.Rule.Extensions;
 using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Shared.Options.Factory;
@@ -140,7 +141,9 @@ public abstract class AbstractRule : IRule
 
     public void ResetAdaptation() =>
         AdaptationState.Reset();
-    
+
+    public abstract IRule DeepCopy(LifecycleMode mode = LifecycleMode.New);
+
     public override string ToString()
     {
         this.Validate();

@@ -23,6 +23,9 @@ public readonly struct Interval : IEquatable<Interval>, IEqualityComparer<Interv
         UpperBound = upper;
     }
 
+    public bool IsUnbounded =>
+        !(IsBoundedLeft && IsBoundedRight);
+
     public bool IsFullyUnbounded =>
         !(IsBoundedLeft || IsBoundedRight);
 
@@ -37,8 +40,8 @@ public readonly struct Interval : IEquatable<Interval>, IEqualityComparer<Interv
 
     public bool IsSingleton =>
         IsBoundedLeft && IsBoundedRight && LowerBound.RoughlyEquals(UpperBound);
-    
-    public Option<double> Width => !IsFullyBounded ? Option<double>.None() : UpperBound - LowerBound; 
+
+    public Option<double> Width => !IsFullyBounded ? Option<double>.None() : UpperBound - LowerBound;
 
     public Option<double> Midpoint => !IsFullyBounded ? Option<double>.None() : (LowerBound + UpperBound) / 2;
 

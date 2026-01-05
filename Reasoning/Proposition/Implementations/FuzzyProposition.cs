@@ -9,6 +9,8 @@ using Shared.Options.Factory;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
 
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Reasoning.Proposition.Implementations;
 
 public sealed class FuzzyProposition(string variable, Connective connective, Literal literal, LinguisticHedge linguisticHedge, IMembershipFunction function)
@@ -53,12 +55,12 @@ public sealed class FuzzyProposition(string variable, Connective connective, Lit
     public bool IsEvaluable(IWorkingMemory memory) =>
         memory.ContainsNumericFact(Variable);
 
-    public Option<FuzzyNumber> Evaluate(IWorkingMemory memory, INegation negation) =>
+    Option<FuzzyNumber> IProposition.Evaluate(IWorkingMemory memory, INegation negation) =>
         !memory.GetNumericFact(Variable).IsSome(out var crispValue) ? Option<FuzzyNumber>.None() : Evaluate(crispValue, negation);
 
-    public FuzzyNumber Evaluate(DoubleOrEnum value, INegation negation) =>
+    FuzzyNumber IProposition.Evaluate(DoubleOrEnum value, INegation negation) =>
         value.IsDouble ? Evaluate(value.AsDouble, negation) : throw new ArgumentException("");
-
+    
     public FuzzyNumber Evaluate(double crispValue, INegation negation)
     {
         var membershipFunction = Function.PureFunctionClipped;
@@ -66,7 +68,7 @@ public sealed class FuzzyProposition(string variable, Connective connective, Lit
         var fuzzyNumber = hedgeFunction(membershipFunction(crispValue));
         return Literal == Literal.IsNot ? negation.Complement(fuzzyNumber) : fuzzyNumber;
     }
-
+    
     public FuzzyNumber Evaluate(double crispValue) =>
         Evaluate(crispValue, Negation.Standard);
 

@@ -46,7 +46,7 @@ public class OptionTests
     public void OrElsePreservesValueIfSome()
     {
         double? x = 1.0;
-        var expected = Option<double>.Maybe(1.0);
+        var expected = Option<double>.SomeNullable(1.0);
         var actual1 = Option<double>.MaybeNullable(x).OrElse(2.0);
         var actual2 = Option<double>.MaybeNullable(x).OrElse(() => 2.0);
         Assert.Equal(expected, actual1);
@@ -57,7 +57,7 @@ public class OptionTests
     public void OrElseReplacesValueIfNone()
     {
         double? x = null;
-        var expected = Option<double>.Maybe(1.0);
+        var expected = Option<double>.SomeNullable(1.0);
         var actual1 = Option<double>.MaybeNullable(x).OrElse(1.0);
         var actual2 = Option<double>.MaybeNullable(x).OrElse(() => 1.0);
         Assert.Equal(expected, actual1);
@@ -108,8 +108,6 @@ public class OptionTests
     {
         Assert.Throws<NullableTypeException>(() => Option<int?>.Some(1));
         Assert.Throws<NullableTypeException>(() => Option<double?>.Some(1.0));
-        Assert.Throws<NullableTypeException>(() => Option<int?>.Maybe(1));
-        Assert.Throws<NullableTypeException>(() => Option<double?>.Maybe(1.0));
         Assert.Throws<NullableTypeException>(Option<double?>.None);
         Assert.Throws<NullableTypeException>(Option<int?>.None);
     }

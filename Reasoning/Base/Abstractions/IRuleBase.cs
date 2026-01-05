@@ -1,6 +1,7 @@
 ﻿using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
 using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.Components;
 using Shared.Primitives.Implementation;
 
 namespace Reasoning.Base.Abstractions;
@@ -23,24 +24,24 @@ public interface IRuleBase<T> where T : class, IRule
 
     IEnumerable<T> FindByConclusion(string target);
 
-    ISet<StringOrType> GetBaseVariables();
+    IReadOnlySet<StringOrType> GetBaseVariables();
 
-    ISet<string> GetInferredVariables();
+    IReadOnlySet<string> GetInferredVariables();
 
-    ISet<StringOrType> GetAllVariables();
+    IReadOnlySet<StringOrType> GetAllVariables();
 
-    ISet<Type> GetBooleanVariables();
+    IReadOnlySet<Type> GetBooleanVariables();
 
-    ISet<string> GetFuzzyVariables();
+    IReadOnlySet<string> GetFuzzyVariables();
 
-    ISet<StringOrType> FindDependentVariables(string target);
+    IReadOnlySet<StringOrType> FindDependentVariables(string target);
 
-    IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph();
+    IReadOnlyDictionary<StringOrType, IReadOnlyList<StringOrType>> BuildDependencyGraph();
 
-    IDictionary<string, List<T>> BuildRuleDependencyMap();
+    IReadOnlyDictionary<string, IReadOnlyList<T>> BuildRuleDependencyMap();
 
     IEnumerable<IRule> GetEvaluable(IWorkingMemory memory);
-    
+
     IEnumerable<T> GetActivated(uint iteration);
 
     IEnumerable<T> GetUnactivated(uint iteration);
@@ -54,4 +55,8 @@ public interface IRuleBase<T> where T : class, IRule
     void RecomputeAdaptation(AdaptationConfig config);
 
     void ResetAdaptation();
+
+    ICollection<T> ShallowCopy();
+
+    ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.New);
 }

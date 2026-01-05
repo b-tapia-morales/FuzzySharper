@@ -2,7 +2,6 @@
 using Knowledge.Memory.Abstractions;
 using Reasoning.Proposition.Implementations;
 using Reasoning.Rule.Abstractions;
-using Reasoning.Rule.Functional.Implementations;
 
 namespace Reasoning.Rule.FuzzySet.Components;
 

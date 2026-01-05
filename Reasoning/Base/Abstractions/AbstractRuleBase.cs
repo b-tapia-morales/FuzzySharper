@@ -3,6 +3,7 @@ using Reasoning.Adaptation.Components;
 using Reasoning.Base.Exceptions;
 using Reasoning.Base.Extensions;
 using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.Components;
 using Reasoning.Rule.Extensions;
 using Shared.Primitives.Implementation;
 
@@ -45,28 +46,28 @@ public abstract class AbstractRuleBase<T> : IRuleBase<T> where T : class, IRule
     public IEnumerable<T> FindByConclusion(string target) =>
         ProductionRules.FindByConclusion(target);
 
-    public ISet<StringOrType> GetBaseVariables() =>
+    public IReadOnlySet<StringOrType> GetBaseVariables() =>
         ProductionRules.GetBaseVariables();
 
-    public ISet<string> GetInferredVariables() =>
+    public IReadOnlySet<string> GetInferredVariables() =>
         ProductionRules.GetInferredVariables();
 
-    public ISet<StringOrType> GetAllVariables() =>
+    public IReadOnlySet<StringOrType> GetAllVariables() =>
         ProductionRules.GetAllVariables();
 
-    public ISet<Type> GetBooleanVariables() =>
+    public IReadOnlySet<Type> GetBooleanVariables() =>
         ProductionRules.GetBooleanVariables();
 
-    public ISet<string> GetFuzzyVariables() =>
+    public IReadOnlySet<string> GetFuzzyVariables() =>
         ProductionRules.GetFuzzyVariables();
 
-    public ISet<StringOrType> FindDependentVariables(string target) =>
+    public IReadOnlySet<StringOrType> FindDependentVariables(string target) =>
         ProductionRules.FindDependentVariables(target);
 
-    public IDictionary<StringOrType, List<StringOrType>> BuildDependencyGraph() =>
+    public IReadOnlyDictionary<StringOrType, IReadOnlyList<StringOrType>> BuildDependencyGraph() =>
         ProductionRules.BuildDependencyGraph();
 
-    public IDictionary<string, List<T>> BuildRuleDependencyMap() =>
+    public IReadOnlyDictionary<string, IReadOnlyList<T>> BuildRuleDependencyMap() =>
         ProductionRules.BuildRuleDependencyMap();
 
     public IEnumerable<IRule> GetEvaluable(IWorkingMemory memory) =>
@@ -92,4 +93,10 @@ public abstract class AbstractRuleBase<T> : IRuleBase<T> where T : class, IRule
 
     public void ResetAdaptation() =>
         ProductionRules.ResetAdaptation();
+
+    public ICollection<T> ShallowCopy() => 
+        ProductionRules.ShallowCopy();
+
+    public ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.New) => 
+        ProductionRules.DeepCopy(mode);
 }

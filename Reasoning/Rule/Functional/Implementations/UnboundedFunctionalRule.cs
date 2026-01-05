@@ -10,7 +10,6 @@ namespace Reasoning.Rule.Functional.Implementations;
 
 public class UnboundedFunctionalRule :
     AbstractFunctionalRule<UnboundedFunctionalRule>,
-    IRule<UnboundedFunctionalRule>,
     IContextFreeRule<UnboundedFunctionalRule>,
     IBooleanPropositionRule<UnboundedFunctionalRule>,
     IEquatable<UnboundedFunctionalRule>
@@ -24,10 +23,10 @@ public class UnboundedFunctionalRule :
     public override int GetHashCode() =>
         MemberwiseHashCode();
 
-    public UnboundedFunctionalRule DeepCopy(LifecycleMode lifecycleMode = LifecycleMode.New)
+    public override IFunctionalRule DeepCopy(LifecycleMode mode = LifecycleMode.New)
     {
         this.Validate();
-        var adaptationState = lifecycleMode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
+        var adaptationState = mode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
         return new UnboundedFunctionalRule
         {
             Conditional = Conditional!.DeepCopy(),
@@ -36,7 +35,7 @@ public class UnboundedFunctionalRule :
             IsFinalized = true,
             Priority = Priority,
             CertaintyFactor = CertaintyFactor,
-            CreationTime = lifecycleMode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
+            CreationTime = mode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };
     }

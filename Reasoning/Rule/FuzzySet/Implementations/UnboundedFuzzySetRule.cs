@@ -12,7 +12,6 @@ namespace Reasoning.Rule.FuzzySet.Implementations;
 
 public sealed class UnboundedFuzzySetRule :
     AbstractFuzzySetRule,
-    IRule<UnboundedFuzzySetRule>,
     IUnboundedFuzzySetRule<UnboundedFuzzySetRule>,
     IBooleanPropositionRule<UnboundedFuzzySetRule>,
     IEquatable<UnboundedFuzzySetRule>
@@ -41,10 +40,10 @@ public sealed class UnboundedFuzzySetRule :
     public override int GetHashCode() =>
         MemberwiseHashCode();
     
-    public UnboundedFuzzySetRule DeepCopy(LifecycleMode lifecycleMode = LifecycleMode.New)
+    public override IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.New)
     {
         this.Validate();
-        var adaptationState = lifecycleMode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
+        var adaptationState = mode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
         return new UnboundedFuzzySetRule
         {
             Conditional = Conditional!.DeepCopy(),
@@ -53,7 +52,7 @@ public sealed class UnboundedFuzzySetRule :
             IsFinalized = true,
             Priority = Priority,
             CertaintyFactor = CertaintyFactor,
-            CreationTime = lifecycleMode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
+            CreationTime = mode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };
     }

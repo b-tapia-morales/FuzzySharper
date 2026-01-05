@@ -2,7 +2,7 @@
 
 public static class GraphUtils
 {
-    public static ISet<T> FindReachableNodes<T>(IDictionary<T, List<T>> adjacencyList, T root) where T : notnull
+    public static IReadOnlySet<T> FindReachableNodes<T>(IReadOnlyDictionary<T, IReadOnlyList<T>> adjacencyList, T root) where T : notnull
     {
         var visited = new HashSet<T>();
         var stack = new Stack<T>();
@@ -21,13 +21,13 @@ public static class GraphUtils
         return visited;
     }
 
-    public static IDictionary<T, List<T>> BuildReachableSubgraph<T>(IDictionary<T, List<T>> adjacencyList, T root) where T : notnull
+    public static IReadOnlyDictionary<T, IReadOnlyList<T>> BuildReachableSubgraph<T>(IReadOnlyDictionary<T, IReadOnlyList<T>> adjacencyList, T root) where T : notnull
     {
         var reachable = FindReachableNodes(adjacencyList, root);
         return adjacencyList.Where(pair => reachable.Contains(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 
-    public static IDictionary<T, int> BuildDepthMap<T>(IDictionary<T, List<T>> adjacencyList, T root) where T : notnull
+    public static IReadOnlyDictionary<T, int> BuildDepthMap<T>(IReadOnlyDictionary<T, IReadOnlyList<T>> adjacencyList, T root) where T : notnull
     {
         var levelMap = new Dictionary<T, int>();
         var queue = new Queue<T>();
@@ -49,7 +49,7 @@ public static class GraphUtils
         return levelMap;
     }
 
-    public static List<(T From, T To)> FindBackEdges<T>(IDictionary<T, List<T>> adjacencyList, T root) where T : notnull
+    public static IReadOnlyList<(T From, T To)> FindBackEdges<T>(IReadOnlyDictionary<T, IReadOnlyList<T>> adjacencyList, T root) where T : notnull
     {
         var subgraph = BuildReachableSubgraph(adjacencyList, root);
         var levelMap = BuildDepthMap(subgraph, root);

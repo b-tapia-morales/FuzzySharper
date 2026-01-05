@@ -5,7 +5,7 @@ namespace Knowledge.FactStorage.Abstractions;
 
 public interface IFactStorage : IFormattable
 {
-    ISet<StringOrType> Keys();
+    IReadOnlySet<StringOrType> Keys { get; }
 
     bool Contains(StringOrType key);
 

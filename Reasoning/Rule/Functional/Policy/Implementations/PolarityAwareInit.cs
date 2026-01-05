@@ -1,4 +1,4 @@
-﻿using Reasoning.Proposition.Abstractions;
+﻿using Reasoning.Proposition.Implementations;
 using Reasoning.Rule.Functional.Policy.Abstractions;
 using Reasoning.Rule.Functional.Policy.Factory;
 
@@ -18,7 +18,7 @@ public class PolarityAwareInit(SkewnessMetric metric) : BaseCoefficientInitPolic
         {SkewnessMetric.NormalizedMeanDeviation, CoefficientInitMethod.NormalizedMeanDeviation}
     };
 
-    public override IEnumerable<double> Initialize(IReadOnlyList<IProposition> premise)
+    public override IEnumerable<double> Initialize(IReadOnlyList<FuzzyProposition> premise)
     {
         var coefficients = ((BaseCoefficientInitPolicy) CoefficientInitFactory.GetInstance(Dict[Metric])).Initialize(premise);
         var midpoints = ((BaseCoefficientInitPolicy) CoefficientInitFactory.GetInstance(CoefficientInitMethod.SupportMidpoint)).Initialize(premise);

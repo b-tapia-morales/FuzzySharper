@@ -514,40 +514,40 @@ evaluated when combining premise conditions.
 FuzzySharper provides support for the following canonical families of fuzzy operators:
 
 - Gödel:
-  $$x \otimes_G y = \min(x, y)$$
-  $$x \oplus_G y = \max(x, y)$$
-  $$x \to_G y =
-  \begin{cases}
-  1 & \text{if } x \le y \\
-  y & \text{if } x > y
-  \end{cases}$$
+
+  $x \otimes_G y = \min(x, y)$
+
+  $x \oplus_G y = \max(x, y)$
+
+  $x \to_G y = \begin{cases} 1 & \text{if } x \le y \\ y & \text{if } x > y \end{cases}$
+
 - Łukasiewicz:
-  $$x \otimes_L y = \max(0, x + y - 1)$$
-  $$x \oplus_L y = \min(1, x + y)$$
-  $$x \to_L y = \min(1, 1 - x + y)$$
+
+  $x \otimes_L y = \max(0, x + y - 1)$
+
+  $x \oplus_L y = \min(1, x + y)$
+
+  $x \to_L y = \min(1, 1 - x + y)$
+
 - Nilpotent:
-  $$x \otimes_N y =
-  \begin{cases}
-  \min(x, y)    & \text{if } x + y > 1 \\
-  0 & \text{if } x + y \le 1
-  \end{cases}$$
-  $$x \oplus_N y =
-  \begin{cases}
-  \max(x, y) & \text{if } x + y < 1 \\
-  1 & \text{if } x + y \ge 1
-  \end{cases}$$
-  $$x \to_N y = \max(1 - x, y)$$
+
+  $x \otimes_N y = \begin{cases} \min(x, y)    & \text{if } x + y > 1 \\ 0 & \text{if } x + y \le 1 \end{cases}$
+
+  $x \oplus_N y = \begin{cases} \max(x, y) & \text{if } x + y < 1 \\ 1 & \text{if } x + y \ge 1 \end{cases}$
+
+  $x \to_N y = \max(1 - x, y)$
+
 - Product:
-  $$x \otimes_P y = x \cdot y$$
-  $$x \oplus_P y = x + y - x \cdot y$$
-  $$x \to_P y =
-  \begin{cases}
-  1 & \text{if } x \le y \\
-  \frac{y}{x} & \text{if } x > y
-  \end{cases}$$
+
+  $x \otimes_P y = x \cdot y$
+
+  $x \oplus_P y = x + y - x \cdot y$
+
+  $x \to_P y = \begin{cases} 1 & \text{if } x \le y \\ \frac{y}{x} & \text{if } x > y \end{cases}$
 
 All families use the standard negation:
-$$\neg x = 1 - x$$
+
+$\neg x = 1 - x$
 
 ##### Custom Operator Families
 
