@@ -6,6 +6,7 @@ using Knowledge.FactStorage.Abstractions;
 using Knowledge.FactStorage.Implementations;
 using Knowledge.Memory.Abstractions;
 using Knowledge.Memory.Exceptions;
+using Shared.Options.Extensions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
@@ -16,69 +17,61 @@ namespace Knowledge.Memory.Implementations;
 
 public class WorkingMemory : IWorkingMemory
 {
-    public IFactStorage CategoricalStorage { get; } = new CategoricalStorage();
-    public IFactStorage NumericStorage { get; } = new NumericStorage();
+    public IFactStorage<Type, Enum> CategoricalStorage { get; } = new CategoricalStorage();
+    public IFactStorage<string, double> NumericStorage { get; } = new NumericStorage();
     public EntryResolutionMethod Method { get; }
-    public IReadOnlySet<StringOrType> Keys => new HashSet<StringOrType>(NumericStorage.Keys.Union(CategoricalStorage.Keys));
+
+    public IReadOnlySet<StringOrType> Keys =>
+        new HashSet<StringOrType>(
+            NumericStorage.Keys
+                .Select(e => (StringOrType)e)
+                .Union(CategoricalStorage.Keys.Select(e => (StringOrType)e)));
 
     private WorkingMemory(EntryResolutionMethod method = EntryResolutionMethod.Replace) =>
         Method = method;
 
-    private WorkingMemory(IEnumerable<(string Key, double Value)> numericalFacts, EntryResolutionMethod method = EntryResolutionMethod.Replace)
+    private WorkingMemory(IEnumerable<(string Key, double Value)> numericalFacts,
+        EntryResolutionMethod method = EntryResolutionMethod.Replace)
     {
-        NumericStorage.AddRange(
-            numericalFacts.Select(e => ((StringOrType) e.Key, (DoubleOrEnum) e.Value)),
-            method == EntryResolutionMethod.Replace
-        );
+        NumericStorage.AddRange(numericalFacts, method == EntryResolutionMethod.Replace);
         Method = method;
     }
 
-    private WorkingMemory(IEnumerable<KeyValuePair<string, double>> numericalFacts, EntryResolutionMethod method = EntryResolutionMethod.Replace)
+    private WorkingMemory(IEnumerable<KeyValuePair<string, double>> numericalFacts,
+        EntryResolutionMethod method = EntryResolutionMethod.Replace)
     {
-        NumericStorage.AddRange(
-            numericalFacts.Select(e => new KeyValuePair<StringOrType, DoubleOrEnum>((StringOrType) e.Key, (DoubleOrEnum) e.Value)),
+        NumericStorage.AddRange(numericalFacts, method == EntryResolutionMethod.Replace);
+        Method = method;
+    }
+
+    private WorkingMemory(IEnumerable<Enum> categoricalFacts,
+        EntryResolutionMethod method = EntryResolutionMethod.Replace)
+    {
+        CategoricalStorage.AddRange(categoricalFacts.Select(e => (e.GetType(), e)),
             method == EntryResolutionMethod.Replace);
-        Method = method;
-    }
-
-    private WorkingMemory(IEnumerable<Enum> categoricalFacts, EntryResolutionMethod method = EntryResolutionMethod.Replace)
-    {
-        CategoricalStorage.AddRange(
-            categoricalFacts.Select(e => ((StringOrType) e.GetType(), (DoubleOrEnum) e)),
-            method == EntryResolutionMethod.Replace
-        );
         Method = method;
     }
 
     private WorkingMemory(IEnumerable<(string Key, double Value)> numericalFacts, IEnumerable<Enum> categoricalFacts,
         EntryResolutionMethod method = EntryResolutionMethod.Replace)
     {
-        NumericStorage.AddRange(
-            numericalFacts.Select(e => ((StringOrType) e.Key, (DoubleOrEnum) e.Value)),
-            method == EntryResolutionMethod.Replace
-        );
-        CategoricalStorage.AddRange(
-            categoricalFacts.Select(e => ((StringOrType) e.GetType(), (DoubleOrEnum) e)),
-            method == EntryResolutionMethod.Replace
-        );
+        NumericStorage.AddRange(numericalFacts, method == EntryResolutionMethod.Replace);
+        CategoricalStorage.AddRange(categoricalFacts.Select(e => (e.GetType(), e)),
+            method == EntryResolutionMethod.Replace);
         Method = method;
     }
 
     private WorkingMemory(IEnumerable<KeyValuePair<string, double>> numericalFacts, IEnumerable<Enum> categoricalFacts,
         EntryResolutionMethod method = EntryResolutionMethod.Replace)
     {
-        NumericStorage.AddRange(
-            numericalFacts.Select(e => new KeyValuePair<StringOrType, DoubleOrEnum>((StringOrType) e.Key, (DoubleOrEnum) e.Value)),
-            method == EntryResolutionMethod.Replace
-        );
-        CategoricalStorage.AddRange(
-            categoricalFacts.Select(e => ((StringOrType) e.GetType(), (DoubleOrEnum) e)),
-            method == EntryResolutionMethod.Replace
-        );
+        NumericStorage.AddRange(numericalFacts, method == EntryResolutionMethod.Replace);
+        CategoricalStorage.AddRange(categoricalFacts.Select(e => (e.GetType(), e)),
+            method == EntryResolutionMethod.Replace);
         Method = method;
     }
 
-    private WorkingMemory(IFactStorage categoricalStorage, IFactStorage numericalStorage, EntryResolutionMethod method)
+    private WorkingMemory(IFactStorage<Type, Enum> categoricalStorage, IFactStorage<string, double> numericalStorage,
+        EntryResolutionMethod method)
     {
         CategoricalStorage = categoricalStorage;
         NumericStorage = numericalStorage;
@@ -88,13 +81,15 @@ public class WorkingMemory : IWorkingMemory
     public static IWorkingMemory Create(EntryResolutionMethod method = EntryResolutionMethod.Replace) =>
         new WorkingMemory(method);
 
-    public static IWorkingMemory Create(EntryResolutionMethod method, params IEnumerable<(string Key, double Value)> numericalFacts) =>
+    public static IWorkingMemory Create(EntryResolutionMethod method,
+        params IEnumerable<(string Key, double Value)> numericalFacts) =>
         new WorkingMemory(numericalFacts, method);
 
     public static IWorkingMemory Create(params IEnumerable<(string Key, double Value)> numericalFacts) =>
         new WorkingMemory(numericalFacts);
 
-    public static IWorkingMemory Create(EntryResolutionMethod method, IEnumerable<KeyValuePair<string, double>> numericalFacts) =>
+    public static IWorkingMemory Create(EntryResolutionMethod method,
+        IEnumerable<KeyValuePair<string, double>> numericalFacts) =>
         new WorkingMemory(numericalFacts, method);
 
     public static IWorkingMemory Create(IEnumerable<KeyValuePair<string, double>> numericalFacts) =>
@@ -106,17 +101,19 @@ public class WorkingMemory : IWorkingMemory
     public static IWorkingMemory Create(params IEnumerable<Enum> categoricalFacts) =>
         new WorkingMemory(categoricalFacts);
 
-    public static IWorkingMemory Create(EntryResolutionMethod method, IEnumerable<(string Key, double Value)> numericalFacts, IEnumerable<Enum> categoricalFacts) =>
+    public static IWorkingMemory Create(EntryResolutionMethod method,
+        IEnumerable<(string Key, double Value)> numericalFacts, IEnumerable<Enum> categoricalFacts) =>
         new WorkingMemory(numericalFacts, categoricalFacts, method);
 
-    public static IWorkingMemory Create(EntryResolutionMethod method, IEnumerable<KeyValuePair<string, double>> numericalFacts, IEnumerable<Enum> categoricalFacts) =>
+    public static IWorkingMemory Create(EntryResolutionMethod method,
+        IEnumerable<KeyValuePair<string, double>> numericalFacts, IEnumerable<Enum> categoricalFacts) =>
         new WorkingMemory(numericalFacts, categoricalFacts, method);
 
     public bool ContainsNumericFact(string key) =>
         NumericStorage.Contains(key);
 
     public Option<double> GetNumericFact(string key) =>
-        NumericStorage.GetValue(key).IsSome(out var value) ? (double) value : Option<double>.None();
+        NumericStorage.GetValue(key).IsSome(out var value) ? value : Option<double>.None();
 
     public void AddNumericFact(string key, double value)
     {
@@ -135,16 +132,22 @@ public class WorkingMemory : IWorkingMemory
     public bool RemoveNumericFact(string key) =>
         NumericStorage.Remove(key);
 
-    public void AddNumericFacts(EntryResolutionMethod method, IEnumerable<KeyValuePair<string, double>> dictionary) =>
-        NumericStorage.AddRange(dictionary.ToDictionary(pair => (StringOrType) pair.Key, pair => (DoubleOrEnum) pair.Value), method == EntryResolutionMethod.Replace);
+    public void AddNumericFacts(EntryResolutionMethod method, IEnumerable<KeyValuePair<string, double>> pairs) =>
+        NumericStorage.AddRange(
+            pairs.ToDictionary(pair => pair.Key, pair => pair.Value),
+            method == EntryResolutionMethod.Replace);
 
-    public void AddNumericFacts(IEnumerable<KeyValuePair<string, double>> dictionary) =>
-        AddNumericFacts(EntryResolutionMethod.Replace, dictionary);
+    public void AddNumericFacts(IEnumerable<KeyValuePair<string, double>> pairs) =>
+        AddNumericFacts(EntryResolutionMethod.Replace, pairs);
 
     public void AddNumericFacts(EntryResolutionMethod method, params IEnumerable<(string Key, double Value)> pairs) =>
         NumericStorage.AddRange(pairs
             .GroupBy(tuple => tuple.Key, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(tuple => (StringOrType) tuple.Key, tuple => (DoubleOrEnum) (method == EntryResolutionMethod.Replace ? tuple.Last().Value : tuple.First().Value))
+            .ToDictionary(
+                tuple => tuple.Key,
+                tuple => method == EntryResolutionMethod.Replace
+                    ? tuple.Last().Value
+                    : tuple.First().Value)
         );
 
     public void AddNumericFacts(params IEnumerable<(string Key, double Value)> pairs) =>
@@ -155,7 +158,8 @@ public class WorkingMemory : IWorkingMemory
     {
         var entries = CsvUtils.RetrieveRows<NumericFact, NumericMapping>(folderPath, hasHeader, delimiter)
             .GroupBy(tuple => tuple.Key, StringComparer.OrdinalIgnoreCase)
-            .ToDictionary(tuple => tuple.Key, tuple => method == EntryResolutionMethod.Replace ? tuple.Last().Value : tuple.First().Value);
+            .ToDictionary(tuple => tuple.Key,
+                tuple => method == EntryResolutionMethod.Replace ? tuple.Last().Value : tuple.First().Value);
         AddNumericFacts(method, entries);
     }
 
@@ -163,7 +167,7 @@ public class WorkingMemory : IWorkingMemory
         CategoricalStorage.Contains(typeof(T));
 
     public Option<T> GetCategoricalFact<T>() where T : struct, Enum, IConvertible =>
-        CategoricalStorage.GetValue(typeof(T)).IsSome(out var value) ? (T) value : Option<T>.None();
+        CategoricalStorage.GetValue(typeof(T)).IsSome(out var value) ? (T)value : Option<T>.None();
 
     public void AddCategoricalFact<T>(T value) where T : struct, Enum, IConvertible
     {
@@ -185,17 +189,22 @@ public class WorkingMemory : IWorkingMemory
     public void AddCategoricalFacts(EntryResolutionMethod method, params IEnumerable<Enum> values) =>
         CategoricalStorage.AddRange(values
             .GroupBy(value => value.GetType())
-            .ToDictionary(tuple => (StringOrType) tuple.Key, tuple => (DoubleOrEnum) (method == EntryResolutionMethod.Replace ? tuple.Last() : tuple.First()))
+            .ToDictionary(
+                tuple => tuple.Key,
+                tuple => method == EntryResolutionMethod.Replace ? tuple.Last() : tuple.First())
         );
 
     public void AddCategoricalFacts(params IEnumerable<Enum> values) =>
         AddCategoricalFacts(EntryResolutionMethod.Replace, values);
 
-    public void ReadCategoricalFactsFromFile(string folderPath, bool useFullyQualifiedName = false, bool hasHeader = false,
+    public void ReadCategoricalFactsFromFile(string folderPath, bool useFullyQualifiedName = false,
+        bool hasHeader = false,
         DelimiterType delimiter = DelimiterType.Semicolon, EntryResolutionMethod method = EntryResolutionMethod.Replace)
     {
         var entries = CsvUtils.RetrieveRows<CategoricalFact, CategoricalMapping>(folderPath, hasHeader, delimiter)
-            .Select(e => (Type: useFullyQualifiedName ? TypeExt.GetExactType(e.TypeName) : TypeExt.GetTypeByName(e.TypeName), ConstValue: e.ConstValue))
+            .Select(e => (
+                Type: useFullyQualifiedName ? TypeExt.GetExactType(e.TypeName) : TypeExt.GetTypeByName(e.TypeName),
+                ConstValue: e.ConstValue))
             .Where(tuple => tuple.Type.IsSome(out var type) && type.IsEnum)
             .Select(tuple => ParseEnum(tuple.Type.Get, tuple.ConstValue))
             .GroupBy(e => e.GetType())
@@ -207,21 +216,23 @@ public class WorkingMemory : IWorkingMemory
         new WorkingMemory(CategoricalStorage.DeepCopy(), NumericStorage.DeepCopy(), Method);
 
     public bool Contains(StringOrType key) =>
-        key.IsString ? NumericStorage.Contains(key) : CategoricalStorage.Contains(key);
+        key.IsString ? NumericStorage.Contains(key.AsString) : CategoricalStorage.Contains(key.AsType);
 
     public Option<DoubleOrEnum> GetValue(StringOrType key) =>
-        key.IsString ? NumericStorage.GetValue(key) : CategoricalStorage.GetValue(key);
+        key.IsString
+            ? NumericStorage.GetValue(key.AsString).Select(value => (DoubleOrEnum)value)
+            : CategoricalStorage.GetValue(key.AsType).Select(value => (DoubleOrEnum)value);
 
     public void AddValue(StringOrType key, DoubleOrEnum value)
     {
         switch (key.IsString)
         {
             case true when value.IsDouble:
-                NumericStorage.AddValue(key, value);
-                break;
+                NumericStorage.AddValue(key.AsString, value.AsDouble);
+                return;
             case false when value.IsEnum:
-                CategoricalStorage.AddValue(key, value);
-                break;
+                CategoricalStorage.AddValue(key.AsType, value.AsEnum);
+                return;
             default:
                 throw new InvalidPairException(key.GetType().Name, value.GetType().Name);
         }
@@ -230,13 +241,13 @@ public class WorkingMemory : IWorkingMemory
     public bool TryAddValue(StringOrType key, DoubleOrEnum value) =>
         key.IsString switch
         {
-            true when value.IsDouble => NumericStorage.TryAddValue(key, value),
-            false when value.IsEnum => CategoricalStorage.TryAddValue(key, value),
+            true when value.IsDouble => NumericStorage.TryAddValue(key.AsString, value.AsDouble),
+            false when value.IsEnum => CategoricalStorage.TryAddValue(key.AsType, value.AsEnum),
             _ => throw new InvalidPairException(key.GetType().Name, value.GetType().Name)
         };
 
     public bool Remove(StringOrType key) =>
-        key.IsString ? NumericStorage.Remove(key) : CategoricalStorage.Remove(key);
+        key.IsString ? NumericStorage.Remove(key.AsString) : CategoricalStorage.Remove(key.AsType);
 
     public void Clear()
     {
@@ -244,15 +255,14 @@ public class WorkingMemory : IWorkingMemory
         CategoricalStorage.Clear();
     }
 
-    IFactStorage IFactStorage.DeepCopy() =>
-        DeepCopy();
-
     public string ToString(string? format, IFormatProvider? formatProvider) =>
         ToString();
 
     public override string ToString() =>
         $"{CategoricalStorage}{Environment.NewLine}{NumericStorage}";
 
-    public static Enum ParseEnum(Type type, string constValue) =>
-        type.IsEnum ? (Enum) Enum.Parse(type, constValue, ignoreCase: true) : throw new ArgumentException("Provided type must be an enum", nameof(type));
+    private static Enum ParseEnum(Type type, string constValue) =>
+        type.IsEnum
+            ? (Enum)Enum.Parse(type, constValue, ignoreCase: true)
+            : throw new ArgumentException("Provided type must be an enum", nameof(type));
 }

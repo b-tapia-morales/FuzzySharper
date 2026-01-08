@@ -48,13 +48,13 @@ public abstract class UnilateralFunction(string name, Interval universe, double 
 
     public override Option<double> CoreRight => !IsNormal ? Option<double>.None() : PeakRight;
 
-    public override abstract Option<double> AlphaCutLeft(FuzzyNumber alpha);
+    public abstract override Option<double> AlphaCutLeft(FuzzyNumber alpha);
 
-    public override abstract Option<double> AlphaCutRight(FuzzyNumber alpha);
+    public abstract override Option<double> AlphaCutRight(FuzzyNumber alpha);
 
-    public override abstract Func<double, double> LarsenProduct(FuzzyNumber lambda);
+    public abstract override Func<double, double> LarsenProduct(FuzzyNumber lambda);
 
-    public override abstract IMembershipFunction DeepCopy();
+    public abstract override IMembershipFunction DeepCopy();
 
-    public override abstract IMembershipFunction DeepCopy(string name);
+    public abstract override IMembershipFunction DeepCopy(string name);
 }

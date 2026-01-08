@@ -1,17 +1,15 @@
 ﻿using Knowledge.FactStorage.Abstractions;
-using Knowledge.FactStorage.Exceptions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
-using Shared.Primitives.Implementation;
 
 namespace Knowledge.FactStorage.Implementations;
 
-public sealed class NumericStorage : IFactStorage
+public sealed class NumericStorage : IFactStorage<string, double>
 {
     private Dictionary<string, double> Facts { get; }
 
-    public IReadOnlySet<StringOrType> Keys => 
-        new HashSet<StringOrType>(Facts.Keys.Select(e => (StringOrType) e));
+    public IReadOnlySet<string> Keys =>
+        new HashSet<string>(Facts.Keys, StringComparer.OrdinalIgnoreCase);
 
     public NumericStorage() : this(new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase))
     {
@@ -20,38 +18,25 @@ public sealed class NumericStorage : IFactStorage
     private NumericStorage(Dictionary<string, double> facts) =>
         Facts = new Dictionary<string, double>(facts, StringComparer.OrdinalIgnoreCase);
 
-    public bool Contains(StringOrType key) =>
-        key.IsString ? Facts.ContainsKey(key.AsString) : throw new InvalidKeyException(GetType().Name, nameof(String), nameof(Type));
+    public bool Contains(string key) =>
+        Facts.ContainsKey(key);
 
-    public Option<DoubleOrEnum> GetValue(StringOrType key) =>
-        Contains(key) ? Option<DoubleOrEnum>.Some(Facts[key.AsString]) : Option<DoubleOrEnum>.None();
+    public Option<double> GetValue(string key) =>
+        Contains(key) ? Facts[key] : Option<double>.None();
 
-    public void AddValue(StringOrType key, DoubleOrEnum value)
-    {
-        if (!key.IsString)
-            throw new InvalidKeyException(GetType().Name, nameof(String), nameof(Type));
-        if (!value.IsDouble)
-            throw new InvalidValueException(GetType().Name, nameof(Double), nameof(Enum));
-        Facts[key.AsString] = value.AsDouble;
-    }
+    public void AddValue(string key, double value) =>
+        Facts[key] = value;
 
-    public bool TryAddValue(StringOrType key, DoubleOrEnum value)
-    {
-        if (!key.IsString)
-            throw new InvalidKeyException(GetType().Name, nameof(String), nameof(Type));
-        if (!Contains(key))
-            return false;
-        AddValue(key, value);
-        return true;
-    }
+    public bool TryAddValue(string key, double value) => 
+        Facts.TryAdd(key, value);
 
-    public bool Remove(StringOrType key) =>
-        key.IsString ? Facts.Remove(key.AsString) : throw new InvalidKeyException(GetType().Name, nameof(String), nameof(Type));
+    public bool Remove(string key) =>
+        Facts.Remove(key);
 
     public void Clear() =>
         Facts.Clear();
 
-    public IFactStorage DeepCopy() =>
+    public IFactStorage<string, double> DeepCopy() =>
         new NumericStorage(Facts);
 
     public string ToString(string? format, IFormatProvider? formatProvider) =>

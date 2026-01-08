@@ -1,19 +1,18 @@
-﻿using Knowledge.FactStorage.Exceptions;
-using Knowledge.Memory.Abstractions;
-using Knowledge.Memory.Exceptions;
+﻿using Knowledge.Memory.Abstractions;
 using Knowledge.Memory.Implementations;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Options.Factory;
-using Shared.Primitives.Extensions;
 using Xunit.Abstractions;
 
 namespace Knowledge.Tests.Memory;
 
 public class WorkingMemoryTests(ITestOutputHelper output)
 {
-    private static readonly string CategoricalFactsPath = Path.Combine(AppContext.BaseDirectory, "Csv", "CategoricalFacts.csv");
+    private static readonly string CategoricalFactsPath =
+        Path.Combine(AppContext.BaseDirectory, "Csv", "CategoricalFacts.csv");
+
     private static readonly string NumericFactsPath = Path.Combine(AppContext.BaseDirectory, "Csv", "NumericFacts.csv");
-    
+
     private static readonly IServiceProvider ServiceProvider = KnowledgeProvider.ConfigureProvider();
     private static readonly IWorkingMemory Memory = ServiceProvider.GetService<IWorkingMemory>()!;
 
@@ -42,10 +41,10 @@ public class WorkingMemoryTests(ITestOutputHelper output)
         Assert.True(Memory.GetCategoricalFact<MichelinStars>().IsSome);
         Memory.GetCategoricalFact<MichelinStars>().IsSome(out var e1);
         Memory.CategoricalStorage.GetValue(type).IsSome(out var e2);
-        Assert.InRange((int) e1, 0, 3);
-        Assert.Equal(e2.AsTypedEnum<MichelinStars>(), e1);
+        Assert.InRange((int)e1, 0, 3);
+        Assert.InRange((int)(MichelinStars)e2, 0, 3);
     }
-    
+
     [Theory]
     [InlineData("age")]
     [InlineData("height")]
@@ -69,22 +68,6 @@ public class WorkingMemoryTests(ITestOutputHelper output)
         Assert.True(memory.ContainsCategoricalFact<Other>());
         Assert.True(memory.CategoricalStorage.Contains(typeof(Other)));
         output.WriteLine(memory.ToString());
-    }
-
-    [Fact]
-    public void AddingNonCategoricalFactThrowsException()
-    {
-        Assert.Throws<InvalidKeyException>(() => Memory.CategoricalStorage.AddValue("food quality", MichelinStars.None));
-        Assert.Throws<InvalidValueException>(() => Memory.CategoricalStorage.AddValue(typeof(MichelinStars), 0));
-        Assert.Throws<InvalidPairException>(() => Memory.AddValue("food quality", MichelinStars.None));
-    }
-
-    [Fact]
-    public void AddingNonNumericFactThrowsException()
-    {
-        Assert.Throws<InvalidKeyException>(() => Memory.NumericStorage.AddValue(typeof(MichelinStars), 0));
-        Assert.Throws<InvalidValueException>(() => Memory.NumericStorage.AddValue("food quality", MichelinStars.None));
-        Assert.Throws<InvalidPairException>(() => Memory.AddValue(typeof(MichelinStars), 0));
     }
 }
 

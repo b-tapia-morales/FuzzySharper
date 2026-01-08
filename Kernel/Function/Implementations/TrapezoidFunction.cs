@@ -50,11 +50,11 @@ public class TrapezoidFunction : LinearPiecewiseFunction
 
     public override double RightEdge => D;
 
-    override protected double LeftSlope => TrigonometricUtils.Distance((A, 0), (B, UMax));
+    protected override double LeftSlope => TrigonometricUtils.Distance((A, 0), (B, UMax));
 
-    override protected double RightSlope => TrigonometricUtils.Distance((C, UMax), (D, 0));
+    protected override double RightSlope => TrigonometricUtils.Distance((C, UMax), (D, 0));
 
-    override protected List<(double X, double Y)> Vertices => [(A, 0), (B, UMax), (C, UMax), (D, 0)];
+    protected override List<(double X, double Y)> Vertices => [(A, 0), (B, UMax), (C, UMax), (D, 0)];
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {

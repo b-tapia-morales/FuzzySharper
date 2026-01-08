@@ -1,17 +1,15 @@
 ﻿using Knowledge.FactStorage.Abstractions;
-using Knowledge.FactStorage.Exceptions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
-using Shared.Primitives.Implementation;
 
 namespace Knowledge.FactStorage.Implementations;
 
-public sealed class CategoricalStorage : IFactStorage
+public sealed class CategoricalStorage : IFactStorage<Type, Enum>
 {
     private Dictionary<Type, Enum> Facts { get; }
 
-    public IReadOnlySet<StringOrType> Keys =>
-        new HashSet<StringOrType>(Facts.Keys.Select(e => (StringOrType) e));
+    public IReadOnlySet<Type> Keys =>
+        new HashSet<Type>(Facts.Keys);
 
     public CategoricalStorage() : this(new Dictionary<Type, Enum>())
     {
@@ -20,38 +18,25 @@ public sealed class CategoricalStorage : IFactStorage
     private CategoricalStorage(Dictionary<Type, Enum> facts) =>
         Facts = new Dictionary<Type, Enum>(facts);
 
-    public bool Contains(StringOrType key) =>
-        key.IsType ? Facts.ContainsKey(key.AsType) : throw new InvalidKeyException(GetType().Name, nameof(Type), nameof(String));
+    public bool Contains(Type key) =>
+        Facts.ContainsKey(key);
 
-    public Option<DoubleOrEnum> GetValue(StringOrType key) =>
-        Contains(key) ? Option<DoubleOrEnum>.Some(Facts[key.AsType]) : Option<DoubleOrEnum>.None();
+    public Option<Enum> GetValue(Type key) =>
+        Contains(key) ? Facts[key] : Option<Enum>.None();
 
-    public void AddValue(StringOrType key, DoubleOrEnum value)
-    {
-        if (!key.IsType)
-            throw new InvalidKeyException(GetType().Name, nameof(Type), nameof(String));
-        if (!value.IsEnum)
-            throw new InvalidValueException(GetType().Name, nameof(Enum), nameof(Double));
-        Facts[key.AsType] = value.AsEnum;
-    }
+    public void AddValue(Type key, Enum value) => 
+        Facts[key] = value;
 
-    public bool TryAddValue(StringOrType key, DoubleOrEnum value)
-    {
-        if (!key.IsType)
-            throw new InvalidKeyException(GetType().Name, nameof(Type), nameof(String));
-        if (!Contains(key))
-            return false;
-        AddValue(key, value);
-        return true;
-    }
+    public bool TryAddValue(Type key, Enum value) => 
+        Facts.TryAdd(key, value);
 
-    public bool Remove(StringOrType key) =>
-        key.IsType ? Facts.Remove(key.AsType) : throw new InvalidKeyException(GetType().Name, nameof(Type), nameof(String));
+    public bool Remove(Type key) =>
+        Facts.Remove(key);
 
     public void Clear() =>
         Facts.Clear();
 
-    public IFactStorage DeepCopy() =>
+    public IFactStorage<Type, Enum> DeepCopy() =>
         new CategoricalStorage(Facts);
 
     public string ToString(string? format, IFormatProvider? formatProvider) =>

@@ -71,7 +71,7 @@ public class LogisticFunction : SigmoidFunction
         x => lambda.Value * (1 / (1 + Exp(-A * (x - C))));
 
     // [μMax * (Log [a * (1 + ℇ^(a * (x1 - c))] - Log [a * (1 + ℇ^(a * x0 - c))]/a
-    override protected DeferredValue<double> DeferredArea
+    protected override DeferredValue<double> DeferredArea
     {
         get
         {
@@ -83,7 +83,7 @@ public class LogisticFunction : SigmoidFunction
     }
 
     // (μMax^2 * (1/(1 + ℇ^(a (c - x0))) - 1/(1 + ℇ^(a (c - x1))) - Log[a] + Log[(a (ℇ^(a c) + ℇ^(a x1)))/(ℇ^(a c) + ℇ^(a x0))]))/(2 a)
-    override protected DeferredValue<double> DeferredMomentX
+    protected override DeferredValue<double> DeferredMomentX
     {
         get
         {
@@ -96,7 +96,7 @@ public class LogisticFunction : SigmoidFunction
         }
     }
 
-    override protected DeferredValue<double> DeferredMomentXx
+    protected override DeferredValue<double> DeferredMomentXx
     {
         get
         {

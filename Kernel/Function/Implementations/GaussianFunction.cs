@@ -47,27 +47,27 @@ public class GaussianFunction : BellShapedFunction
     #region MeasurableFunctionProperties
 
     // μMax * σ * Sqrt(2 * π) * Erf(2 * Sqrt(2))
-    override protected DeferredValue<double> DeferredArea =>
+    protected override DeferredValue<double> DeferredArea =>
         new(UMax * Sigma * Sqrt(2 * PI) * SpecialFunctions.Erf(2 * Sqrt(2)));
 
     // μMax^2 * σ * Sqrt(π) * Erf(4)
-    override protected DeferredValue<double> DeferredMomentX =>
+    protected override DeferredValue<double> DeferredMomentX =>
         new(Pow(UMax, 2) * Sigma * Sqrt(PI) * SpecialFunctions.Erf(4));
 
     // μMax * σ * Sqrt(π / 2) * μ * Erf(2 * Sqrt(2))
-    override protected DeferredValue<double> DeferredMomentY =>
+    protected override DeferredValue<double> DeferredMomentY =>
         new(UMax * Sigma * Sqrt(PI / 2) * Mu * SpecialFunctions.Erf(2 * Sqrt(2)));
 
     // (1/3) * μMax^3 * σ * Sqrt((2/3) * π) * Erf(2 * Sqrt(6))
-    override protected DeferredValue<double> DeferredMomentXx =>
+    protected override DeferredValue<double> DeferredMomentXx =>
         new((1 / 3.0) * Pow(UMax, 3) * Sigma * Sqrt((2 / 3.0) * PI) * SpecialFunctions.Erf(2 * Sqrt(6)));
 
     // μMax * [-8 * σ^3/ℇ^8 + σ * Sqrt(2 * π) * (σ^2 + μ^2) * Erf(2 * Sqrt(2))]
-    override protected DeferredValue<double> DeferredMomentXy =>
+    protected override DeferredValue<double> DeferredMomentXy =>
         new(UMax * (-8 * (Pow(Sigma, 3) / Pow(E, 8)) + Sigma * Sqrt(2 * PI) * (Pow(Sigma, 2) + Pow(Mu, 2)) * SpecialFunctions.Erf(2 * Sqrt(2))));
 
     // (1/2) * μMax^2 * σ * Sqrt(π) * u * Erf(4)
-    override protected DeferredValue<double> DeferredMomentYy =>
+    protected override DeferredValue<double> DeferredMomentYy =>
         new((1 / 2.0) * Pow(UMax, 2) * Sigma * Sqrt(PI) * Mu * SpecialFunctions.Erf(4));
 
     #endregion

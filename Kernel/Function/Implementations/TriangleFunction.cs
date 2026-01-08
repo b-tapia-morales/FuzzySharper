@@ -47,11 +47,11 @@ public class TriangleFunction : LinearPiecewiseFunction
 
     public override double RightEdge => C;
 
-    override protected double LeftSlope => TrigonometricUtils.Distance((A, 0), (B, UMax));
+    protected override double LeftSlope => TrigonometricUtils.Distance((A, 0), (B, UMax));
 
-    override protected double RightSlope => TrigonometricUtils.Distance((B, UMax), (C, 0));
+    protected override double RightSlope => TrigonometricUtils.Distance((B, UMax), (C, 0));
 
-    override protected List<(double X, double Y)> Vertices => [(A, 0), (B, UMax), (C, 0)];
+    protected override List<(double X, double Y)> Vertices => [(A, 0), (B, UMax), (C, 0)];
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {

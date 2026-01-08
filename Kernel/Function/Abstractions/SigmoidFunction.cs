@@ -42,7 +42,7 @@ public abstract class SigmoidFunction(string name, Interval universe, double uMa
 
     public override Option<double> CoreRight => Option<double>.None();
 
-    public override abstract double EffectiveSupportLeft { get; }
+    public abstract override double EffectiveSupportLeft { get; }
 
-    public override abstract double EffectiveSupportRight { get; }
+    public abstract override double EffectiveSupportRight { get; }
 }

@@ -16,7 +16,7 @@ namespace Inference.Defuzzifier.Implementations;
 
 public class CenterOfSums : BaseDefuzzifier
 {
-    override protected Option<double> DefuzzifyMethod(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
+    protected override Option<double> DefuzzifyMethod(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
         IOperatorFamily family, IValueAggregator aggregator, ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules)
     {

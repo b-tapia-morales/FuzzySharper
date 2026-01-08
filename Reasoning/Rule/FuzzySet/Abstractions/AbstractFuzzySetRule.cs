@@ -51,7 +51,7 @@ public abstract class AbstractFuzzySetRule : AbstractRule, IFuzzySetRule
     public Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory) =>
         EvaluateRuleWeight(memory, Negation.Standard, Norm.Minimum, Conorm.Maximum, Residuum.Godel);
 
-    public override abstract IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.New);
+    public abstract override IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.New);
 
     IRule IRule.DeepCopy(LifecycleMode mode) => 
         DeepCopy(mode);

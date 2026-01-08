@@ -19,7 +19,7 @@ public static class FuzzySetRulesExt
 
         public IEnumerable<IFuzzySetRule> FilterFacts(IWorkingMemory workingMemory)
         {
-            var keys = workingMemory.NumericStorage.Keys.Select(e => e.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var keys = workingMemory.NumericStorage.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
             return rules.Where(r => !keys.Contains(r.Consequent!.Target));
         }
 

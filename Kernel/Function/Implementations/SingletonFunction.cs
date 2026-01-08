@@ -42,9 +42,9 @@ public class SingletonFunction : LinearPiecewiseFunction
     public override double TopLeftCorner => Left;
     public override double TopRightCorner => Right;
     public override double RightEdge => Right;
-    override protected double LeftSlope => Left;
-    override protected double RightSlope => Right;
-    override protected List<(double X, double Y)> Vertices => [(Left, 0), (Left, UMax), (Right, UMax), (Right, 0)];
+    protected override double LeftSlope => Left;
+    protected override double RightSlope => Right;
+    protected override List<(double X, double Y)> Vertices => [(Left, 0), (Left, UMax), (Right, UMax), (Right, 0)];
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha) =>
         alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax) ? Option<double>.None() : Left;

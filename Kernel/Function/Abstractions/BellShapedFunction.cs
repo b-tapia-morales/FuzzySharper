@@ -41,7 +41,7 @@ public abstract class BellShapedFunction(string name, Interval universe, double 
 
     public override double SupportRight => double.PositiveInfinity;
 
-    public override abstract double EffectiveSupportLeft { get; }
+    public abstract override double EffectiveSupportLeft { get; }
 
-    public override abstract double EffectiveSupportRight { get; }
+    public abstract override double EffectiveSupportRight { get; }
 }

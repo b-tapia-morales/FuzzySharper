@@ -49,15 +49,15 @@ public abstract class LinearPiecewiseFunction(string name, Interval universe, do
 
     public override Option<double> CoreRight => UMax.IsRoughlyOne() ? TopRightCorner : Option<double>.None();
 
-    override protected DeferredValue<double> DeferredArea => new(PolygonUtils.CalculateArea(Vertices));
+    protected override DeferredValue<double> DeferredArea => new(PolygonUtils.CalculateArea(Vertices));
 
-    override protected DeferredValue<double> DeferredMomentX => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.X));
+    protected override DeferredValue<double> DeferredMomentX => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.X));
 
-    override protected DeferredValue<double> DeferredMomentY => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.Y));
+    protected override DeferredValue<double> DeferredMomentY => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.Y));
 
-    override protected DeferredValue<double> DeferredMomentXx => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.X));
+    protected override DeferredValue<double> DeferredMomentXx => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.X));
 
-    override protected DeferredValue<double> DeferredMomentXy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.Y));
+    protected override DeferredValue<double> DeferredMomentXy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.Y));
 
-    override protected DeferredValue<double> DeferredMomentYy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.Y, Axis.Y));
+    protected override DeferredValue<double> DeferredMomentYy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.Y, Axis.Y));
 }

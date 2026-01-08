@@ -9,7 +9,7 @@ using Shared.Options.Implementations;
 
 namespace Reasoning.Rule.Functional.Implementations;
 
-public class FunctionalConsequent : IFunctionalConsequent, IEquatable<FunctionalConsequent>, IRuleOutput
+public class FunctionalConsequent : IFunctionalConsequent, IEquatable<FunctionalConsequent>
 {
     private const int DecimalPlaces = (int) DoubleApproxExt.DefaultPrecision;
 
