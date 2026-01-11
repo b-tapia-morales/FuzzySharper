@@ -47,10 +47,10 @@ public class BoundedFunctionalRule :
     public override int GetHashCode() =>
         MemberwiseHashCode();
 
-    public override IFunctionalRule DeepCopy(LifecycleMode mode = LifecycleMode.New)
+    public override IFunctionalRule DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance)
     {
         this.Validate();
-        var adaptationState = mode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
+        var adaptationState = mode is LifecycleMode.NewInstance or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
         return new BoundedFunctionalRule
         {
             LinguisticBase = LinguisticBase,
@@ -60,7 +60,7 @@ public class BoundedFunctionalRule :
             IsFinalized = true,
             Priority = Priority,
             CertaintyFactor = CertaintyFactor,
-            CreationTime = mode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
+            CreationTime = mode is LifecycleMode.PreserveState or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };
     }

@@ -1,8 +1,10 @@
 ﻿using Knowledge.Memory.Abstractions;
 using Reasoning.Base.Abstractions;
+using Reasoning.Base.Extensions;
 using Reasoning.Base.FuzzySet.Abstractions;
 using Reasoning.Base.FuzzySet.Extensions;
 using Reasoning.Rule.Abstractions;
+using Reasoning.Rule.Components;
 using Reasoning.Rule.FuzzySet.Abstractions;
 
 namespace Reasoning.Base.FuzzySet.Implementations;
@@ -27,9 +29,7 @@ public class FuzzySetRuleBase : AbstractRuleBase<IFuzzySetRule>, IFuzzySetRuleBa
 
     public static FuzzySetRuleBase Create(ICollection<IFuzzySetRule> rules) =>
         new(rules);
-    
-    public IFuzzySetRuleBase DeepCopy() => 
-        Create(ProductionRules);
+
 
     public IEnumerable<IFuzzySetRule> FilterByResolutionMethod(string variableName, IComparer<IRule> ruleComparer) =>
         ProductionRules.FilterByResolutionMethod(variableName, ruleComparer);
@@ -39,4 +39,16 @@ public class FuzzySetRuleBase : AbstractRuleBase<IFuzzySetRule>, IFuzzySetRuleBa
 
     public IEnumerable<IFuzzySetRule> FilterCircularDependencies(string variableName) =>
         ProductionRules.FilterCircularDependencies(variableName);
+
+    public override IFuzzySetRuleBase ShallowCopy() => 
+        Create(ProductionRules);
+
+    public override IFuzzySetRuleBase DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance) => 
+        Create(ProductionRules);
+
+    IRuleBase<IFuzzySetRule> IRuleBase<IFuzzySetRule>.ShallowCopy() =>
+        Create(ProductionRules);
+
+    IRuleBase<IFuzzySetRule> IRuleBase<IFuzzySetRule>.DeepCopy(LifecycleMode mode) =>
+        Create(ProductionRules.DeepCopy(mode));
 }

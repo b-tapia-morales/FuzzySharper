@@ -1,4 +1,5 @@
-﻿using Knowledge.FactStorage.Abstractions;
+﻿using System.Diagnostics;
+using Knowledge.FactStorage.Abstractions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 
@@ -24,11 +25,17 @@ public sealed class CategoricalStorage : IFactStorage<Type, Enum>
     public Option<Enum> GetValue(Type key) =>
         Contains(key) ? Facts[key] : Option<Enum>.None();
 
-    public void AddValue(Type key, Enum value) => 
+    public void AddValue(Type key, Enum value)
+    {
+        Debug.Assert(Enum.IsDefined(key, value) && value.GetType() == key);
         Facts[key] = value;
+    }
 
-    public bool TryAddValue(Type key, Enum value) => 
-        Facts.TryAdd(key, value);
+    public bool TryAddValue(Type key, Enum value)
+    {
+        Debug.Assert(Enum.IsDefined(key, value) && value.GetType() == key);
+        return Facts.TryAdd(key, value);
+    }
 
     public bool Remove(Type key) =>
         Facts.Remove(key);

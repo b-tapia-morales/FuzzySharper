@@ -13,7 +13,7 @@ using Shared.Options.Implementations;
 
 namespace Knowledge.Linguistic.Variable.Implementations;
 
-public sealed class LinguisticVariable : IVariable
+public sealed class LinguisticVariable : ILinguisticVariable
 {
     private Dictionary<string, IMembershipFunction> SemanticalMappings { get; } = new(StringComparer.OrdinalIgnoreCase);
 
@@ -40,28 +40,28 @@ public sealed class LinguisticVariable : IVariable
         UniverseOfDiscourse = universe;
     }
 
-    public static IVariable Create(string name)
+    public static ILinguisticVariable Create(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         return new LinguisticVariable(name);
     }
 
-    public static IVariable Create(string name, Interval universe)
+    public static ILinguisticVariable Create(string name, Interval universe)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         return new LinguisticVariable(name, universe);
     }
 
-    public static IVariable Create(string name, params IEnumerable<IMembershipFunction> functions) =>
+    public static ILinguisticVariable Create(string name, params IEnumerable<IMembershipFunction> functions) =>
         Create(name, Interval.Default, functions.ToList());
 
-    public static IVariable Create(string name, ICollection<IMembershipFunction> functions) =>
+    public static ILinguisticVariable Create(string name, ICollection<IMembershipFunction> functions) =>
         Create(name, Interval.Default, functions);
 
-    public static IVariable Create(string name, Interval universe, params IEnumerable<IMembershipFunction> functions) =>
+    public static ILinguisticVariable Create(string name, Interval universe, params IEnumerable<IMembershipFunction> functions) =>
         Create(name, universe, functions.ToList());
 
-    public static IVariable Create(string name, Interval universe, ICollection<IMembershipFunction> functions)
+    public static ILinguisticVariable Create(string name, Interval universe, ICollection<IMembershipFunction> functions)
     {
         ArgumentNullException.ThrowIfNull(functions);
 
@@ -88,38 +88,38 @@ public sealed class LinguisticVariable : IVariable
         return variable;
     }
 
-    public IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d,
+    public ILinguisticVariable AddTrapezoidFunction(string name, double a, double b, double c, double d,
         double uMax = 1) =>
         AddFunction(TrapezoidFunction.Create(name, a, b, c, d, UniverseOfDiscourse, uMax));
 
-    public IVariable AddLeftTrapezoidFunction(string name, double a, double b,
+    public ILinguisticVariable AddLeftTrapezoidFunction(string name, double a, double b,
         double uMax = 1) =>
         AddFunction(LeftTrapezoidFunction.Create(name, a, b, UniverseOfDiscourse, uMax));
 
-    public IVariable AddRightTrapezoidFunction(string name, double a, double b,
+    public ILinguisticVariable AddRightTrapezoidFunction(string name, double a, double b,
         double uMax = 1) =>
         AddFunction(LeftTrapezoidFunction.Create(name, a, b, UniverseOfDiscourse, uMax));
 
-    public IVariable AddTriangularFunction(string name, double a, double b, double c,
+    public ILinguisticVariable AddTriangularFunction(string name, double a, double b, double c,
         double uMax = 1) =>
         AddFunction(TriangleFunction.Create(name, a, b, c, UniverseOfDiscourse, uMax));
 
-    public IVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U,
+    public ILinguisticVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U,
         double uMax = 1) =>
         AddFunction(SingletonFunction.Create(name, center, UniverseOfDiscourse, decimalPlaces, uMax));
 
-    public IVariable AddGaussianFunction(string name, double mu, double sigma,
+    public ILinguisticVariable AddGaussianFunction(string name, double mu, double sigma,
         double uMax = 1) =>
         AddFunction(GaussianFunction.Create(name, mu, sigma, UniverseOfDiscourse, uMax));
 
-    public IVariable AddGeneralizedBellFunction(string name, double a, double b, double c,
+    public ILinguisticVariable AddGeneralizedBellFunction(string name, double a, double b, double c,
         double uMax = 1) =>
         AddFunction(GeneralizedBellFunction.Create(name, a, b, c, UniverseOfDiscourse, uMax));
 
-    public IVariable AddLogisticFunction(string name, double a, double c, double uMax = 1) =>
+    public ILinguisticVariable AddLogisticFunction(string name, double a, double c, double uMax = 1) =>
         AddFunction(LogisticFunction.Create(name, a, c, UniverseOfDiscourse, uMax));
 
-    public IVariable AddFunction(IMembershipFunction function)
+    public ILinguisticVariable AddFunction(IMembershipFunction function)
     {
         AddMapping(function);
         return this;

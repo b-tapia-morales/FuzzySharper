@@ -43,7 +43,7 @@ public abstract class AbstractFunctionalRule : AbstractRule, IFunctionalRule
     public Option<double> EvaluateRuleOutput(IWorkingMemory memory) =>
         EvaluateRuleOutput(memory, Negation.Standard, Norm.Minimum, Conorm.Maximum);
 
-    public abstract override IFunctionalRule DeepCopy(LifecycleMode mode = LifecycleMode.New);
+    public abstract override IFunctionalRule DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance);
 
     IRule IRule.DeepCopy(LifecycleMode mode) =>
         DeepCopy(mode);

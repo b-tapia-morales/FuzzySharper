@@ -44,7 +44,7 @@ namespace Knowledge.Linguistic.Variable.Abstractions;
 /// </item>
 /// </list>
 /// </remarks>
-public interface IVariable
+public interface ILinguisticVariable
 {
     /// <summary>
     /// The name of the variable <b>X</b>.
@@ -98,9 +98,9 @@ public interface IVariable
     /// The parameters must satisfy <c>a ≤ b ≤ c ≤ d</c>.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddTrapezoidFunction(string name, double a, double b, double c, double d, double uMax = 1);
+    ILinguisticVariable AddTrapezoidFunction(string name, double a, double b, double c, double d, double uMax = 1);
 
     /// <summary>
     /// Adds a left-open trapezoidal membership function to the linguistic variable.
@@ -128,9 +128,9 @@ public interface IVariable
     /// <c>(a, b)</c> defines a decreasing linear slope.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddLeftTrapezoidFunction(string name, double a, double b, double uMax = 1);
+    ILinguisticVariable AddLeftTrapezoidFunction(string name, double a, double b, double uMax = 1);
 
     /// <summary>
     /// Adds a right-open trapezoidal membership function to the linguistic variable.
@@ -158,9 +158,9 @@ public interface IVariable
     /// <c>(a, b)</c> defines an increasing linear slope.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddRightTrapezoidFunction(string name, double a, double b, double uMax = 1);
+    ILinguisticVariable AddRightTrapezoidFunction(string name, double a, double b, double uMax = 1);
 
     /// <summary>
     /// Adds a triangular membership function to the linguistic variable.
@@ -190,9 +190,9 @@ public interface IVariable
     /// The Parameters must satisfy <c>a ≤ b ≤ c</c>.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddTriangularFunction(string name, double a, double b, double c, double uMax = 1);
+    ILinguisticVariable AddTriangularFunction(string name, double a, double b, double c, double uMax = 1);
 
     /// <summary>
     /// Adds a singleton membership function to the linguistic variable.
@@ -214,10 +214,10 @@ public interface IVariable
     /// whose range spans from <c>center − ε</c> to <c>center + ε</c>, where <c>ε = 10^(-decimalPlaces)</c>.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added,
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added,
     /// allowing fluent chaining.
     /// </returns>
-    IVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U, double uMax = 1);
+    ILinguisticVariable AddSingletonFunction(string name, double center, uint decimalPlaces = 4U, double uMax = 1);
 
     /// <summary>
     /// Adds a Gaussian membership function to the linguistic variable.
@@ -241,9 +241,9 @@ public interface IVariable
     /// flatter bell. The function approaches <c>0</c> asymptotically on both sides of <c>μ</c>.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddGaussianFunction(string name, double mu, double sigma, double uMax = 1);
+    ILinguisticVariable AddGaussianFunction(string name, double mu, double sigma, double uMax = 1);
 
     /// <summary>
     /// Adds a generalized bell-shaped membership function to the linguistic variable.
@@ -270,9 +270,9 @@ public interface IVariable
     /// making the bell closer to a rectangular shape, whereas smaller values yield smoother transitions.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddGeneralizedBellFunction(string name, double a, double b, double c, double uMax = 1);
+    ILinguisticVariable AddGeneralizedBellFunction(string name, double a, double b, double c, double uMax = 1);
 
     /// <summary>
     /// Adds a logistic membership function to the linguistic variable.
@@ -295,9 +295,9 @@ public interface IVariable
     /// and <c>μMax</c> as <c>x → +∞</c>. For <c>a &lt; 0</c>, this behavior is reversed.
     /// </remarks>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddLogisticFunction(string name, double a, double c, double uMax = 1);
+    ILinguisticVariable AddLogisticFunction(string name, double a, double c, double uMax = 1);
 
     /// <summary>
     /// Adds an existing membership function to the linguistic variable,
@@ -308,9 +308,9 @@ public interface IVariable
     /// The membership function to add.
     /// </param>
     /// <returns>
-    /// The current <see cref="IVariable"/> instance with the new linguistic term added.
+    /// The current <see cref="ILinguisticVariable"/> instance with the new linguistic term added.
     /// </returns>
-    IVariable AddFunction(IMembershipFunction function);
+    ILinguisticVariable AddFunction(IMembershipFunction function);
 
     /// <summary>
     /// Adds a semantic mapping between a linguistic term and a membership function

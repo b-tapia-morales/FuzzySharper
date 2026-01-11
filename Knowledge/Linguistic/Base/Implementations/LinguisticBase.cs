@@ -10,7 +10,7 @@ namespace Knowledge.Linguistic.Base.Implementations;
 
 public class LinguisticBase : ILinguisticBase
 {
-    private Dictionary<string, IVariable> VariableRegistry { get; } = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, ILinguisticVariable> VariableRegistry { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlySet<string> Variables =>
         VariableRegistry.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -31,7 +31,7 @@ public class LinguisticBase : ILinguisticBase
     /// </summary>
     /// <param name="variables">A varying number of linguistic variables</param>
     /// <returns>The linguistic base itself containing the linguistic variables</returns>
-    public static ILinguisticBase Create(params IEnumerable<IVariable> variables) =>
+    public static ILinguisticBase Create(params IEnumerable<ILinguisticVariable> variables) =>
         Create(variables.ToList());
 
     /// <summary>
@@ -41,7 +41,7 @@ public class LinguisticBase : ILinguisticBase
     /// </summary>
     /// <param name="variables">A collection of linguistic variables</param>
     /// <returns>The linguistic base itself containing the collection of linguistic variables</returns>
-    public static ILinguisticBase Create(ICollection<IVariable> variables)
+    public static ILinguisticBase Create(ICollection<ILinguisticVariable> variables)
     {
         var collidingVariable = variables.GroupBy(e => e.Name, StringComparer.OrdinalIgnoreCase).FirstOrDefault(group => group.Count() > 1);
         if (collidingVariable != null)
@@ -59,8 +59,8 @@ public class LinguisticBase : ILinguisticBase
     public bool ContainsVariable(string name) =>
         VariableRegistry.ContainsKey(name);
 
-    public Option<IVariable> GetVariable(string name) =>
-        VariableRegistry.TryGetValue(name, out var variable) ? Option<IVariable>.Some(variable) : Option<IVariable>.None();
+    public Option<ILinguisticVariable> GetVariable(string name) =>
+        VariableRegistry.TryGetValue(name, out var variable) ? Option<ILinguisticVariable>.Some(variable) : Option<ILinguisticVariable>.None();
 
     public bool ContainsMapping(string variableName, string termName) =>
         VariableRegistry.TryGetValue(variableName, out var variable) && variable.ContainsMapping(termName);
@@ -68,7 +68,7 @@ public class LinguisticBase : ILinguisticBase
     public Option<IMembershipFunction> GetMapping(string variableName, string termName) =>
         VariableRegistry.TryGetValue(variableName, out var variable) ? variable.GetMapping(termName) : Option<IMembershipFunction>.None();
 
-    public void Add(IVariable variable)
+    public void Add(ILinguisticVariable variable)
     {
         if (variable.TermCount == 0)
             throw new UndefinedVariableException(nameof(variable));
@@ -76,10 +76,10 @@ public class LinguisticBase : ILinguisticBase
             throw new DuplicateVariableException(variable.Name);
     }
 
-    public void AddAll(params IEnumerable<IVariable> variables) =>
+    public void AddAll(params IEnumerable<ILinguisticVariable> variables) =>
         AddAll(variables.ToList());
 
-    public void AddAll(ICollection<IVariable> variables)
+    public void AddAll(ICollection<ILinguisticVariable> variables)
     {
         ArgumentNullException.ThrowIfNull(variables);
 

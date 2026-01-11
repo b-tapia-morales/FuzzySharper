@@ -56,7 +56,7 @@ public interface IRuleBase<T> where T : class, IRule
 
     void ResetAdaptation();
 
-    ICollection<T> ShallowCopy();
-
-    ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.New);
+    IRuleBase<T> ShallowCopy();
+    
+    IRuleBase<T> DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance);
 }

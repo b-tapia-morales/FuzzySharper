@@ -84,10 +84,10 @@ public abstract class AbstractRule : IRule
                Connectives.Any(e => Equals(e.Identifier, identifier));
     }
 
-    public bool ConsequentContains(string variableName)
+    public bool ConsequentContains(string identifier)
     {
         this.Validate();
-        return Consequent!.Contains(variableName);
+        return Consequent!.Contains(identifier);
     }
 
     public IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory, INegation negation)
@@ -98,9 +98,6 @@ public abstract class AbstractRule : IRule
             : Premise.Select(e => e.Evaluate(memory, negation).Get);
     }
 
-    public IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory, IOperatorFamily operatorFamily) =>
-        ApplyUnaryOperators(memory, operatorFamily.Negation);
-
     public IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory) =>
         ApplyUnaryOperators(memory, Negation.Standard);
     
@@ -108,7 +105,7 @@ public abstract class AbstractRule : IRule
         INegation negation, INorm norm, IConorm conorm)
     {
         this.Validate();
-        var numbers = new Queue<FuzzyNumber>(ApplyUnaryOperators(memory, negation));
+        var numbers = new Stack<FuzzyNumber>(ApplyUnaryOperators(memory, negation));
         switch (numbers.Count)
         {
             case 0:
@@ -117,17 +114,17 @@ public abstract class AbstractRule : IRule
                 return numbers.First();
         }
 
-        var connectives = new Queue<Connective>(Connectives.Select(e => e.Connective));
+        var connectives = new Stack<Connective>(Connectives.Select(e => e.Connective));
         while (numbers.Count > 1)
         {
-            var a = numbers.Dequeue();
-            var b = numbers.Dequeue();
-            var operation = connectives.Dequeue() == Connective.And ? norm.Intersection(a, b) : conorm.Union(a, b);
-            numbers.Enqueue(operation);
+            var a = numbers.Pop();
+            var b = numbers.Pop();
+            var operation = connectives.Pop() == Connective.And ? norm.Intersection(a, b) : conorm.Union(a, b);
+            numbers.Push(operation);
         }
 
         Debug.Assert(numbers.Count == 1);
-        return numbers.Dequeue();
+        return numbers.Pop();
     }
 
     public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory, IOperatorFamily operatorFamily) =>
@@ -142,7 +139,7 @@ public abstract class AbstractRule : IRule
     public void ResetAdaptation() =>
         AdaptationState.Reset();
 
-    public abstract IRule DeepCopy(LifecycleMode mode = LifecycleMode.New);
+    public abstract IRule DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance);
 
     public override string ToString()
     {

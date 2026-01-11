@@ -51,7 +51,7 @@ public static class RulesExt
             foreach (var variable in rules.GetFuzzyVariables())
                 dict[variable] = rules.FindByConclusion(variable).ToList();
 
-            return dict.ToDictionary(pair => pair.Key, IReadOnlyList<T> (pair) => pair.Value);
+            return dict.ToDictionary(pair => pair.Key, IReadOnlyList<T> (pair) => pair.Value, StringComparer.OrdinalIgnoreCase);
         }
 
         public IReadOnlyDictionary<StringOrType, IReadOnlyList<StringOrType>> BuildDependencyGraph()
@@ -104,7 +104,7 @@ public static class RulesExt
         public ICollection<T> ShallowCopy() =>
             [..rules];
 
-        public ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.New) =>
+        public ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance) =>
             [..rules.DeepCopy(mode)];
     }
 }

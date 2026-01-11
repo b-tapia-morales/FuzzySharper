@@ -6,7 +6,7 @@ namespace Knowledge.Linguistic.Base.Abstractions;
 
 /// <summary>
 /// Represents a <b>Linguistic Base</b>, a centralized repository that stores and manages
-/// a collection of <see cref="IVariable">Linguistic Variables</see> and their associated
+/// a collection of <see cref="ILinguisticVariable">Linguistic Variables</see> and their associated
 /// semantic mappings.
 /// </summary>
 public interface ILinguisticBase
@@ -41,7 +41,7 @@ public interface ILinguisticBase
     /// <returns>
     /// An <see cref="Option{T}"/> containing the requested variable if it exists; otherwise, an <i>empty</i> Option..
     /// </returns>
-    Option<IVariable> GetVariable(string name);
+    Option<ILinguisticVariable> GetVariable(string name);
     
     /// <summary>
     /// Determines whether the base contains a linguistic variable with the specified name and, if so, whether that
@@ -81,7 +81,7 @@ public interface ILinguisticBase
     /// <param name="variable">
     /// The linguistic variable to add.
     /// </param>
-    void Add(IVariable variable);
+    void Add(ILinguisticVariable variable);
 
     /// <summary>
     /// Adds a collection of linguistic variables to the base.
@@ -89,7 +89,7 @@ public interface ILinguisticBase
     /// <param name="variables">
     /// The variables to add.
     /// </param>
-    void AddAll(ICollection<IVariable> variables);
+    void AddAll(ICollection<ILinguisticVariable> variables);
 
     /// <summary>
     /// Adds zero or more linguistic variables to the base.
@@ -97,5 +97,5 @@ public interface ILinguisticBase
     /// <param name="variables">
     /// The variables to add.
     /// </param>
-    void AddAll(params IEnumerable<IVariable> variables);
+    void AddAll(params IEnumerable<ILinguisticVariable> variables);
 }

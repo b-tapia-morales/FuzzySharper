@@ -79,12 +79,19 @@ public abstract class MembershipFunction : IMembershipFunction
     {
         get
         {
+            // There's no peak interval
             if (!HasGlobalMaximum)
                 return Option<double>.None();
 
+            // UoD is unbounded to the left
+            if (!UniverseOfDiscourse.IsBoundedLeft)
+                return PeakLeft.Get;
+
+            // Peak interval falls fully outside UoD
             if (PeakRight.Get.IsRoughlyLesserThan(UniverseOfDiscourse.LowerBound))
                 return UniverseOfDiscourse.LowerBound;
 
+            // Pick the smallest x value such that x ∈ Peak ∧ x ∈ UoD
             return PeakLeft.Get.IsRoughlyLesserOrEqualTo(UniverseOfDiscourse.LowerBound)
                 ? PeakLeft.Get
                 : UniverseOfDiscourse.LowerBound;
@@ -95,12 +102,19 @@ public abstract class MembershipFunction : IMembershipFunction
     {
         get
         {
+            // There's no peak interval
             if (!HasGlobalMaximum)
                 return Option<double>.None();
+            
+            // UoD is unbounded to the right
+            if (!UniverseOfDiscourse.IsBoundedRight)
+                return PeakRight.Get;
 
+            // Peak interval falls fully outside UoD
             if (PeakLeft.Get.IsRoughlyGreaterThan(UniverseOfDiscourse.UpperBound))
                 return UniverseOfDiscourse.UpperBound;
 
+            // Pick the largest x value such that x ∈ Peak ∧ x ∈ UoD
             return PeakRight.Get.IsRoughlyLesserOrEqualTo(UniverseOfDiscourse.UpperBound)
                 ? PeakRight.Get
                 : UniverseOfDiscourse.UpperBound;
@@ -166,14 +180,18 @@ public abstract class MembershipFunction : IMembershipFunction
     {
         if (!AlphaCutLeft(alpha).IsSome(out var a0))
             return Option<double>.None();
-        return a0.IsRoughlyGreaterOrEqualTo(RestrictedSupportLeft) ? a0 : Option<double>.None();
+        return !double.IsNegativeInfinity(a0) && a0.IsRoughlyGreaterOrEqualTo(RestrictedSupportLeft)
+            ? a0
+            : Option<double>.None();
     }
 
     public virtual Option<double> AlphaCutRightClipped(FuzzyNumber alpha)
     {
         if (!AlphaCutRight(alpha).IsSome(out var a1))
             return Option<double>.None();
-        return a1.IsRoughlyLesserOrEqualTo(RestrictedSupportRight) ? a1 : Option<double>.None();
+        return !double.IsPositiveInfinity(a1) && a1.IsRoughlyLesserOrEqualTo(RestrictedSupportRight)
+            ? a1
+            : Option<double>.None();
     }
 
     public virtual Option<Interval> AlphaCutClipped(FuzzyNumber alpha) =>

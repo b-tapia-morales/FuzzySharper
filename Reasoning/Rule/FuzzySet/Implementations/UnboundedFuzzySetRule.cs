@@ -40,10 +40,10 @@ public sealed class UnboundedFuzzySetRule :
     public override int GetHashCode() =>
         MemberwiseHashCode();
     
-    public override IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.New)
+    public override IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance)
     {
         this.Validate();
-        var adaptationState = mode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
+        var adaptationState = mode is LifecycleMode.NewInstance or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
         return new UnboundedFuzzySetRule
         {
             Conditional = Conditional!.DeepCopy(),
@@ -52,7 +52,7 @@ public sealed class UnboundedFuzzySetRule :
             IsFinalized = true,
             Priority = Priority,
             CertaintyFactor = CertaintyFactor,
-            CreationTime = mode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
+            CreationTime = mode is LifecycleMode.PreserveState or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };
     }

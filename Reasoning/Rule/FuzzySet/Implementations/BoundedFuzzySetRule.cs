@@ -48,10 +48,10 @@ public sealed class BoundedFuzzySetRule :
     public override int GetHashCode() =>
         MemberwiseHashCode();
 
-    public override IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.New)
+    public override IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance)
     {
         this.Validate();
-        var adaptationState = mode is LifecycleMode.New or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
+        var adaptationState = mode is LifecycleMode.NewInstance or LifecycleMode.ResetLearning ? new AdaptationState() : AdaptationState.DeepCopy();
         return new BoundedFuzzySetRule
         {
             LinguisticBase = LinguisticBase,
@@ -61,7 +61,7 @@ public sealed class BoundedFuzzySetRule :
             IsFinalized = true,
             Priority = Priority,
             CertaintyFactor = CertaintyFactor,
-            CreationTime = mode is LifecycleMode.Continuous or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
+            CreationTime = mode is LifecycleMode.PreserveState or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };
     }

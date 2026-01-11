@@ -94,9 +94,7 @@ public abstract class AbstractRuleBase<T> : IRuleBase<T> where T : class, IRule
     public void ResetAdaptation() =>
         ProductionRules.ResetAdaptation();
 
-    public ICollection<T> ShallowCopy() => 
-        ProductionRules.ShallowCopy();
+    public abstract IRuleBase<T> ShallowCopy();
 
-    public ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.New) => 
-        ProductionRules.DeepCopy(mode);
+    public abstract IRuleBase<T> DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance);
 }
