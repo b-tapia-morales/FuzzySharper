@@ -8,7 +8,7 @@ namespace Reasoning.Rule.FuzzySet.Components;
 public class FuzzySetConsequent(FuzzyProposition proposition) : IRuleOutput
 {
     public FuzzyProposition Proposition { get; } = proposition;
-    public string Target { get; } = proposition.Identifier.AsString;
+    public string Identifier { get; } = proposition.Identifier.AsString;
 
     public override bool Equals(object? obj) =>
         Proposition.Equals(obj);

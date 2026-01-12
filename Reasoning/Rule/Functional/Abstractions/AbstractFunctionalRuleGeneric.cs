@@ -40,7 +40,7 @@ public abstract class AbstractFunctionalRule<T> : AbstractFunctionalRule, IFunct
     {
         Consequent = new FunctionalConsequent
         {
-            Target = target,
+            Identifier = target,
             CoefficientDict = coefficientDict,
             Arity = (uint) coefficientDict.Count
         };

@@ -33,7 +33,7 @@ namespace Reasoning.Rule.Abstractions;
 /// yields an <see cref="IFunctionalRule"/> (Sugeno-style).
 /// <para>
 /// A rule is only executable once it is finalized by appending a consequent. Once finalized, the rule
-/// is evaluated by computing the activation weight of its premise with respect to a
+/// is evaluated by computing the activation weight of its premise against a
 /// <see cref="IWorkingMemory">working memory</see> using configurable fuzzy operators. This activation weight is then
 /// applied during inference when processing the consequent.
 /// </para>
@@ -62,7 +62,8 @@ public interface IRule
     IProposition? Conditional { get; internal set; }
 
     /// <summary>
-    /// Gets the collection of propositions that extend the rule premise through logical connectives (e.g., AND, OR).
+    /// Gets the collection of propositions that extend the rule premise through logical connectives
+    /// (e.g., <c>AND</c>, <c>OR</c>).
     /// </summary>
     ICollection<IProposition> Connectives { get; }
 
@@ -125,7 +126,7 @@ public interface IRule
     IReadOnlyDictionary<StringOrType, IReadOnlyList<IProposition>> PremiseDict { get; }
 
     /// <summary>
-    /// Determines whether the rule premise can be evaluated with respect to the working. A rule is considered evaluable
+    /// Determines whether the rule premise can be evaluated against the working. A rule is considered evaluable
     /// if and only if every proposition in its premise is <see cref="IProposition.IsEvaluable">evaluable</see>.
     /// </summary>
     /// <param name="memory">The working memory used to resolve whether each proposition is evaluable.</param>
@@ -165,13 +166,13 @@ public interface IRule
     /// <summary>
     /// <para>
     /// Applies the unary operators associated with each <see cref="IProposition">proposition</see> in the rule premise
-    /// and evaluates them with respect to the working memory, producing a sequence of fuzzy numbers representing
+    /// and evaluates them against the working memory, producing a sequence of fuzzy numbers representing
     /// the individual truth values of each proposition.
     /// </para>
     /// Each proposition is evaluated in the following order:
     /// <list type="number">
     /// <item>
-    /// The proposition is evaluated with respect to the working memory to get its truth value as a fuzzy number.
+    /// The proposition is evaluated against the working memory to get its truth value as a fuzzy number.
     /// </item>
     /// <item>
     /// If the proposition is <see cref="FuzzyProposition">fuzzy</see> and defines a
@@ -196,7 +197,7 @@ public interface IRule
 
     /// <summary>
     /// Applies the unary operators associated with each <see cref="IProposition">proposition</see> in the rule premise
-    /// and evaluates them with respect to the working memory, producing a sequence of fuzzy numbers representing
+    /// and evaluates them against the working memory, producing a sequence of fuzzy numbers representing
     /// the individual truth values of each proposition.
     /// </summary>
     /// <param name="memory">The working memory to evaluate the truth value of the propositions.</param>
@@ -303,10 +304,10 @@ public interface IRule
     void ResetAdaptation();
 
     /// <summary>
-    /// Creates a deep copy of the rule using the specified lifecycle mode.
+    /// Creates a new instance that is structurally equivalent to this rule using the specified lifecycle mode.
     /// </summary>
     /// <param name="mode">
-    /// The lifecycle mode applied to the copied rule instance.
+    /// The lifecycle strategy used when copying. Defaults to <see cref="LifecycleMode.NewInstance"/>.
     /// </param>
     /// <returns>
     /// A new <see cref="IRule"/> instance that is structurally identical to the current one.

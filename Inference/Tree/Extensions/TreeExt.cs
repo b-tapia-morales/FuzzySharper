@@ -51,7 +51,7 @@ public static class TreeExt
                 return countCompetingRules
                     ? treeNode.Rules.Count
                     : treeNode.Rules
-                        .Select(r => r.Consequent!.Target)
+                        .Select(r => r.Consequent!.Identifier)
                         .DistinctBy(v => v, StringComparer.OrdinalIgnoreCase)
                         .Count();
             return treeNode.Children.Sum(child => child.RuleCount(countCompetingRules));

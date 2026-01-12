@@ -1,39 +1,37 @@
-﻿using Reasoning.Proposition.Implementations;
+﻿using Reasoning.Proposition.Abstractions;
+using Reasoning.Rule.Abstractions;
 using Shared.Enums;
 
 namespace Reasoning.Proposition.Components;
 
 /// <summary>
-/// Represents a <i>Logical Connective</i> between <see cref="FuzzyProposition">Fuzzy Propositions</see>,
-/// defined by the instances <see cref="If"/>, <see cref="And"/>, <see cref="Or"/>, and <see cref="Then"/>.
-/// Logical connectives enable the creation of compound propositions by conjoining two or more
-/// <see cref="FuzzyProposition">Fuzzy Propositions</see> with their respective connectives.
-/// <seealso cref="FuzzyProposition"/>
+/// Represents a logical connective used to compose a <see cref="IRule">rule</see> by chaining multiple
+/// <see cref="IProposition">propositions</see> into a single structured expression. A connective defines how a
+/// proposition participates in the rule and how additional propositions may be joined to it.
+/// The supported connectives are <see cref="If"/>, <see cref="And"/>, <see cref="Or"/>, and <see cref="Then"/>.
 /// </summary>
 public class Connective : AbstractEnum<Connective, ConnectiveType>
 {
     /// <summary>
-    /// Marks the part of a compound proposition <i>before</i> the <see cref="Then"/> connective
-    /// as the premise.
+    /// Marks the beginning of a rule premise and identifies the proposition as part of the antecedent.
     /// </summary>
     public static readonly Connective If =
         new(nameof(If), "IF", (int) ConnectiveType.Antecedent);
-
+    
     /// <summary>
-    /// Represents the <b>Conjunction</b> between two Fuzzy Propositions.
+    /// Represents a logical conjunction between two propositions in the rule premise.
     /// </summary>
     public static readonly Connective And =
         new(nameof(And), "AND", (int) ConnectiveType.Conjunction);
 
     /// <summary>
-    /// Represents the <b>Disjunction</b> between two Fuzzy Propositions.
+    /// Represents a logical disjunction between two propositions in the rule premise.
     /// </summary>
     public static readonly Connective Or =
         new(nameof(Or), "OR", (int) ConnectiveType.Disjunction);
 
     /// <summary>
-    /// Marks the part of a compound proposition <i>after</i> the <see cref="Then"/> connective
-    /// as the conclusion.
+    /// Marks the beginning of the rule consequent and identifies the proposition as part of the conclusion.
     /// </summary>
     public static readonly Connective Then =
         new(nameof(Then), "THEN", (int) ConnectiveType.Consequent);

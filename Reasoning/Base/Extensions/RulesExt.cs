@@ -19,13 +19,13 @@ public static class RulesExt
         }
 
         public IReadOnlySet<string> GetInferredVariables() =>
-            rules.Select(e => e.Consequent!).Select(rule => rule.Target).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            rules.Select(e => e.Consequent!).Select(rule => rule.Identifier).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         public IReadOnlySet<StringOrType> GetAllVariables()
         {
             var conditionals = rules.Select(rule => rule.Conditional!.Identifier);
             var connectives = rules.Where(e => e.Connectives.Count > 0).SelectMany(e => e.Connectives).Select(rule => rule.Identifier);
-            var consequents = rules.Select(rule => (StringOrType) rule.Consequent!.Target);
+            var consequents = rules.Select(rule => (StringOrType) rule.Consequent!.Identifier);
             return conditionals.Concat(connectives).Concat(consequents).ToHashSet();
         }
 

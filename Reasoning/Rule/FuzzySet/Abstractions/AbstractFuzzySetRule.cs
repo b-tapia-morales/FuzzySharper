@@ -34,7 +34,7 @@ public abstract class AbstractFuzzySetRule : AbstractRule, IFuzzySetRule
     {
         this.Validate();
         var consequent = (FuzzySetConsequent) Consequent!;
-        return !memory.GetNumericFact(consequent.Target).IsSome(out var value)
+        return !memory.GetNumericFact(consequent.Identifier).IsSome(out var value)
             ? Option<FuzzyNumber>.None()
             : consequent.Evaluate(value);
     }

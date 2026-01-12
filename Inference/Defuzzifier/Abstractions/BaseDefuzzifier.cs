@@ -31,8 +31,8 @@ public abstract class BaseDefuzzifier : IDefuzzifier
         if (!rules.Any(e => e.IsPremiseEvaluable(memory)))
             throw new InapplicableRulesException();
 
-        var firstConsequent = rules.First().Consequent!.Target;
-        if (!rules.Select(e => e.Consequent!.Target).All(e => string.Equals(e, firstConsequent, StringComparison.OrdinalIgnoreCase)))
+        var firstConsequent = rules.First().Consequent!.Identifier;
+        if (!rules.Select(e => e.Consequent!.Identifier).All(e => string.Equals(e, firstConsequent, StringComparison.OrdinalIgnoreCase)))
             throw new ConsequentMismatchException();
 
         return DefuzzifyMethod(rules, memory, family, aggregator, method, out activatedRules);

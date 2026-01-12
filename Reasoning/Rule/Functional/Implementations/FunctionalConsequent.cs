@@ -13,7 +13,7 @@ public class FunctionalConsequent : IFunctionalConsequent, IEquatable<Functional
 {
     private const int DecimalPlaces = (int) DoubleApproxExt.DefaultPrecision;
 
-    public required string Target { get; init; }
+    public required string Identifier { get; init; }
     public required IReadOnlyDictionary<string, double> CoefficientDict { get; init; }
     public double Bias { get; set; }
     public uint Arity { get; init; }
@@ -24,7 +24,7 @@ public class FunctionalConsequent : IFunctionalConsequent, IEquatable<Functional
             return true;
         if (other is null)
             return false;
-        if (!(string.Equals(Target, other.Target, StringComparison.OrdinalIgnoreCase) && Arity == other.Arity && Normalize(Bias) == Normalize(other.Bias)))
+        if (!(string.Equals(Identifier, other.Identifier, StringComparison.OrdinalIgnoreCase) && Arity == other.Arity && Normalize(Bias) == Normalize(other.Bias)))
             return false;
         foreach (var (key, value) in CoefficientDict)
         {
@@ -43,7 +43,7 @@ public class FunctionalConsequent : IFunctionalConsequent, IEquatable<Functional
     public override int GetHashCode()
     {
         var hash = new HashCode();
-        hash.Add(Target, StringComparer.OrdinalIgnoreCase);
+        hash.Add(Identifier, StringComparer.OrdinalIgnoreCase);
         hash.Add(Normalize(Bias));
         hash.Add(Arity);
         foreach (var (key, value) in CoefficientDict.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase))
@@ -60,7 +60,7 @@ public class FunctionalConsequent : IFunctionalConsequent, IEquatable<Functional
         var coefficients = CoefficientDict.Count == 0
             ? string.Empty
             : $"{CoefficientDict.Select(pair => $"{pair.Value:4D} * {pair.Key} + ")}";
-        return $"THEN {Target} = {coefficients}{Bias:4D}";
+        return $"THEN {Identifier} = {coefficients}{Bias:4D}";
     }
 
     public bool IsEvaluable(IWorkingMemory memory) =>
@@ -76,7 +76,7 @@ public class FunctionalConsequent : IFunctionalConsequent, IEquatable<Functional
     public IRuleOutput DeepCopy() => 
         new FunctionalConsequent
         {
-            Target = Target,
+            Identifier = Identifier,
             CoefficientDict = CoefficientDict.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase),
             Bias = Bias,
             Arity = Arity

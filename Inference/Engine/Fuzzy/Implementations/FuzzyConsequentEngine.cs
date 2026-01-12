@@ -8,9 +8,9 @@ using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
+using Reasoning.Base.Extensions;
 using Reasoning.Base.FuzzySet.Abstractions;
 using Reasoning.Base.FuzzySet.Extensions;
-using Reasoning.Rule.FuzzySet.Abstractions;
 using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic.Factory;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
@@ -35,7 +35,7 @@ public class FuzzyConsequentEngine : AbstractInferenceEngine, IFuzzyConsequentEn
         if (WorkingMemory.GetNumericFact(target).IsSome(out var value))
             return value;
         var workingMemory = WorkingMemory.DeepCopy();
-        var rules = new List<IFuzzySetRule>(RuleBase.ProductionRules);
+        var rules = RuleBase.ProductionRules.ShallowCopy();
         rules = rules.FilterFacts(workingMemory).ToList();
         rules = rules.FilterCircularDependencies(target).ToList();
         var operatorFamily = OperatorFamily.DeepCopy();

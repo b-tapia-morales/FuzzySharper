@@ -1,23 +1,22 @@
-﻿using Reasoning.Proposition.Implementations;
+﻿using Reasoning.Proposition.Abstractions;
 using Shared.Enums;
 
 namespace Reasoning.Proposition.Components;
 
 /// <summary>
-/// Represents the <i>Affirmation</i> or <i>Negation</i> part of a <see cref="FuzzyProposition">Fuzzy Proposition</see>,
-/// via its two defined instances <see cref="Is"/> and <see cref="IsNot"/>, respectively.
-/// <seealso cref="FuzzyProposition"/>
+/// Represents the affirmation or negation operator of a <see cref="IProposition">proposition</see>, defined by the
+/// instances <see cref="Is"/> and <see cref="IsNot"/>, respectively.
 /// </summary>
 public class Literal : AbstractEnum<Literal, LiteralType>
 {
     /// <summary>
-    /// Represents the <i>Affirmation</i> part of a Fuzzy Proposition.
+    /// Represents the affirmation operator of a proposition.
     /// </summary>
     public static readonly Literal Is =
         new(nameof(Is), "IS", (int) LiteralType.Affirmation);
 
     /// <summary>
-    /// Represents the <i>Negation</i> part of a Fuzzy Proposition.
+    /// Represents the negation operator of a proposition.
     /// </summary>
     public static readonly Literal IsNot =
         new(nameof(IsNot), "IS NOT", (int) LiteralType.Negation);

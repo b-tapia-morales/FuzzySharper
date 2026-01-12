@@ -12,7 +12,7 @@ public static class FuzzySetRulesExt
     {
         public IEnumerable<IFuzzySetRule> FilterByResolutionMethod(string variableName, IComparer<IFuzzySetRule> ruleComparer) =>
             rules
-                .Where(rule => string.Equals(rule.Consequent!.Target, variableName, StringComparison.OrdinalIgnoreCase))
+                .Where(rule => string.Equals(rule.Consequent!.Identifier, variableName, StringComparison.OrdinalIgnoreCase))
                 .GroupBy(rule => ((FuzzySetConsequent) rule.Consequent!).Proposition.Label, StringComparer.OrdinalIgnoreCase)
                 .Select(grouping => (Function: grouping.Key, Rule: grouping.MaxBy(g => g, ruleComparer)))
                 .Select(tuple => tuple.Rule)!;
@@ -20,7 +20,7 @@ public static class FuzzySetRulesExt
         public IEnumerable<IFuzzySetRule> FilterFacts(IWorkingMemory workingMemory)
         {
             var keys = workingMemory.NumericStorage.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
-            return rules.Where(r => !keys.Contains(r.Consequent!.Target));
+            return rules.Where(r => !keys.Contains(r.Consequent!.Identifier));
         }
 
         public IEnumerable<IFuzzySetRule> FilterCircularDependencies(string variableName)
@@ -33,7 +33,7 @@ public static class FuzzySetRulesExt
             {
                 if (!(conclusion.Contains(rule.Conditional!.Identifier) ||
                       rule.Connectives.Any(r => conclusion.Contains(r.Identifier)) ||
-                      antecedent.Contains(rule.Consequent!.Target)))
+                      antecedent.Contains(rule.Consequent!.Identifier)))
                     yield return rule;
             }
         }

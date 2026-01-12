@@ -3,14 +3,13 @@ using Kernel.Operator.Negation.Abstractions;
 using Kernel.Operator.Negation.Implementations.Canonical;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Proposition.Components;
-using Reasoning.Proposition.Implementations;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
 
 namespace Reasoning.Proposition.Abstractions;
 
 /// <summary>
-/// Represents a propositional statement whose truth value can be evaluated with respect to a
+/// Represents a propositional statement whose truth value can be evaluated against a
 /// <see cref="IWorkingMemory">working memory</see> or a directly supplied value.
 /// </summary>
 /// <remarks>
@@ -48,7 +47,7 @@ public interface IProposition
     string Label { get; }
 
     /// <summary>
-    /// Determines whether the proposition can be evaluated with respect to the provided working memory.
+    /// Determines whether the proposition can be evaluated against the provided working memory.
     /// </summary>
     /// <param name="memory">The working memory used to resolve whether the proposition's evaluability.</param>
     /// <returns>
@@ -57,7 +56,7 @@ public interface IProposition
     bool IsEvaluable(IWorkingMemory memory);
 
     /// <summary>
-    /// Evaluates the proposition with respect to the provided working memory using the specified negation operator.
+    /// Evaluates the proposition against the provided working memory using the specified negation operator.
     /// </summary>
     /// <param name="memory">The working memory used to resolve the proposition value.</param>
     /// <param name="negation">The negation operator applied to the evaluated truth value.</param>
@@ -68,11 +67,11 @@ public interface IProposition
     Option<FuzzyNumber> Evaluate(IWorkingMemory memory, INegation negation);
 
     /// <summary>
-    /// Evaluates the proposition with respect to the provided working memory.
+    /// Evaluates the proposition against the provided working memory.
     /// </summary>
     /// <param name="memory">The working memory used to resolve the proposition value.</param>
     /// <returns>
-    /// An <see cref="Option{T}"/> containing the evaluated truth value if the proposition is
+    /// An <see cref="Option{T}"/> containing the evaluated truth value if the proposition
     /// <see cref="IsEvaluable">is evaluable</see>; otherwise, an empty option.
     /// </returns>
     /// <remarks>
@@ -105,10 +104,10 @@ public interface IProposition
     FuzzyNumber Evaluate(DoubleOrEnum value) => Evaluate(value, Negation.Standard);
     
     /// <summary>
-    /// Creates a deep copy of the proposition.
+    /// Creates a new instance that is structurally equivalent to this proposition.
     /// </summary>
     /// <returns>
-    /// A new <see cref="IProposition"/> instance that is structurally identical to the current one.
+    /// A new <see cref="IProposition"/> instance that is structurally equivalent to the current one.
     /// </returns>
     IProposition DeepCopy();
 }
