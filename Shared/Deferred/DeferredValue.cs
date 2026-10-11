@@ -3,7 +3,7 @@ using Shared.Options.Implementations;
 
 namespace Shared.Deferred;
 
-public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisites)
+public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisites) where T : notnull
 {
     private Option<T> _cachedValue = Option<T>.None();
 

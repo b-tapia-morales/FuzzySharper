@@ -4,7 +4,7 @@ using Shared.Primitives.Exceptions;
 namespace Shared.Primitives.Implementation;
 
 [GenerateOneOf]
-public partial class StringOrType : OneOfBase<string, Type>, IEquatable<StringOrType>
+public partial class StringOrType : OneOfBase<string, Type>, IEquatable<StringOrType>, IEqualityComparer<StringOrType>
 {
     public bool IsString => IsT0;
     public bool IsType => IsT1;
@@ -14,7 +14,7 @@ public partial class StringOrType : OneOfBase<string, Type>, IEquatable<StringOr
     public Type AsType => IsType ? AsT1 : throw new TypeMismatchException(nameof(StringOrType), nameof(Type), nameof(String));
 
     public override bool Equals(object? obj) =>
-        obj is StringOrType other && Equals(other);
+        ReferenceEquals(this, obj) || obj is StringOrType other && Equals(other);
 
     public bool Equals(StringOrType? other)
     {
@@ -29,10 +29,16 @@ public partial class StringOrType : OneOfBase<string, Type>, IEquatable<StringOr
         return false;
     }
 
+    public bool Equals(StringOrType? x, StringOrType? y) =>
+        ReferenceEquals(x, y) || x != null && x.Equals(y);
+    
     public override int GetHashCode()
     {
         var hash = new HashCode();
         Switch(str => hash.Add(str, StringComparer.OrdinalIgnoreCase), type => hash.Add(type));
         return hash.ToHashCode();
     }
+
+    public int GetHashCode(StringOrType obj) =>
+        obj.GetHashCode();
 }
