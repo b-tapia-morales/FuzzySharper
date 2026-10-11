@@ -9,17 +9,16 @@ using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
 using Reasoning.Base.Extensions;
-using Reasoning.Base.FuzzySet.Abstractions;
 using Reasoning.Base.FuzzySet.Extensions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic.Factory;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 
 namespace Inference.Engine.Fuzzy.Implementations;
 
-public class FuzzyConsequentEngine : AbstractInferenceEngine, IFuzzyConsequentEngine
+public class FuzzyConsequentEngine : AbstractInferenceEngine<IFuzzySetRule>, IFuzzyConsequentEngine
 {
-    public override required IFuzzySetRuleBase RuleBase { get; init; }
     public override required IWorkingMemory WorkingMemory { get; init; }
     public override required IOperatorFamily OperatorFamily { get; set; }
     public ImplicationMethod ImplicationMethod { get; set; }
@@ -30,20 +29,22 @@ public class FuzzyConsequentEngine : AbstractInferenceEngine, IFuzzyConsequentEn
     public override uint CurrentIteration { get; set; }
     public override Option<AdaptationConfig> AdaptationConfig { get; set; } = Option<AdaptationConfig>.None();
 
+
     public Option<double> Defuzzify(string target, bool provideExplanation = true)
     {
         if (WorkingMemory.GetNumericFact(target).IsSome(out var value))
             return value;
         var workingMemory = WorkingMemory.DeepCopy();
         var rules = RuleBase.ProductionRules.ShallowCopy();
-        rules = rules.FilterFacts(workingMemory).ToList();
-        rules = rules.FilterCircularDependencies(target).ToList();
+        rules = [..rules.FilterFacts(workingMemory)];
+        rules = [..rules.FilterCircularDependencies(target)];
         var operatorFamily = OperatorFamily.DeepCopy();
         var ruleComparer = DeterministicFactory.GetInstance(DeterministicMethod, workingMemory, operatorFamily);
         var defuzzifier = DefuzzificationFactory.GetInstance(DefuzzificationMethod);
         var aggregator = ValueAggregatorFactory.GetInstance(AggregatorMethod);
         var rootNode = DerivationTree.BuildTree(target, rules);
-        var inferredValue = rootNode.InferFact(workingMemory, ruleComparer, defuzzifier, aggregator, operatorFamily, ImplicationMethod, CurrentIteration);
+        var inferredValue = rootNode.InferFact(workingMemory, ruleComparer, defuzzifier, aggregator, operatorFamily,
+            ImplicationMethod, CurrentIteration);
         if (IsLearningEnabled)
             UpdateLearning();
         if (!provideExplanation)

@@ -2,19 +2,18 @@
 using Inference.Defuzzifier.Factory;
 using Inference.Engine.Abstractions;
 using Kernel.Function.Implication.Factory;
-using Reasoning.Base.FuzzySet.Abstractions;
+using Reasoning.Rule.FuzzySet.Abstractions;
 using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic.Factory;
 using Shared.Options.Implementations;
 
 namespace Inference.Engine.Fuzzy.Abstractions;
 
-public interface IFuzzyConsequentEngine : IInferenceEngine
+public interface IFuzzyConsequentEngine : IInferenceEngine<IFuzzySetRule>
 {
-    IFuzzySetRuleBase RuleBase { get; }
-    ImplicationMethod ImplicationMethod { get; internal set; }
-    DefuzzificationMethod DefuzzificationMethod { get; internal set; }
-    DeterministicMethod DeterministicMethod { get; internal set; }
-    ValueAggregatorMethod AggregatorMethod { get; internal set; }
+    ImplicationMethod ImplicationMethod { get; }
+    DefuzzificationMethod DefuzzificationMethod { get; }
+    DeterministicMethod DeterministicMethod { get; }
+    ValueAggregatorMethod AggregatorMethod { get; }
 
     Option<double> Defuzzify(string target, bool provideExplanation = true);
 }

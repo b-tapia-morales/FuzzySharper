@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Globalization;
 using Inference.Aggregator.Factory;
+using Inference.Builder.Fuzzy.Implementations;
 using Inference.Defuzzifier.Factory;
-using Inference.Engine.Fuzzy.Builder;
 using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Factory.Canonical;
 using Knowledge.Memory.Implementations;
@@ -26,7 +26,7 @@ public class EngineTests(ITestOutputHelper outputHelper)
         var canonicalFamily = CanonicalFactory.UseFamily(canonicalType);
         var workingMemory = WorkingMemory.Create(("food quality", foodRating), ("service quality", serviceRating));
         var ruleBase = Rules.DeepCopy();
-        var engine = FuzzyConsequentEngineBuilder
+        var engine = FuzzyEngineBuilder
             .Create()
             .WithRuleBase(ruleBase)
             .WithWorkingMemory(workingMemory)

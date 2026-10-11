@@ -16,8 +16,6 @@ public interface IInferenceEngine
     void EnableLearning(AdaptationPolicy policy, bool resetPreviousHistory = true);
 
     void EnableLearning(AdaptationConfig config, bool resetPreviousHistory = true);
-
+    
     void DisableLearning(bool resetPreviousHistory = true);
-
-    void ResetLearning();
 }
