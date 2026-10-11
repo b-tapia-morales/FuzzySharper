@@ -22,7 +22,7 @@ public sealed class FunctionalRuleBase : AbstractRuleBase<IFunctionalRule>, IFun
         new();
 
     public static FunctionalRuleBase Create(params IEnumerable<IFunctionalRule> rules) =>
-        new(rules.ToList());
+        new([..rules]);
 
     public static FunctionalRuleBase Create(ICollection<IFunctionalRule> rules) =>
         new(rules);

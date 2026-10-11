@@ -2,7 +2,7 @@
 
 namespace Inference.Tree.Comparers.Abstractions;
 
-public interface IMetricComparer<in T> : IComparer<T> where T : class, ITree<T>
+public interface IMetricComparer<in T> : IComparer<T> where T : class, IDerivationTree<T>
 {
     int IComparer<T>.Compare(T? x, T? y)
     {

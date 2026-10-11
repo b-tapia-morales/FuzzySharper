@@ -23,14 +23,18 @@ namespace Kernel.Operator.Residuum.Abstractions;
 /// <b>R-Implications</b>: Derived from a <see cref="INorm">T-Norm</see> <i>T</i> such that
 /// <i>I(x, y) = sup {z ∈ [0, 1] | T(x, z) ≤ y}</i>.
 /// </p>
-/// <p> R-Implications use the <see cref="Negation <i>∼(x) = 1 - x</i>.</p>
+/// <p>
+/// R-Implications use the <see cref="Negation"/>: <i>∼(x) = 1 - x</i>.
+/// </p>
 /// </item>
 /// <item>
 /// <p>
 /// <b>S-Implications</b>: Derived from a <see cref="IConorm">T-Conorm</see> <i>⊥</i>,
 /// where <i>I(x, y) = ⊥(∼x, y)</i>, and ∼x is the <see cref="INegation">Complement</see> of x.
 /// </p>
-/// <p>S-Implications use the <see cref="Negation <i>∼(x) = 1 - x</i>.</p>
+/// <p>
+/// S-Implications use the <see cref="Negation"/>: <i>~(x) = 1 - x</i>.
+/// </p>
 /// </item>
 /// <item>
 /// <b>QL-Implications</b>: Derived from both a T-Norm <i>T</i> and a T-Conorm <i>⊥</i>, where I(x, y) = ⊥(∼x, ⊤(x, y))

@@ -12,6 +12,7 @@ using Knowledge.Memory.Abstractions;
 using Reasoning.Rule.Abstractions;
 using Reasoning.Rule.Components;
 using Reasoning.Rule.Extensions;
+using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Reasoning.Rule.FuzzySet.Components;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
@@ -22,7 +23,10 @@ namespace Reasoning.Rule.FuzzySet.Abstractions;
 
 public abstract class AbstractFuzzySetRule : AbstractRule, IFuzzySetRule
 {
-    public bool IsEvaluable(IWorkingMemory memory)
+    public Option<RulePriority> Priority { get; protected init; } = Option<RulePriority>.None();
+    public Option<double> CertaintyFactor { get; protected init; } = Option<double>.None();
+    
+    public bool IsRuleEvaluable(IWorkingMemory memory)
     {
         this.Validate();
         var consequent = (FuzzySetConsequent) Consequent!;
@@ -39,17 +43,17 @@ public abstract class AbstractFuzzySetRule : AbstractRule, IFuzzySetRule
             : consequent.Evaluate(value);
     }
 
-    public Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory,
+    public Option<FuzzyNumber> EvaluateRuleStrength(IWorkingMemory memory,
         INegation negation, INorm norm, IConorm conorm, IResiduum residuum) =>
-        !IsEvaluable(memory)
+        !IsRuleEvaluable(memory)
             ? Option<FuzzyNumber>.None()
             : residuum.Implication(EvaluatePremiseWeight(memory, negation, norm, conorm).Get, EvaluateConclusionWeight(memory).Get);
 
-    public Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory, IOperatorFamily operatorFamily) =>
-        EvaluateRuleWeight(memory, operatorFamily.Negation, operatorFamily.Norm, operatorFamily.Conorm, operatorFamily.Residuum);
+    public Option<FuzzyNumber> EvaluateRuleStrength(IWorkingMemory memory, IOperatorFamily operatorFamily) =>
+        EvaluateRuleStrength(memory, operatorFamily.Negation, operatorFamily.Norm, operatorFamily.Conorm, operatorFamily.Residuum);
 
-    public Option<FuzzyNumber> EvaluateRuleWeight(IWorkingMemory memory) =>
-        EvaluateRuleWeight(memory, Negation.Standard, Norm.Minimum, Conorm.Maximum, Residuum.Godel);
+    public Option<FuzzyNumber> EvaluateRuleStrength(IWorkingMemory memory) =>
+        EvaluateRuleStrength(memory, Negation.Standard, Norm.Minimum, Conorm.Maximum, Residuum.Godel);
 
     public abstract override IFuzzySetRule DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance);
 

@@ -8,7 +8,7 @@ using Reasoning.Rule.Functional.Abstractions;
 
 namespace Reasoning.Rule.Functional.Implementations;
 
-public class UnboundedFunctionalRule :
+public sealed class UnboundedFunctionalRule :
     AbstractFunctionalRule<UnboundedFunctionalRule>,
     IContextFreeRule<UnboundedFunctionalRule>,
     IBooleanPropositionRule<UnboundedFunctionalRule>,
@@ -33,8 +33,6 @@ public class UnboundedFunctionalRule :
             Connectives = [..Connectives.Select(e => e.DeepCopy())],
             Consequent = Consequent!.DeepCopy(),
             IsFinalized = true,
-            Priority = Priority,
-            CertaintyFactor = CertaintyFactor,
             CreationTime = mode is LifecycleMode.PreserveState or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };

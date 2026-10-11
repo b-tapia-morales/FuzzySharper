@@ -3,7 +3,7 @@ using Kernel.Function.Comparer.Implementations;
 
 namespace Kernel.Function.Comparer.Factory;
 
-public class OrderingFactory
+public static class OrderingFactory
 {
     private static readonly IComparer<IMembershipFunction> CentroidOrdering = new CentroidOrdering();
     private static readonly IComparer<IMembershipFunction> PeakOrdering = new PeakOrdering();

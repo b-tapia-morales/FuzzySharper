@@ -32,7 +32,7 @@ internal static class ShapeUtils
                 (Axis.X, Axis.X) => (1 / 3.0) * function.CalculateIntegral(MetricType.MomentXx, x0, x1, precision),
                 // Myy = ∫ x² ⋅ f(x) dx
                 (Axis.Y, Axis.Y) => function.CalculateIntegral(MetricType.MomentYy, x0, x1, precision),
-                // Mxy = (1 / 2) ⋅ ∫ x ⋅ [f(x)]² dx
+                // Mxy = Myx = (1 / 2) ⋅ ∫ x ⋅ [f(x)]² dx
                 _ => (1 / 2.0) * function.CalculateIntegral(MetricType.MomentXy, x0, x1, precision)
             };
         

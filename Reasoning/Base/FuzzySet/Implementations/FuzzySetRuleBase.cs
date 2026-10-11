@@ -25,7 +25,7 @@ public class FuzzySetRuleBase : AbstractRuleBase<IFuzzySetRule>, IFuzzySetRuleBa
         new();
 
     public static FuzzySetRuleBase Create(params IEnumerable<IFuzzySetRule> rules) =>
-        new(rules.ToList());
+        new([..rules]);
 
     public static FuzzySetRuleBase Create(ICollection<IFuzzySetRule> rules) =>
         new(rules);

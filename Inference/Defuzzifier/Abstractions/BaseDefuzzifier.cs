@@ -52,8 +52,6 @@ public abstract class BaseDefuzzifier : IDefuzzifier
         ImplicationMethod method,
         out ICollection<IFuzzySetRule> activatedRules) => 
         Defuzzify(rules, memory, ValueAggregatorFactory.GetInstance(ValueAggregatorMethod.Mean), method, out activatedRules);
-    
-    
 
     protected static IList<FiringStrength> EvaluateFiringStrengths(ICollection<IFuzzySetRule> rules, IWorkingMemory memory,
         IOperatorFamily family) =>

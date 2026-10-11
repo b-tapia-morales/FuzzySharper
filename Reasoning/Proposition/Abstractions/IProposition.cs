@@ -22,10 +22,10 @@ namespace Reasoning.Proposition.Abstractions;
 /// <item><see cref="Literal"/>: <c>Is</c></item>
 /// <item><see cref="Label"/>: <c>Cold</c></item>
 /// </list>
-/// Propositions may be either <see cref="FuzzyProposition">fuzzy </see> or
-/// <see cref="BooleanProposition{T}">boolean</see>; fuzzy propositions use a <see cref="string"/> identifier,
-/// while boolean propositions use a <see cref="Type"/> identifier. Evaluation produces a truth value in the form of a
-/// <see cref="FuzzyNumber"/>.
+/// Propositions may be either <see cref="Reasoning.Proposition.Implementations.FuzzyProposition">fuzzy</see> or
+/// <see cref="Reasoning.Proposition.Implementations.BooleanProposition{T}">boolean</see>; fuzzy propositions use a
+/// <see cref="string"/> identifier, while boolean propositions use a <see cref="Type"/> identifier.
+/// Evaluation produces a truth value in the form of a <see cref="FuzzyNumber"/>.
 /// </remarks>
 public interface IProposition
 {

@@ -37,8 +37,8 @@ public abstract class AbstractFunctionalRule : AbstractRule, IFunctionalRule
         return premiseWeight * consequentValue;
     }
 
-    public Option<double> EvaluateRuleOutput(IWorkingMemory memory, IOperatorFamily family) =>
-        EvaluateRuleOutput(memory, family.Negation, family.Norm, family.Conorm);
+    public Option<double> EvaluateRuleOutput(IWorkingMemory memory, IOperatorFamily operatorFamily) =>
+        EvaluateRuleOutput(memory, operatorFamily.Negation, operatorFamily.Norm, operatorFamily.Conorm);
 
     public Option<double> EvaluateRuleOutput(IWorkingMemory memory) =>
         EvaluateRuleOutput(memory, Negation.Standard, Norm.Minimum, Conorm.Maximum);

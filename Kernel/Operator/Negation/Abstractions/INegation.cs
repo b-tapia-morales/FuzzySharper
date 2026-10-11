@@ -8,7 +8,7 @@ namespace Kernel.Operator.Negation.Abstractions;
 /// Represents the Fuzzy Complement, a unary operator (the <b>NOT</b> operator) commonly used in fuzzy logic
 /// to map a fuzzy number <i>x</i> to its "opposite" <i>∼x</i>,
 /// where both values lie within the unit interval <i>[0, 1]</i>.
-/// The operation can be either strictly unary (see: <see cref="Implementations.Canonical.Negation"/>) or
+/// The operation can be either strictly unary (see: <see cref="Negation"/>) or
 /// can be parameterized by a constant value <i>γ</i> (see: <see cref="PNegation"/>).
 /// </summary>
 /// <remarks>

@@ -9,14 +9,14 @@ using Shared.Options.Implementations;
 
 namespace Reasoning.Rule.Functional.Implementations;
 
-public class FunctionalConsequent : IFunctionalConsequent, IEquatable<FunctionalConsequent>
+public sealed class FunctionalConsequent : IFunctionalConsequent, IEquatable<FunctionalConsequent>
 {
     private const int DecimalPlaces = (int) DoubleApproxExt.DefaultPrecision;
 
     public required string Identifier { get; init; }
     public required IReadOnlyDictionary<string, double> CoefficientDict { get; init; }
-    public double Bias { get; set; }
-    public uint Arity { get; init; }
+    public double Bias { get; internal init; }
+    public uint Arity { get; internal init; }
 
     public bool Equals(FunctionalConsequent? other)
     {

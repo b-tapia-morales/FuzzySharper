@@ -5,11 +5,10 @@ using Reasoning.Rule.Abstractions;
 using Reasoning.Rule.Components;
 using Reasoning.Rule.Extensions;
 using Reasoning.Rule.Functional.Abstractions;
-using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 
 namespace Reasoning.Rule.Functional.Implementations;
 
-public class BoundedFunctionalRule :
+public sealed class BoundedFunctionalRule :
     AbstractFunctionalRule<BoundedFunctionalRule>,
     IContextFreeRule<BoundedFunctionalRule>,
     IContextBoundRule<BoundedFunctionalRule>,
@@ -22,20 +21,6 @@ public class BoundedFunctionalRule :
         new()
         {
             LinguisticBase = linguisticBase
-        };
-
-    public static BoundedFunctionalRule Create(ILinguisticBase linguisticBase, RulePriority priority) =>
-        new()
-        {
-            LinguisticBase = linguisticBase,
-            Priority = priority
-        };
-
-    public static BoundedFunctionalRule Create(ILinguisticBase linguisticBase, double certaintyFactor) =>
-        new()
-        {
-            LinguisticBase = linguisticBase,
-            CertaintyFactor = certaintyFactor
         };
 
     public bool Equals(BoundedFunctionalRule? other) =>
@@ -58,8 +43,6 @@ public class BoundedFunctionalRule :
             Connectives = [..Connectives.Select(e => e.DeepCopy())],
             Consequent = Consequent!.DeepCopy(),
             IsFinalized = true,
-            Priority = Priority,
-            CertaintyFactor = CertaintyFactor,
             CreationTime = mode is LifecycleMode.PreserveState or LifecycleMode.ResetLearning ? CreationTime : DateTimeOffset.Now,
             AdaptationState = adaptationState,
         };

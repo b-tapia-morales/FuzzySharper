@@ -15,7 +15,6 @@ using Reasoning.Proposition.Implementations;
 using Reasoning.Rule.Components;
 using Reasoning.Rule.Functional.Abstractions;
 using Reasoning.Rule.FuzzySet.Abstractions;
-using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
 
@@ -37,8 +36,6 @@ namespace Reasoning.Rule.Abstractions;
 /// <see cref="IWorkingMemory">working memory</see> using configurable fuzzy operators. This activation weight is then
 /// applied during inference when processing the consequent.
 /// </para>
-/// Rules support adaptive behavior through an internal <see cref="AdaptationState"/> and may encode expert knowledge
-/// through an optional <see cref="Priority">priority level</see> or <see cref="CertaintyFactor">certainty factor</see>.
 /// <remarks>
 /// <para>
 /// A rule is considered structurally valid if it represents a single <c>IF</c>–<c>THEN</c> statement consisting of
@@ -78,18 +75,6 @@ public interface IRule
     /// and is therefore a valid and structurally complete rule.
     /// </summary>
     bool IsFinalized { get; internal set; }
-
-    /// <summary>
-    /// Gets the optional priority level assigned to the rule, representing its relative importance among competing
-    /// rules during inference.
-    /// </summary>
-    Option<RulePriority> Priority { get; }
-
-    /// <summary>
-    /// Gets the optional certainty factor associated with the rule, representing the level of confidence an expert has
-    /// in its correctness and suitability for use among competing rules during inference.
-    /// </summary>
-    Option<double> CertaintyFactor { get; }
 
     /// <summary>
     /// Gets the timestamp indicating when the rule instance was created.
@@ -166,7 +151,7 @@ public interface IRule
     /// <summary>
     /// <para>
     /// Applies the unary operators associated with each <see cref="IProposition">proposition</see> in the rule premise
-    /// and evaluates them against the working memory, producing a sequence of fuzzy numbers representing
+    /// and evaluates them against the working memory, producing a sequence of fuzzy numbers that represents
     /// the individual truth values of each proposition.
     /// </para>
     /// Each proposition is evaluated in the following order:
@@ -211,13 +196,12 @@ public interface IRule
     IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory);
 
     /// <summary>
-    /// Evaluates the rule premise against the working memory by computing its activation weight using the provided
-    /// fuzzy logic operators.
+    /// Evaluates the rule premise's activation weight using the specified fuzzy logic operators.
     /// </summary>
     /// <param name="memory">The working memory used to resolve proposition values.</param>
-    /// <param name="negation">The negation operator used to evaluate negated propositions.</param>
-    /// <param name="norm">The norm operator used to aggregate conjunctive connectives.</param>
-    /// <param name="conorm">The conorm operator used to aggregate disjunctive connectives.</param>
+    /// <param name="negation">The negation operator used to evaluate negated propositions in the premise.</param>
+    /// <param name="norm">The t-norm operator used to aggregate conjunctions in the premise.</param>
+    /// <param name="conorm">The t-conorm operator used to aggregate disjunctions in the premise.</param>
     /// <returns>
     /// An <see cref="Option{T}"/> containing the activation weight if
     /// <see cref="IsPremiseEvaluable">the premise is evaluable</see>; otherwise, an empty option.
@@ -233,7 +217,7 @@ public interface IRule
     /// Aggregating those truth values from left to right according to the
     /// <see cref="IProposition.Connective">logical connectives defined by each proposition</see>.
     /// The first pair of adjacent values is aggregated into a single value using the fuzzy operator corresponding to
-    /// the proposition’s connective (norm for <see cref="Connective.And">And</see>, conorm for
+    /// the proposition’s connective (t-norm for <see cref="Connective.And">And</see>, t-conorm for
     /// <see cref="Connective.Or">Or</see>). This resulting truth value is then aggregated with the next one until
     /// the whole sequence has been processed.
     /// The <see cref="Connective.If">If</see> connective serves only as a premise delimiter and does not participate
@@ -245,8 +229,7 @@ public interface IRule
         INegation negation, INorm norm, IConorm conorm);
 
     /// <summary>
-    /// Evaluates the rule premise against the working memory by computing its activation weight using the provided
-    /// fuzzy logic operators.
+    /// Evaluates the rule premise's activation weight using the provided family of fuzzy logic operators.
     /// </summary>
     /// <param name="memory">The working memory used to resolve proposition values.</param>
     /// <param name="operatorFamily">The operator family supplying the fuzzy logic operators.</param>
@@ -257,13 +240,12 @@ public interface IRule
     /// <remarks>
     /// This overload is functionally equivalent to calling
     /// <see cref="EvaluatePremiseWeight(IWorkingMemory, INegation, INorm, IConorm)"/>
-    /// with the negation, norm, and conorm operators supplied by the operator family.
+    /// with the negation, t-norm, and t-conorm operators supplied by <paramref name="operatorFamily"/>.
     /// </remarks>
     Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory, IOperatorFamily operatorFamily);
 
     /// <summary>
-    /// Evaluates the rule premise against the working memory by computing its activation weight using the provided
-    /// fuzzy logic operators.
+    /// Evaluates the rule premise's activation weight using the default fuzzy logic operators.
     /// </summary>
     /// <param name="memory">The working memory used to resolve proposition values.</param>
     /// <returns>
@@ -274,8 +256,8 @@ public interface IRule
     /// This overload is functionally equivalent to calling
     /// <see cref="EvaluatePremiseWeight(IWorkingMemory, INegation, INorm, IConorm)"/>
     /// with the <see cref="Negation.Standard">standard operator</see> for negation, the
-    /// <see cref="Norm.Minimum">minimum operator</see> for norm and the
-    /// <see cref="Conorm.Maximum">maximum operator</see> for conorm.
+    /// <see cref="Norm.Minimum">minimum operator</see> for t-norm and the
+    /// <see cref="Conorm.Maximum">maximum operator</see> for t-conorm.
     /// </remarks>
     Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory);
 

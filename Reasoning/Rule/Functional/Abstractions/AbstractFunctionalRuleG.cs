@@ -9,15 +9,19 @@ namespace Reasoning.Rule.Functional.Abstractions;
 
 public abstract class AbstractFunctionalRule<T> : AbstractFunctionalRule, IFunctionalRule<T> where T : AbstractFunctionalRule<T>
 {
-    public T Then(string target, IReadOnlyList<double> coefficients, double bias, FunctionalRuleState state = FunctionalRuleState.Frozen)
+    public T Then(string target, IReadOnlyDictionary<string, double> coefficientDict, double bias, FunctionalRuleState state = FunctionalRuleState.Frozen)
     {
-        var variables = PremiseVariables.Where(v => v.IsString).Select(v => v.AsString).ToList();
-        if (coefficients.Count != variables.Count)
-            throw new CoefficientArityMismatchException(variables.Count, coefficients.Count);
+        var dict = coefficientDict.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
+        var set = PremiseVariables.Where(v => v.IsString).Select(v => v.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var coefficientDict = variables.Zip(coefficients, (v, c) => (Variable: v, Coefficient: c)).ToDictionary(t => t.Variable, t => t.Coefficient);
+        var missingKeys = set.Except(dict.Keys, StringComparer.OrdinalIgnoreCase).ToList();
+        var unexpectedKeys = dict.Keys.Except(set, StringComparer.OrdinalIgnoreCase).ToList();
+        if (missingKeys.Count > 0 || unexpectedKeys.Count > 0)
+            throw new VariableMismatchException(missingKeys, unexpectedKeys);
 
-        FinalizeConsequent(target, coefficientDict, state);
+        var normalizedDict = set.ToDictionary(k => k, k => coefficientDict[k], StringComparer.OrdinalIgnoreCase);
+
+        FinalizeConsequent(target, normalizedDict, state, bias);
         return (T) this;
     }
 
@@ -36,13 +40,14 @@ public abstract class AbstractFunctionalRule<T> : AbstractFunctionalRule, IFunct
         return (T) this;
     }
 
-    private void FinalizeConsequent(string target, IReadOnlyDictionary<string, double> coefficientDict, FunctionalRuleState state)
+    private void FinalizeConsequent(string target, IReadOnlyDictionary<string, double> coefficientDict, FunctionalRuleState state, double bias = 0)
     {
         Consequent = new FunctionalConsequent
         {
             Identifier = target,
             CoefficientDict = coefficientDict,
-            Arity = (uint) coefficientDict.Count
+            Arity = (uint) coefficientDict.Count,
+            Bias = bias
         };
 
         State = state;

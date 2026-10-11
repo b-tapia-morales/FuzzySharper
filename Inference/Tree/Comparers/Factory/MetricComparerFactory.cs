@@ -3,7 +3,7 @@ using Inference.Tree.Comparers.Implementations;
 
 namespace Inference.Tree.Comparers.Factory;
 
-public static class MetricComparerFactory<T> where T: class, ITree<T>
+public static class MetricComparerFactory<T> where T: class, IDerivationTree<T>
 {
     private static readonly IComparer<T> NodeCountComparer = new NodeCountComparer<T>();
     private static readonly IComparer<T> MaxDepthComparer = new MaxDepthComparer<T>();

@@ -7,7 +7,7 @@ namespace Kernel.Operator.Conorm.Abstractions;
 /// <summary>
 /// Represents a Triangular Conorm (T-Conorm), a binary operation commonly used in fuzzy logic
 /// to model the union (<b>OR</b> operation) between two fuzzy sets.
-/// The operation can be either strictly binary (see: <see cref="Implementations.Canonical.Conorm"/>) or
+/// The operation can be either strictly binary (see: <see cref="Conorm"/>) or
 /// can be parameterized by a constant value <i>β</i> (see: <see cref="PConorm"/>).
 /// </summary>
 /// <remarks>

@@ -40,7 +40,7 @@ public static class ShapeGeometry
 
         public double CalculateFirstMoment(Axis axis, bool useUoD = true)
         {
-            var firstMomentMetric = ResolveFirstMoment(axis);
+            var firstMomentMetric = MetricType.ResolveFirstMoment(axis);
             return function switch
             {
                 UnilateralFunction unilateral => unilateral.CalculateMetric(firstMomentMetric),
@@ -55,7 +55,7 @@ public static class ShapeGeometry
             if (implicationParam == FuzzyNumber.Min)
                 return 0;
 
-            var firstMomentMetric = ResolveFirstMoment(axis);
+            var firstMomentMetric = MetricType.ResolveFirstMoment(axis);
             if (function is UnilateralFunction unilateral)
                 return unilateral.CalculateMetric(firstMomentMetric, implicationParam);
 
@@ -67,7 +67,7 @@ public static class ShapeGeometry
 
         public double CalculateSecondMoment(Axis firstAxis, Axis secondAxis, bool useUoD = true)
         {
-            var secondMomentMetric = ResolveSecondMoment(firstAxis, secondAxis);
+            var secondMomentMetric = MetricType.ResolveSecondMoment(firstAxis, secondAxis);
             return function switch
             {
                 UnilateralFunction unilateral => unilateral.CalculateMetric(secondMomentMetric),
@@ -82,7 +82,7 @@ public static class ShapeGeometry
             if (implicationParam == FuzzyNumber.Min)
                 return 0;
 
-            var secondMomentMetric = ResolveSecondMoment(firstAxis, secondAxis);
+            var secondMomentMetric = MetricType.ResolveSecondMoment(firstAxis, secondAxis);
             if (function is UnilateralFunction unilateral)
                 return unilateral.CalculateMetric(secondMomentMetric, implicationParam);
 
@@ -94,7 +94,7 @@ public static class ShapeGeometry
 
         public double CalculateCentroid(Axis axis, bool useUoD = true)
         {
-            var centroidMetric = ResolveCentroid(axis);
+            var centroidMetric = MetricType.ResolveCentroid(axis);
             return function switch
             {
                 UnilateralFunction unilateral => unilateral.CalculateMetric(centroidMetric),
@@ -109,7 +109,7 @@ public static class ShapeGeometry
             if (implicationParam == FuzzyNumber.Min)
                 return 0;
 
-            var centroid = ResolveCentroid(axis);
+            var centroid = MetricType.ResolveCentroid(axis);
             if (function is UnilateralFunction unilateral)
                 return unilateral.CalculateMetric(centroid, implicationParam);
 

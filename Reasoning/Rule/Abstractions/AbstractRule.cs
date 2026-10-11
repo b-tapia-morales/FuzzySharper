@@ -15,7 +15,6 @@ using Reasoning.Proposition.Abstractions;
 using Reasoning.Proposition.Components;
 using Reasoning.Rule.Components;
 using Reasoning.Rule.Extensions;
-using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
 using Shared.Primitives.Implementation;
@@ -28,8 +27,6 @@ public abstract class AbstractRule : IRule
     public ICollection<IProposition> Connectives { get; protected init; } = new List<IProposition>();
     public IRuleOutput? Consequent { get; set; }
     public bool IsFinalized { get; set; }
-    public Option<RulePriority> Priority { get; protected init; } = Option<RulePriority>.None();
-    public Option<double> CertaintyFactor { get; protected init; } = Option<double>.None();
     public DateTimeOffset CreationTime { get; protected init; } = DateTimeOffset.Now;
     public AdaptationState AdaptationState { get; protected init; } = new();
 
@@ -56,7 +53,7 @@ public abstract class AbstractRule : IRule
         get
         {
             this.Validate();
-            return field ??= [..Premise.DistinctBy(e => e.Identifier).Select(e => e.Identifier)];
+            return field ??= [..Premise.Select(e => e.Identifier).Distinct()];
         }
     }
 
@@ -65,7 +62,7 @@ public abstract class AbstractRule : IRule
         get
         {
             this.Validate();
-            return field ??= Premise.GroupBy(e => e.Identifier).ToDictionary(g => g.Key, IReadOnlyList<IProposition> (g) => g.ToList());
+            return field ??= Premise.GroupBy(e => e.Identifier).ToDictionary(g => g.Key, IReadOnlyList<IProposition> (g) => [..g]);
         }
     }
 
@@ -100,7 +97,7 @@ public abstract class AbstractRule : IRule
 
     public IEnumerable<FuzzyNumber> ApplyUnaryOperators(IWorkingMemory memory) =>
         ApplyUnaryOperators(memory, Negation.Standard);
-    
+
     public Option<FuzzyNumber> EvaluatePremiseWeight(IWorkingMemory memory,
         INegation negation, INorm norm, IConorm conorm)
     {

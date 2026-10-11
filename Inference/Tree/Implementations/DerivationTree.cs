@@ -14,7 +14,7 @@ using Shared.Primitives.Implementation;
 
 namespace Inference.Tree.Implementations;
 
-public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
+public class DerivationTree(StringOrType identifier) : IDerivationTree<DerivationTree>
 {
     public StringOrType Identifier { get; } = identifier;
     public ICollection<IFuzzySetRule> Rules { get; } = new List<IFuzzySetRule>();
@@ -126,6 +126,6 @@ public class DerivationTree(StringOrType identifier) : ITree<DerivationTree>
         if (!iteration.IsSome(out var current))
             return;
         foreach (var rule in rules)
-            rule.AdaptationState.Append(rule.EvaluateRuleWeight(memory, family).Get, current);
+            rule.AdaptationState.Append(rule.EvaluateRuleStrength(memory, family).Get, current);
     }
 }

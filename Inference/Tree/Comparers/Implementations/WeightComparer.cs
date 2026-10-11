@@ -7,7 +7,7 @@ using Shared.Approx;
 
 namespace Inference.Tree.Comparers.Implementations;
 
-public class WeightComparer<T> : IMetricComparer<T> where T : class, ITree<T>
+public class WeightComparer<T> : IMetricComparer<T> where T : class, IDerivationTree<T>
 {
     private readonly List<(TreeMetric Method, double Weight)> _weightedMetrics;
 

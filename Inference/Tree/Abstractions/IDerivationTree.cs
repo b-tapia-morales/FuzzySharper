@@ -9,7 +9,7 @@ using Shared.Primitives.Implementation;
 
 namespace Inference.Tree.Abstractions;
 
-public interface ITree<T> where T : class, ITree<T>
+public interface IDerivationTree<T> where T : class, IDerivationTree<T>
 {
     StringOrType Identifier { get; }
     ICollection<T> Children { get; }

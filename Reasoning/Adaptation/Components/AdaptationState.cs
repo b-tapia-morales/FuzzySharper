@@ -89,7 +89,7 @@ public class AdaptationState
     internal void Append(FuzzyNumber weight, uint iteration)
     {
         LatestWeight = weight;
-        LearningHistory.AddLast(new AdaptationRecord(weight, iteration, DateTimeOffset.Now));
+        LearningHistory.AddLast(new AdaptationRecord(weight, iteration));
         FireCount++;
     }
 

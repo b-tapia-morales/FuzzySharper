@@ -5,7 +5,7 @@ namespace Inference.Tree.Extensions;
 
 public static class TreeExt
 {
-    extension<T>(T treeNode) where T : class, ITree<T>
+    extension<T>(T treeNode) where T : class, IDerivationTree<T>
     {
         public Stack<T> TraverseReverseLevelOrder()
         {
@@ -57,19 +57,15 @@ public static class TreeExt
             return treeNode.Children.Sum(child => child.RuleCount(countCompetingRules));
         }
 
-        public int ActiveRuleCount()
-        {
-            return treeNode.Children.Count == 0
+        public int ActiveRuleCount() =>
+            treeNode.Children.Count == 0
                 ? treeNode.Rules.Count(r => r.AdaptationState.LearningHistory.Count > 0)
                 : treeNode.Children.Sum(child => child.ActiveRuleCount());
-        }
 
-        public int UncoveredRuleCount()
-        {
-            return treeNode.Children.Count == 0
+        public int UncoveredRuleCount() =>
+            treeNode.Children.Count == 0
                 ? treeNode.Rules.Count(r => r.AdaptationState.LearningHistory.Count == 0)
                 : treeNode.Children.Sum(child => child.UncoveredRuleCount());
-        }
 
         public int CalculateMetric(TreeMetric metric) => metric switch
         {
@@ -80,14 +76,6 @@ public static class TreeExt
             TreeMetric.UncoveredRuleCount => treeNode.UncoveredRuleCount(),
             _ => throw new ArgumentOutOfRangeException(nameof(metric), metric, null)
         };
-
-        public void PrettyWriteTree(string indent = "", bool last = true)
-        {
-            Console.WriteLine($"{indent}+- {treeNode.Identifier}");
-            indent += last ? "   " : "|  ";
-            foreach (var (child, i) in treeNode.Children.Select((child, i) => (child, i)))
-                child.PrettyWriteTree(indent, i == treeNode.Children.Count - 1);
-        }
 
         public void WriteTree()
         {
@@ -100,13 +88,25 @@ public static class TreeExt
                     stack.Push(child);
             }
         }
+        
+        public void PrettyWriteTree() =>
+            treeNode.PrettyWrite();
 
         public void WriteNode()
         {
             Console.WriteLine($"Variable name: {treeNode.Identifier}");
             if (!treeNode.IsLeaf())
-                Console.WriteLine($"Associated rules:{Environment.NewLine}{string.Join(Environment.NewLine, treeNode.Rules)}");
+                Console.WriteLine(
+                    $"Associated rules:{Environment.NewLine}{string.Join(Environment.NewLine, treeNode.Rules)}");
             Console.WriteLine($"Proven: {treeNode.IsProven}");
+        }
+
+        private void PrettyWrite(string? indent = "", bool last = true)
+        {
+            Console.WriteLine($"{indent}+- {treeNode.Identifier}");
+            indent += last ? "   " : "|  ";
+            foreach (var (child, i) in treeNode.Children.Select((child, i) => (child, i)))
+                child.PrettyWrite(indent, i == treeNode.Children.Count - 1);
         }
     }
 }
