@@ -45,8 +45,11 @@ public readonly struct Interval : IEquatable<Interval>, IEqualityComparer<Interv
 
     public Option<double> Midpoint => !IsFullyBounded ? Option<double>.None() : (LowerBound + UpperBound) / 2;
 
+    /// <summary>
+    /// Determines whether the value lies between the bounds using approximate comparisons.
+    /// </summary>
     public bool Contains(double value) =>
-        value.IsRoughlyGreaterOrEqualTo(LowerBound) && value.IsRoughlyGreaterOrEqualTo(UpperBound);
+        value.IsRoughlyGreaterOrEqualTo(LowerBound) && value.IsRoughlyLesserOrEqualTo(UpperBound);
 
     public double Clamp(double value)
     {

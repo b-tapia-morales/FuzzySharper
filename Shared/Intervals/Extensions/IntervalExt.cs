@@ -29,17 +29,31 @@ public static class IntervalExt
                 });
         }
 
+        /// <summary>
+        /// Finds gaps between the merged input intervals, optionally including exterior gaps that extend to infinity.
+        /// Empty input yields no internal gaps, or the fully unbounded interval when exterior gaps are included.
+        /// </summary>
+        /// <param name="includeInfinity">Whether to include exterior gaps on sides where coverage is bounded.</param>
+        /// <returns>The gaps in ascending order of their lower bounds.</returns>
         public IEnumerable<Interval> FindGaps(bool includeInfinity = false)
         {
-            var list = intervals.ToList();
-            var (first, last) = (list[0].LowerBound, list[^1].UpperBound);
-            var gaps = list
-                .FindIntersections()
+            var merged = intervals.FindIntersections().ToList();
+            if (merged.Count == 0)
+                return includeInfinity ? [Interval.Default] : [];
+
+            var gaps = merged
                 .ToAdjacentPairs()
                 .Select(p => new Interval(p.Current.UpperBound, p.Next.LowerBound));
-            return includeInfinity
-                ? gaps.Prepend(new Interval(double.NegativeInfinity, first)).Append(new Interval(last, double.PositiveInfinity))
-                : gaps;
+
+            if (!includeInfinity)
+                return gaps;
+
+            if (merged[0].IsBoundedLeft)
+                gaps = gaps.Prepend(new Interval(double.NegativeInfinity, merged[0].LowerBound));
+            if (merged[^1].IsBoundedRight)
+                gaps = gaps.Append(new Interval(merged[^1].UpperBound, double.PositiveInfinity));
+
+            return gaps;
         }
 
         public IEnumerable<Interval> ClipTo(Interval bounds)
