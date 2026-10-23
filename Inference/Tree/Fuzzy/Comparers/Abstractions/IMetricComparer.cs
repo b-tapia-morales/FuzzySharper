@@ -1,8 +1,8 @@
-﻿using Inference.Tree.Abstractions;
+﻿using Inference.Tree.Fuzzy.Abstractions;
 
-namespace Inference.Tree.Comparers.Abstractions;
+namespace Inference.Tree.Fuzzy.Comparers.Abstractions;
 
-public interface IMetricComparer<in T> : IComparer<T> where T : class, IDerivationTree<T>
+public interface IMetricComparer<in T> : IComparer<T> where T : class, IMamdaniGoalTree<T>
 {
     int IComparer<T>.Compare(T? x, T? y)
     {

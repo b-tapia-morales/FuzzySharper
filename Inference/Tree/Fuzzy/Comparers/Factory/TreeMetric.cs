@@ -1,10 +1,10 @@
-﻿namespace Inference.Tree.Comparers.Factory;
+﻿namespace Inference.Tree.Fuzzy.Comparers.Factory;
 
 public enum TreeMetric
 {
     NodeCount,
     MaxDepth,
     RuleCount,
-    ActiveRuleCount,
+    CoveredRuleCount,
     UncoveredRuleCount
 }

@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
-using Inference.Tree.Abstractions;
-using Inference.Tree.Comparers.Abstractions;
-using Inference.Tree.Comparers.Factory;
 using Inference.Tree.Extensions;
+using Inference.Tree.Fuzzy.Abstractions;
+using Inference.Tree.Fuzzy.Comparers.Abstractions;
+using Inference.Tree.Fuzzy.Comparers.Factory;
 using Shared.Approx;
 
-namespace Inference.Tree.Comparers.Implementations;
+namespace Inference.Tree.Fuzzy.Comparers.Implementations;
 
-public class WeightComparer<T> : IMetricComparer<T> where T : class, IDerivationTree<T>
+public class WeightComparer<T> : IMetricComparer<T> where T : class, IMamdaniGoalTree<T>
 {
     private readonly List<(TreeMetric Method, double Weight)> _weightedMetrics;
 
