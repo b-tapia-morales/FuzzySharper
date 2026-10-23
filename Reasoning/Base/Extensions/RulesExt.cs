@@ -3,6 +3,7 @@ using Reasoning.Adaptation.Components;
 using Reasoning.Rule.Abstractions;
 using Reasoning.Rule.Components;
 using Shared.Primitives.Implementation;
+using Utils.Graph;
 
 namespace Reasoning.Base.Extensions;
 
@@ -15,7 +16,7 @@ public static class RulesExt
             var conditionals = rules.Select(rule => rule.Conditional!.Identifier);
             var connectives = rules.Where(e => e.Connectives.Count > 0).SelectMany(e => e.Connectives)
                 .Select(rule => rule.Identifier);
-            var consequents = rules.GetInferredVariables().Select(e => (StringOrType)e);
+            var consequents = rules.GetInferredVariables().Select(e => (StringOrType) e);
             return conditionals.Concat(connectives).Except(consequents).ToHashSet();
         }
 
@@ -28,7 +29,7 @@ public static class RulesExt
             var conditionals = rules.Select(rule => rule.Conditional!.Identifier);
             var connectives = rules.Where(e => e.Connectives.Count > 0).SelectMany(e => e.Connectives)
                 .Select(rule => rule.Identifier);
-            var consequents = rules.Select(rule => (StringOrType)rule.Consequent!.Identifier);
+            var consequents = rules.Select(rule => (StringOrType) rule.Consequent!.Identifier);
             return conditionals.Concat(connectives).Concat(consequents).ToHashSet();
         }
 
@@ -36,8 +37,7 @@ public static class RulesExt
             rules.GetBaseVariables().Where(e => e.IsType).Select(e => e.AsType).ToHashSet();
 
         public IReadOnlySet<string> GetFuzzyVariables() =>
-            rules.GetAllVariables().Where(e => e.IsString).Select(e => e.AsString)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            rules.GetAllVariables().Where(e => e.IsString).Select(e => e.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         public IReadOnlySet<StringOrType> FindDependentVariables(string variableName)
         {
@@ -54,7 +54,7 @@ public static class RulesExt
         {
             var dict = new Dictionary<string, List<T>>(StringComparer.OrdinalIgnoreCase);
             foreach (var variable in rules.GetFuzzyVariables())
-                dict[variable] = rules.FindByConclusion(variable).ToList();
+                dict[variable] = [..rules.FindByConclusion(variable)];
 
             return dict.ToDictionary(pair => pair.Key, IReadOnlyList<T> (pair) => pair.Value,
                 StringComparer.OrdinalIgnoreCase);
@@ -62,17 +62,38 @@ public static class RulesExt
 
         public IReadOnlyDictionary<StringOrType, IReadOnlyList<StringOrType>> BuildDependencyGraph()
         {
-            var consequents = rules.GetInferredVariables().ToDictionary(e => (StringOrType)e,
+            var consequents = rules.GetInferredVariables().ToDictionary(e => (StringOrType) e,
                 e => new List<StringOrType>(rules.FindDependentVariables(e)));
             var antecedents = rules.GetBaseVariables().ToDictionary(e => e, _ => new List<StringOrType>());
             return consequents.Concat(antecedents).ToDictionary(e => e.Key, IReadOnlyList<StringOrType> (e) => e.Value);
         }
 
         public IEnumerable<T> FindByPremise(StringOrType variableName) =>
-            rules.Where(e => e.PremiseContains(variableName)).ToList();
+            [..rules.Where(e => e.PremiseContains(variableName))];
 
         public IEnumerable<T> FindByConclusion(string variableName) =>
-            rules.Where(e => e.ConsequentContains(variableName)).ToList();
+            [..rules.Where(e => e.ConsequentContains(variableName))];
+
+        public IEnumerable<T> FilterFacts(IWorkingMemory workingMemory)
+        {
+            var keys = workingMemory.NumericStorage.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            return rules.Where(r => !keys.Contains(r.Consequent!.Identifier));
+        }
+
+        public IEnumerable<T> FilterCircularDependencies(string variableName)
+        {
+            var adjacencyList = rules.BuildDependencyGraph();
+            var backEdges = GraphUtils.FindBackEdges(adjacencyList, variableName);
+            var antecedent = backEdges.Select(e => e.From.AsString).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var conclusion = backEdges.Select(e => e.To).ToHashSet();
+            foreach (var rule in rules)
+            {
+                if (!(conclusion.Contains(rule.Conditional!.Identifier) ||
+                      rule.Connectives.Any(r => conclusion.Contains(r.Identifier)) ||
+                      antecedent.Contains(rule.Consequent!.Identifier)))
+                    yield return rule;
+            }
+        }
 
         public IEnumerable<T> GetEvaluable(IWorkingMemory memory) =>
             rules.Where(e => e.IsPremiseEvaluable(memory));
@@ -116,6 +137,7 @@ public static class RulesExt
             [..rules];
 
         public ICollection<T> DeepCopy(LifecycleMode mode = LifecycleMode.NewInstance) =>
-            [..rules.Select(r => (T)r.DeepCopy(mode))];
+            [..rules.Select(r => (T) r.DeepCopy(mode))];
     }
+
 }

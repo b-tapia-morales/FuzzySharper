@@ -40,6 +40,10 @@ public interface IRuleBase<T> where T : class, IRule
 
     IReadOnlyDictionary<string, IReadOnlyList<T>> BuildRuleDependencyMap();
 
+    IEnumerable<T> FilterFacts(IWorkingMemory workingMemory);
+
+    IEnumerable<T> FilterCircularDependencies(string variableName);
+
     IEnumerable<IRule> GetEvaluable(IWorkingMemory memory);
 
     IEnumerable<T> GetActivated(uint iteration);

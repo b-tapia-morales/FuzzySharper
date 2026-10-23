@@ -70,6 +70,12 @@ public abstract class AbstractRuleBase<T> : IRuleBase<T> where T : class, IRule
     public IReadOnlyDictionary<string, IReadOnlyList<T>> BuildRuleDependencyMap() =>
         ProductionRules.BuildRuleDependencyMap();
 
+    public IEnumerable<T> FilterFacts(IWorkingMemory workingMemory) =>
+        ProductionRules.FilterFacts(workingMemory);
+
+    public IEnumerable<T> FilterCircularDependencies(string variableName) =>
+        ProductionRules.FilterCircularDependencies(variableName);
+
     public IEnumerable<IRule> GetEvaluable(IWorkingMemory memory) =>
         ProductionRules.GetEvaluable(memory);
 
