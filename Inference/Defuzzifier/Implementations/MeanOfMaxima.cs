@@ -29,6 +29,6 @@ public class MeanOfMaxima : BaseDefuzzifier
         return FiringStrengthAggregator.AggregateFirings(applicable, Selector, aggregator);
 
         double Selector(FiringStrength firing) =>
-            method == ImplicationMethod.Mamdani ? firing.Function.AlphaCutClipped(firing.Weight).Get.Width.Get : firing.Function.PeakClipped.Get.Width.Get;
+            method == ImplicationMethod.Mamdani ? firing.Function.AlphaCutClipped(firing.Weight).Get.Midpoint.Get : firing.Function.PeakClipped.Get.Midpoint.Get;
     }
 }
