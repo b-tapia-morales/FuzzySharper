@@ -18,22 +18,22 @@ internal static class ShapeUtils
 
         public double CalculateFirstMomentAt(Axis axis, double x0, double x1, uint precision = DefaultPrecision)
         {
-            // Mx = (1 / 2) ⋅ ∫ [f(x)]² dx
+            // Mx = ∫ x ⋅ f(x) dx
             if (axis == Axis.X)
-                return (1 / 2.0) * function.CalculateIntegral(MetricType.MomentX, x0, x1, precision);
-            // My = ∫ x ⋅ f(x) dx
+                return function.CalculateIntegral(MetricType.MomentX, x0, x1, precision);
+            // My = (1 / 2) ⋅ ∫ [f(x)]² dx
             return function.CalculateIntegral(MetricType.MomentY, x0, x1, precision);
         }
 
         public double CalculateSecondMomentAt(Axis firstAxis, Axis secondAxis, double x0, double x1, uint precision = DefaultPrecision) =>
             (firstAxis, secondAxis) switch
             {
-                // Mxx = (1 / 3) ⋅ ∫ [f(x)]³ dx
-                (Axis.X, Axis.X) => (1 / 3.0) * function.CalculateIntegral(MetricType.MomentXx, x0, x1, precision),
-                // Myy = ∫ x² ⋅ f(x) dx
+                // Mxx = ∫ x² ⋅ f(x) dx
+                (Axis.X, Axis.X) => function.CalculateIntegral(MetricType.MomentXx, x0, x1, precision),
+                // Myy = (1 / 3) ⋅ ∫ [f(x)]³ dx
                 (Axis.Y, Axis.Y) => function.CalculateIntegral(MetricType.MomentYy, x0, x1, precision),
                 // Mxy = Myx = (1 / 2) ⋅ ∫ x ⋅ [f(x)]² dx
-                _ => (1 / 2.0) * function.CalculateIntegral(MetricType.MomentXy, x0, x1, precision)
+                _ => function.CalculateIntegral(MetricType.MomentXy, x0, x1, precision)
             };
         
         public double CalculateCentroidAt(Axis axis, double x0, double x1, uint precision = DefaultPrecision) =>
@@ -51,16 +51,16 @@ internal static class ShapeUtils
         type switch
         {
             MetricType.Area => f,
-            // [f(x)]²
-            MetricType.MomentX => x => Math.Pow(f(x), 2),
             // x ⋅ f(x)
-            MetricType.MomentY => x => x * f(x),
-            // [f(x)]³
-            MetricType.MomentXx => x => Math.Pow(f(x), 3),
+            MetricType.MomentX => x => x * f(x),
+            // [f(x)]² / 2
+            MetricType.MomentY => x => Math.Pow(f(x), 2) / 2,
             // x² ⋅ f(x)
-            MetricType.MomentXy => x => Math.Pow(x, 2) * f(x),
-            // x ⋅ [f(x)]²
-            MetricType.MomentYy => x => x * Math.Pow(f(x), 2),
+            MetricType.MomentXx => x => Math.Pow(x, 2) * f(x),
+            // x ⋅ [f(x)]² / 2
+            MetricType.MomentXy => x => x * Math.Pow(f(x), 2) / 2,
+            // [f(x)]³ / 3
+            MetricType.MomentYy => x => Math.Pow(f(x), 3) / 3,
             _ => throw new NotImplementedException()
         };
 }

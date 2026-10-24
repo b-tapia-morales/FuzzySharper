@@ -27,7 +27,7 @@ public static class MetricSelector
 
         public Option<double> GetClippedMetric(MeasurableFunction function)
         {
-            if (!function.IsClipped)
+            if (!function.IsClippedByUoD)
                 return Option<double>.None();
             return type switch
             {
@@ -46,7 +46,7 @@ public static class MetricSelector
         public double CalculateMetric(MeasurableFunction function, double x0, double x1, uint precision = DefaultPrecision) => type switch
         {
             MetricType.Area => function.CalculateAreaAt(x0, x1, precision),
-            MetricType.MomentX => function.CalculateFirstMomentAt(Axis.X, x0, x1),
+            MetricType.MomentX => function.CalculateFirstMomentAt(Axis.X, x0, x1, precision),
             MetricType.MomentY => function.CalculateFirstMomentAt(Axis.Y, x0, x1, precision),
             MetricType.MomentXx => function.CalculateSecondMomentAt(Axis.X, Axis.X, x0, x1, precision),
             MetricType.MomentXy => function.CalculateSecondMomentAt(Axis.X, Axis.Y, x0, x1, precision),

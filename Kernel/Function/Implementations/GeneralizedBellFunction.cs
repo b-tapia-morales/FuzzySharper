@@ -14,14 +14,34 @@ public class GeneralizedBellFunction : BellShapedFunction
 {
     internal static IMembershipFunction Create(string name, double a, double b, double c, Interval universe, double uMax = 1)
     {
-        CheckAValue(a);
-        CheckValues(a, b, c);
-        return new GeneralizedBellFunction(name, a, b, c, universe, uMax);
+        CheckWidth(a);
+        CheckShape(b);
+        CheckCenter(c);
+        var function = new GeneralizedBellFunction(name, a, b, c, universe, uMax);
+        function.InitializeMetrics();
+        return function;
+
+        static void CheckWidth(double a)
+        {
+            if (!double.IsFinite(a) || a.IsRoughlyLesserOrEqualTo(0)) 
+                throw new ArgumentException($"Expected a > 0 and finite. Received a = {a}.", nameof(a));
+        }
+
+        static void CheckShape(double b)
+        {
+            if (!double.IsFinite(b) || b.IsRoughlyLesserOrEqualTo(0)) 
+                throw new ArgumentException($"Expected b > 0 and finite. Received b = {b}.", nameof(b));
+        }
+
+        static void CheckCenter(double c)
+        {
+            if (!double.IsFinite(c)) 
+                throw new ArgumentException($"Expected c to be finite. Received c = {c}.", nameof(c));
+        }
     }
 
     public static IMembershipFunction Create(string name, double a, double b, double c, double uMax = 1) =>
         Create(name, a, b, c, Interval.Default, uMax);
-
 
     private GeneralizedBellFunction(string name, double a, double b, double c, double uMax) :
         this(name, a, b, c, Interval.Default, uMax)
@@ -34,16 +54,16 @@ public class GeneralizedBellFunction : BellShapedFunction
         A = a;
         B = b;
         C = c;
+        var d = A * Pow(1 / Q - 1, 1 / (2 * B));
+        EffectiveSupportLeft = C - d;
+        EffectiveSupportRight = C + d;
     }
 
     public double A { get; }
     public double B { get; }
     public double C { get; }
 
-    private double? _leftMost;
-    private double? _rightMost;
-
-    private const double RoughlyZero = DoubleApproxExt.DefaultTolerance * 1e-1;
+    private const double Q = 2 * DoubleApproxExt.DefaultTolerance;
 
     #region BellShapedFunctionProperties
 
@@ -53,11 +73,9 @@ public class GeneralizedBellFunction : BellShapedFunction
 
     #region MembershipFunctionIntervals
 
-    public override double EffectiveSupportLeft =>
-        _leftMost ??= AlphaCutLeft(RoughlyZero).Get;
+    public override double EffectiveSupportLeft { get; }
 
-    public override double EffectiveSupportRight =>
-        _rightMost ??= AlphaCutRight(RoughlyZero).Get;
+    public override double EffectiveSupportRight { get; }
 
     #endregion
 
@@ -69,7 +87,7 @@ public class GeneralizedBellFunction : BellShapedFunction
             return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return C;
-        return C - A * Pow((1 - alpha.Value) / alpha.Value, 1 / (2 * B));
+        return C - A * Pow(UMax / alpha.Value - 1, 1 / (2 * B));
     }
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
@@ -78,7 +96,7 @@ public class GeneralizedBellFunction : BellShapedFunction
             return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return C;
-        return C + A * Pow((1 - alpha.Value) / alpha.Value, 1 / (2 * B));
+        return C + A * Pow(UMax / alpha.Value - 1, 1 / (2 * B));
     }
 
     #endregion
@@ -86,17 +104,21 @@ public class GeneralizedBellFunction : BellShapedFunction
     #region ImplicationMethods
 
     public override Func<double, double> LarsenProduct(FuzzyNumber lambda) =>
-        x => lambda.Value * (1 / (1 + Pow(Abs((x - C) / A), 2 * B)));
+        x => lambda.Value * UMax * (1 / (1 + Pow(Abs((x - C) / A), 2 * B)));
 
     #endregion
 
     #region CloningMethods
 
-    public override IMembershipFunction DeepCopy() =>
-        new GeneralizedBellFunction(Name, A, B, C, UniverseOfDiscourse, UMax);
+    public override IMembershipFunction DeepCopy(bool copyState = true) =>
+        DeepCopy(Name, copyState);
 
-    public override IMembershipFunction DeepCopy(string name) =>
-        new GeneralizedBellFunction(name, A, B, C, UniverseOfDiscourse, UMax);
+    public override IMembershipFunction DeepCopy(string name, bool copyState = true)
+    {
+        var copy = new GeneralizedBellFunction(name, A, B, C, copyState ? UniverseOfDiscourse : Interval.Default, UMax);
+        copy.CopyMetrics(this, copyState);
+        return copy;
+    }
 
     #endregion
 
@@ -107,15 +129,4 @@ public class GeneralizedBellFunction : BellShapedFunction
 
     #endregion
 
-    private static void CheckAValue(double a)
-    {
-        if (a.IsRoughlyZero())
-            throw new ArgumentException("The value for «a» cannot be equal to 0");
-    }
-
-    private static void CheckValues(double a, double b, double c)
-    {
-        if (a.IsRoughlyGreaterOrEqualTo(b) || b.IsRoughlyGreaterOrEqualTo(c))
-            throw new ArgumentException("a < b < c");
-    }
 }

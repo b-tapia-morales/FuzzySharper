@@ -1,7 +1,7 @@
 ﻿using Kernel.Function.Abstractions;
+using Kernel.Function.Extensions.Metric;
 using Kernel.Number;
 using Shared.Approx;
-using Shared.Deferred;
 using Shared.Intervals.Implementations;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
@@ -15,8 +15,16 @@ public class LogisticFunction : SigmoidFunction
 {
     internal static IMembershipFunction Create(string name, double a, double c, Interval universe, double uMax = 1)
     {
-        CheckAValue(a);
-        return new LogisticFunction(name, a, c, universe, uMax);
+        CheckWidth(a);
+        var function = new LogisticFunction(name, a, c, universe, uMax);
+        function.InitializeMetrics();
+        return function;
+
+        static void CheckWidth(double a)
+        {
+            if (a.IsRoughlyZero())
+                throw new ArgumentException($"Expected a != 0. Received a = {a}.");
+        }
     }
 
     public static IMembershipFunction Create(string name, double a, double c, double uMax = 1) =>
@@ -32,96 +40,92 @@ public class LogisticFunction : SigmoidFunction
     {
         A = a;
         C = c;
+        var d = Log(1 / Q - 1) / Abs(a);
+        EffectiveSupportLeft = C - d;
+        EffectiveSupportRight = C + d;
     }
 
     public double A { get; }
     public double C { get; }
 
-    private double? _leftMost;
-    private double? _rightMost;
-
-    private const double RoughlyZero = DoubleApproxExt.DefaultTolerance * 1e-1;
-    private const double RoughlyOne = 1 - RoughlyZero;
+    private const double Q = 2 * DoubleApproxExt.DefaultTolerance;
 
     public override double Center => C;
 
     public override double Steepness => A;
 
-    public override double EffectiveSupportLeft =>
-        _leftMost ??= AlphaCutLeft(SaturatesRight ? RoughlyZero : RoughlyOne).Get;
+    public override double EffectiveSupportLeft { get; }
 
-    public override double EffectiveSupportRight =>
-        _rightMost ??= AlphaCutRight(SaturatesLeft ? RoughlyZero : RoughlyOne).Get;
+    public override double EffectiveSupportRight { get; }
 
     public override Option<double> AlphaCutLeft(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyGreaterOrEqualTo(UMax) || alpha.Value.IsRoughlyZero())
             return Option<double>.None();
-        return SaturatesLeft ? double.NegativeInfinity : C - (double.Log(UMax / alpha.Value) - 1) / A;
+        return SaturatesLeft ? double.NegativeInfinity : C - Log(UMax / alpha.Value - 1) / A;
     }
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
     {
         if (alpha.Value.IsRoughlyGreaterOrEqualTo(UMax) || alpha.Value.IsRoughlyZero())
             return Option<double>.None();
-        return SaturatesRight ? double.PositiveInfinity : C - (double.Log(UMax / alpha.Value) - 1) / A;
+        return SaturatesRight ? double.PositiveInfinity : C - Log(UMax / alpha.Value - 1) / A;
     }
 
     public override Func<double, double> LarsenProduct(FuzzyNumber lambda) =>
-        x => lambda.Value * (1 / (1 + Exp(-A * (x - C))));
+        x => lambda.Value * UMax * (1 / (1 + Exp(-A * (x - C))));
 
-    // [μMax * (Log [a * (1 + ℇ^(a * (x1 - c))] - Log [a * (1 + ℇ^(a * x0 - c))]/a
-    protected override DeferredValue<double> DeferredArea
+    protected override double CalculateOriginalMetric(MetricType metricType) => metricType switch
     {
-        get
-        {
-            var (x0, x1) = EffectiveSupport.ToTuple();
-            var negativePart = Log(A * (1 + Pow(E, A * (x0 - C))));
-            var positivePart = Log(A * (1 + Pow(E, A * (x1 - C))));
-            return new DeferredValue<double>((UMax / A) * (negativePart - positivePart));
-        }
+        MetricType.Area => CalculateOriginalArea(),
+        MetricType.MomentY => CalculateOriginalMomentY(),
+        MetricType.MomentYy => CalculateOriginalMomentYy(),
+        _ => base.CalculateOriginalMetric(metricType)
+    };
+
+    // Area = μMax / a * [Log(1 + Exp(a * (x1 - c))) - Log(1 + Exp(a * (x0 - c)))]
+    private double CalculateOriginalArea()
+    {
+        var (x0, x1) = EffectiveSupport.ToTuple();
+        var l0 = Log(1 + Exp(A * (x0 - C)));
+        var l1 = Log(1 + Exp(A * (x1 - C)));
+        return (UMax / A) * (l1 - l0);
     }
 
-    // (μMax^2 * (1/(1 + ℇ^(a (c - x0))) - 1/(1 + ℇ^(a (c - x1))) - Log[a] + Log[(a (ℇ^(a c) + ℇ^(a x1)))/(ℇ^(a c) + ℇ^(a x0))]))/(2 a)
-    protected override DeferredValue<double> DeferredMomentX
+    // My = (1/2) ⋅ ∫ [f(x)]² dx
+    // s(x) = 1 / (1 + Exp(a * (x - c))), the complement of the normalized sigmoid.
+    private double CalculateOriginalMomentY()
     {
-        get
-        {
-            var (x0, x1) = EffectiveSupport.ToTuple();
-            var negativeSigmoid = 1 / (1 + Pow(E, A * (C - x1)));
-            var positiveSigmoid = 1 / (1 + Pow(E, A * (C - x0)));
-            var logNumerator = Pow(E, A * C) + Pow(E, A * x1);
-            var logDenominator = Pow(E, A * C) + Pow(E, A * x0);
-            return new DeferredValue<double>((Pow(UMax, 2) / (2 * A)) * (positiveSigmoid - negativeSigmoid - Log(A) + Log(A * (logNumerator / logDenominator))));
-        }
+        var (x0, x1) = EffectiveSupport.ToTuple();
+        var s0 = 1 / (1 + Exp(A * (x0 - C)));
+        var s1 = 1 / (1 + Exp(A * (x1 - C)));
+        var l0 = Log(1 + Exp(A * (x0 - C)));
+        var l1 = Log(1 + Exp(A * (x1 - C)));
+        return (Pow(UMax, 2) / (2 * A)) * (l1 - l0 + s1 - s0);
     }
 
-    protected override DeferredValue<double> DeferredMomentXx
+    // Myy = (1/3) ⋅ ∫ [f(x)]³ dx
+    // s(x) uses the same complement convention as My.
+    private double CalculateOriginalMomentYy()
     {
-        get
-        {
-            var (x0, x1) = EffectiveSupport.ToTuple();
-            // (3 + 2 ℇ^(a (c - x0)))/(1 + ℇ^(a (c - x0)))^2
-            var positiveSquare = (3 + 2 * Pow(E, A * (C - x0))) / Pow(1 + Pow(E, A * (C - x0)), 2);
-            // (3 + 2 ℇ^(a (c - x1)))/(1 + ℇ^(a (c - x1)))^2
-            var negativeSquare = (3 + 2 * Pow(E, A * (C - x1))) / Pow(1 + Pow(E, A * (C - x1)), 2);
-            // 2 Log[ℇ^(a (c - x0))]
-            var positiveLog1 = 2 * Log(Pow(E, A * (C - x0)));
-            // 2 Log[ℇ^(a (c - x1))]
-            var negativeLog1 = 2 * Log(Pow(E, A * (C - x1)));
-            // 2 Log[a (1 + ℇ^(a (c - x1)))]
-            var positiveLog2 = 2 * Log(A * (1 + Pow(E, A * (C - x1))));
-            // 2 Log[a (1 + ℇ^(a (c - x0)))]
-            var negativeLog2 = 2 * Log(A * (1 + Pow(E, A * (C - x0))));
-            return new DeferredValue<double>((Pow(UMax, 3) / (6 * A)) * (positiveSquare - negativeSquare + positiveLog1 - negativeLog1 + positiveLog2 - negativeLog2));
-        }
+        var (x0, x1) = EffectiveSupport.ToTuple();
+        var s0 = 1 / (1 + Exp(A * (x0 - C)));
+        var s1 = 1 / (1 + Exp(A * (x1 - C)));
+        var l0 = Log(1 + Exp(A * (x0 - C)));
+        var l1 = Log(1 + Exp(A * (x1 - C)));
+        return (Pow(UMax, 3) / (3 * A)) *
+               (l1 - l0 + 2 * (s1 - s0) - (s1 * s1 - s0 * s0) / 2);
     }
 
-    public override IMembershipFunction DeepCopy() =>
-        new LogisticFunction(Name, A, C, UMax);
+    public override IMembershipFunction DeepCopy(bool copyState = true) =>
+        DeepCopy(Name, copyState);
 
-    public override IMembershipFunction DeepCopy(string name) =>
-        new LogisticFunction(name, A, C, UMax);
+    public override IMembershipFunction DeepCopy(string name, bool copyState = true)
+    {
+        var copy = new LogisticFunction(name, A, C, copyState ? UniverseOfDiscourse : Interval.Default, UMax);
+        copy.CopyMetrics(this, copyState);
+        return copy;
+    }
 
     #region ObjectOverrides
 
@@ -130,9 +134,4 @@ public class LogisticFunction : SigmoidFunction
 
     #endregion
 
-    private static void CheckAValue(double a)
-    {
-        if (a.IsRoughlyZero())
-            throw new ArgumentException("The value for «A» cannot be equal to 0");
-    }
 }

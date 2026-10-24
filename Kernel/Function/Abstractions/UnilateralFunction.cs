@@ -42,7 +42,7 @@ public abstract class UnilateralFunction(string name, Interval universe, double 
 
     public override double EffectiveSupportLeft => IsBoundedLeft ? SlopeBase : SlopePeak;
 
-    public override double EffectiveSupportRight => IsBoundedRight ? SlopePeak : SlopeBase;
+    public override double EffectiveSupportRight => IsBoundedRight ? SlopeBase : SlopePeak;
 
     public override Option<double> CoreLeft => !IsNormal ? Option<double>.None() : PeakLeft;
 
@@ -54,7 +54,7 @@ public abstract class UnilateralFunction(string name, Interval universe, double 
 
     public abstract override Func<double, double> LarsenProduct(FuzzyNumber lambda);
 
-    public abstract override IMembershipFunction DeepCopy();
+    public abstract override IMembershipFunction DeepCopy(bool copyState = true);
 
-    public abstract override IMembershipFunction DeepCopy(string name);
+    public abstract override IMembershipFunction DeepCopy(string name, bool copyState = true);
 }

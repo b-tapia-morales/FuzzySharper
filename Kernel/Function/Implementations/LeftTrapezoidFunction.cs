@@ -13,8 +13,15 @@ public class LeftTrapezoidFunction : UnilateralFunction
 {
     internal static IMembershipFunction Create(string name, double a, double b, Interval universe, double uMax = 1)
     {
-        CheckValues(a, b);
+        CheckReversed(a, b);
         return new LeftTrapezoidFunction(name, a, b, universe, uMax);
+
+        static void CheckReversed(double a, double b)
+        {
+            if (a.IsRoughlyGreaterOrEqualTo(b))
+                throw new ArgumentException(
+                    $"Expected a < b. Received a = {a}, b = {b}.");
+        }
     }
     
     public static IMembershipFunction Create(string name, double a, double b, double uMax = 1) =>
@@ -48,32 +55,26 @@ public class LeftTrapezoidFunction : UnilateralFunction
             return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return A;
-        return B - alpha.Value * (B - A);
+        return B - (alpha.Value / UMax) * (B - A);
     }
 
     public override Func<double, double> LarsenProduct(FuzzyNumber lambda) =>
         x =>
         {
             if (x > A && x < B)
-                return lambda.Value * ((B - x) / (B - A));
+                return lambda.Value * UMax * ((B - x) / (B - A));
             if (x <= A)
-                return lambda.Value;
+                return lambda.Value * UMax;
             return 0;
         };
 
-    public override IMembershipFunction DeepCopy() =>
-        new LeftTrapezoidFunction(Name, A, B, UMax);
+    public override IMembershipFunction DeepCopy(bool copyState = true) =>
+        DeepCopy(Name, copyState);
 
-    public override IMembershipFunction DeepCopy(string name) =>
-        new LeftTrapezoidFunction(name, A, B, UMax);
+    public override IMembershipFunction DeepCopy(string name, bool copyState = true) =>
+        Create(name, A, B, copyState ? UniverseOfDiscourse : Interval.Default, UMax);
 
     public override string ToString() =>
         $"Linguistic term: {Name} - Membership Function: {GetType().Name} - Sides: (a: {A}, b: {B}) - μMax: {UMax}";
 
-    private static void CheckValues(double a, double b)
-    {
-        if (a.IsRoughlyGreaterOrEqualTo(b))
-            throw new ArgumentException(
-                $"The following condition has been violated: a < b (Values provides were: {a}, {b})");
-    }
 }

@@ -5,6 +5,7 @@ using Kernel.Function.Implementations;
 using Kernel.Function.Implication.Factory;
 using Kernel.Number;
 using Shared.Approx;
+using Shared.Options.Factory;
 using Utils.Shape;
 
 namespace Kernel.Function.Extensions;
@@ -12,15 +13,16 @@ namespace Kernel.Function.Extensions;
 public static class ShapeGeometry
 {
     private const uint DefaultPrecision = DoubleApproxExt.DefaultPrecision;
+    private const string UnknownMetricMessage = "Can't operate metric on function of unknown type.";
 
     extension(IMembershipFunction function)
     {
         public double CalculateArea(bool useUoD = true) =>
             function switch
             {
-                UnilateralFunction unilateral => unilateral.CalculateMetric(MetricType.Area),
+                UnilateralFunction unilateral => unilateral.CalculateMetric(MetricType.Area, useUoD),
                 MeasurableFunction measurable => measurable.Area(useUoD ? MetricScope.Clipped : MetricScope.Original),
-                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+                _ => throw new InvalidOperationException(UnknownMetricMessage)
             };
 
         public double CalculateArea(ImplicationMethod method, FuzzyNumber implicationParam, bool useUoD = true,
@@ -30,7 +32,7 @@ public static class ShapeGeometry
                 return 0;
 
             if (function is UnilateralFunction unilateral)
-                return unilateral.CalculateMetric(MetricType.Area, implicationParam);
+                return unilateral.CalculateMetric(MetricType.Area, method, implicationParam, useUoD);
 
             Debug.Assert(function is MeasurableFunction);
             var measurable = (MeasurableFunction) function;
@@ -43,9 +45,9 @@ public static class ShapeGeometry
             var firstMomentMetric = MetricType.ResolveFirstMoment(axis);
             return function switch
             {
-                UnilateralFunction unilateral => unilateral.CalculateMetric(firstMomentMetric),
+                UnilateralFunction unilateral => unilateral.CalculateMetric(firstMomentMetric, useUoD),
                 MeasurableFunction measurable => measurable.ResolveFirstMoment(axis, useUoD),
-                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+                _ => throw new InvalidOperationException(UnknownMetricMessage)
             };
         }
 
@@ -57,7 +59,7 @@ public static class ShapeGeometry
 
             var firstMomentMetric = MetricType.ResolveFirstMoment(axis);
             if (function is UnilateralFunction unilateral)
-                return unilateral.CalculateMetric(firstMomentMetric, implicationParam);
+                return unilateral.CalculateMetric(firstMomentMetric, method, implicationParam, useUoD);
 
             Debug.Assert(function is MeasurableFunction);
             var measurable = (MeasurableFunction) function;
@@ -70,9 +72,9 @@ public static class ShapeGeometry
             var secondMomentMetric = MetricType.ResolveSecondMoment(firstAxis, secondAxis);
             return function switch
             {
-                UnilateralFunction unilateral => unilateral.CalculateMetric(secondMomentMetric),
+                UnilateralFunction unilateral => unilateral.CalculateMetric(secondMomentMetric, useUoD),
                 MeasurableFunction measurable => measurable.ResolveSecondMoment(firstAxis, secondAxis, useUoD),
-                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+                _ => throw new InvalidOperationException(UnknownMetricMessage)
             };
         }
 
@@ -84,7 +86,7 @@ public static class ShapeGeometry
 
             var secondMomentMetric = MetricType.ResolveSecondMoment(firstAxis, secondAxis);
             if (function is UnilateralFunction unilateral)
-                return unilateral.CalculateMetric(secondMomentMetric, implicationParam);
+                return unilateral.CalculateMetric(secondMomentMetric, method, implicationParam, useUoD);
 
             Debug.Assert(function is MeasurableFunction);
             var measurable = (MeasurableFunction) function;
@@ -97,9 +99,9 @@ public static class ShapeGeometry
             var centroidMetric = MetricType.ResolveCentroid(axis);
             return function switch
             {
-                UnilateralFunction unilateral => unilateral.CalculateMetric(centroidMetric),
+                UnilateralFunction unilateral => unilateral.CalculateMetric(centroidMetric, useUoD),
                 MeasurableFunction measurable => measurable.ResolveCentroid(axis, useUoD),
-                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+                _ => throw new InvalidOperationException(UnknownMetricMessage)
             };
         }
 
@@ -111,7 +113,7 @@ public static class ShapeGeometry
 
             var centroid = MetricType.ResolveCentroid(axis);
             if (function is UnilateralFunction unilateral)
-                return unilateral.CalculateMetric(centroid, implicationParam);
+                return unilateral.CalculateMetric(centroid, method, implicationParam, useUoD);
 
             Debug.Assert(function is MeasurableFunction);
             var measurable = (MeasurableFunction) function;
@@ -123,19 +125,50 @@ public static class ShapeGeometry
     extension(UnilateralFunction function)
     {
         private double CalculateMetric(MetricType metricType, bool useUoD = true) =>
-            function.CalculateMetric(metricType, function.UMax, useUoD);
+            function.CalculateMetric(metricType, ImplicationMethod.Larsen, FuzzyNumber.Max, useUoD);
 
-        private double CalculateMetric(MetricType metricType, FuzzyNumber implicationParam, bool useUoD = true)
+        private double CalculateMetric(MetricType metricType, ImplicationMethod method,
+            FuzzyNumber implicationParam, bool useUoD = true)
         {
             Debug.Assert(implicationParam >= FuzzyNumber.Min);
             var (x0, x1) = useUoD ? function.RestrictedSupport.ToTuple() : function.EffectiveSupport.ToTuple();
+            var height = method switch
+            {
+                ImplicationMethod.Mamdani => function.UMax,
+                ImplicationMethod.Larsen => function.UMax * implicationParam.Value,
+                _ => throw new ArgumentOutOfRangeException(nameof(method), method, null)
+            };
             var vertices = function switch
             {
-                LeftTrapezoidFunction left => TriangleUtils.ToVertices(left.A, left.A, left.B, implicationParam.Value, x0, x1),
-                RightTrapezoidFunction right => TriangleUtils.ToVertices(right.A, right.B, right.B, implicationParam.Value, x0, x1),
-                _ => throw new InvalidOperationException("Can't operate metric on function of unknown type.")
+                LeftTrapezoidFunction left => TriangleUtils.ToVertices(left.A, left.A, left.B, height, x0, x1),
+                RightTrapezoidFunction right => TriangleUtils.ToVertices(right.A, right.B, right.B, height, x0, x1),
+                _ => throw new InvalidOperationException(UnknownMetricMessage)
             };
-            return metricType.CalculateMetric(vertices);
+
+            if (method != ImplicationMethod.Mamdani || implicationParam.Value.IsRoughlyGreaterOrEqualTo(function.UMax))
+                return metricType.CalculateMetric(vertices);
+            
+            var alphaCutVertices = function.AlphaCutVertices(vertices, implicationParam, x0, x1);
+            return metricType.CalculateMetric(alphaCutVertices);
+
+        }
+
+        private List<(double X, double)> AlphaCutVertices(List<(double X, double Y)> vertices, FuzzyNumber alpha, double x0, double x1)
+        {
+            var alphaCutVertices = vertices.Select(v => (v.X, Math.Min(v.Y, alpha))).ToList();
+
+            var cut = function switch
+            {
+                LeftTrapezoidFunction left => left.AlphaCutRight(alpha),
+                RightTrapezoidFunction right => right.AlphaCutLeft(alpha),
+                _ => throw new InvalidOperationException(UnknownMetricMessage)
+            };
+
+            if (cut.IsSome(out var x) && x0 < x && x < x1)
+                alphaCutVertices.Add((x, alpha.Value));
+
+            PolygonUtils.OrderCounterClockwise(alphaCutVertices);
+            return alphaCutVertices;
         }
     }
 

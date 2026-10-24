@@ -1,8 +1,8 @@
 ﻿using Kernel.Function.Abstractions;
+using Kernel.Function.Extensions.Metric;
 using Kernel.Number;
 using MathNet.Numerics;
 using Shared.Approx;
-using Shared.Deferred;
 using Shared.Intervals.Implementations;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
@@ -17,7 +17,23 @@ public class GaussianFunction : BellShapedFunction
     internal static IMembershipFunction Create(string name, double mu, double sigma, Interval universe, double uMax = 1)
     {
         CheckSigma(sigma);
-        return new GaussianFunction(name, mu, sigma, universe, uMax);
+        CheckMu(mu);
+        var function = new GaussianFunction(name, mu, sigma, universe, uMax);
+        function.InitializeMetrics();
+        return function;
+
+        static void CheckSigma(double sigma)
+        {
+            if (!double.IsFinite(sigma) || sigma.IsRoughlyLesserOrEqualTo(0))
+                throw new ArgumentException($"Expected sigma > 0 and finite. Received sigma = {sigma}.", nameof(sigma));
+        }
+
+        static void CheckMu(double mu)
+        {
+            if (!double.IsFinite(mu)) 
+                throw new ArgumentException($"Expected mu to be finite. Received mu = {mu}.", nameof(mu));
+        }
+
     }
 
     public static IMembershipFunction Create(string name, double mu, double sigma, double uMax = 1) =>
@@ -46,29 +62,22 @@ public class GaussianFunction : BellShapedFunction
 
     #region MeasurableFunctionProperties
 
-    // μMax * σ * Sqrt(2 * π) * Erf(2 * Sqrt(2))
-    protected override DeferredValue<double> DeferredArea =>
-        new(UMax * Sigma * Sqrt(2 * PI) * SpecialFunctions.Erf(2 * Sqrt(2)));
-
-    // μMax^2 * σ * Sqrt(π) * Erf(4)
-    protected override DeferredValue<double> DeferredMomentX =>
-        new(Pow(UMax, 2) * Sigma * Sqrt(PI) * SpecialFunctions.Erf(4));
-
-    // μMax * σ * Sqrt(π / 2) * μ * Erf(2 * Sqrt(2))
-    protected override DeferredValue<double> DeferredMomentY =>
-        new(UMax * Sigma * Sqrt(PI / 2) * Mu * SpecialFunctions.Erf(2 * Sqrt(2)));
-
-    // (1/3) * μMax^3 * σ * Sqrt((2/3) * π) * Erf(2 * Sqrt(6))
-    protected override DeferredValue<double> DeferredMomentXx =>
-        new((1 / 3.0) * Pow(UMax, 3) * Sigma * Sqrt((2 / 3.0) * PI) * SpecialFunctions.Erf(2 * Sqrt(6)));
-
-    // μMax * [-8 * σ^3/ℇ^8 + σ * Sqrt(2 * π) * (σ^2 + μ^2) * Erf(2 * Sqrt(2))]
-    protected override DeferredValue<double> DeferredMomentXy =>
-        new(UMax * (-8 * (Pow(Sigma, 3) / Pow(E, 8)) + Sigma * Sqrt(2 * PI) * (Pow(Sigma, 2) + Pow(Mu, 2)) * SpecialFunctions.Erf(2 * Sqrt(2))));
-
-    // (1/2) * μMax^2 * σ * Sqrt(π) * u * Erf(4)
-    protected override DeferredValue<double> DeferredMomentYy =>
-        new((1 / 2.0) * Pow(UMax, 2) * Sigma * Sqrt(PI) * Mu * SpecialFunctions.Erf(4));
+    protected override double CalculateOriginalMetric(MetricType metricType) => metricType switch
+    {
+        // μMax * σ * Sqrt(2 * π) * Erf(2 * Sqrt(2))
+        MetricType.Area => UMax * Sigma * Sqrt(2 * PI) * SpecialFunctions.Erf(2 * Sqrt(2)),
+        // Mx = μ ⋅ Area
+        MetricType.MomentX => Mu * Area(MetricScope.Original),
+        // My = (1/2) * μMax^2 * σ * Sqrt(π) * Erf(4)
+        MetricType.MomentY => (1 / 2D) * Pow(UMax, 2) * Sigma * Sqrt(PI) * SpecialFunctions.Erf(4),
+        // Mxx = (μ^2 + σ^2) ⋅ Area - 8 * μMax * σ^3 * Exp(-8)
+        MetricType.MomentXx => (Pow(Mu, 2) + Pow(Sigma, 2)) * Area(MetricScope.Original) - 8 * UMax * Pow(Sigma, 3) * Exp(-8),
+        // Mxy = μ ⋅ My
+        MetricType.MomentXy => Mu * MomentY(MetricScope.Original),
+        // Myy = (1/3) * μMax^3 * σ * Sqrt((2/3) * π) * Erf(2 * Sqrt(6))
+        MetricType.MomentYy => (1 / 3D) * Pow(UMax, 3) * Sigma * Sqrt((2 / 3D) * PI) * SpecialFunctions.Erf(2 * Sqrt(6)),
+        _ => base.CalculateOriginalMetric(metricType)
+    };
 
     #endregion
 
@@ -88,7 +97,7 @@ public class GaussianFunction : BellShapedFunction
             return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return Mu;
-        return Mu - Sigma * Sqrt(2 * Log(1 / alpha.Value));
+        return Mu - Sigma * Sqrt(2 * Log(UMax / alpha.Value));
     }
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha)
@@ -97,7 +106,7 @@ public class GaussianFunction : BellShapedFunction
             return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
             return Mu;
-        return Mu + Sigma * Sqrt(2 * Log(1 / alpha.Value));
+        return Mu + Sigma * Sqrt(2 * Log(UMax / alpha.Value));
     }
 
     #endregion
@@ -105,17 +114,21 @@ public class GaussianFunction : BellShapedFunction
     #region ImplicationMethods
 
     public override Func<double, double> LarsenProduct(FuzzyNumber lambda) =>
-        x => lambda.Value * Exp(-(1 / 2.0) * Pow((x - Mu) / Sigma, 2));
+        x => lambda.Value * UMax * Exp(-(1 / 2.0) * Pow((x - Mu) / Sigma, 2));
 
     #endregion
 
     #region CloningMethods
 
-    public override IMembershipFunction DeepCopy() =>
-        new GaussianFunction(Name, Mu, Sigma, UMax);
+    public override IMembershipFunction DeepCopy(bool copyState = true) =>
+        DeepCopy(Name, copyState);
 
-    public override IMembershipFunction DeepCopy(string name) =>
-        new GaussianFunction(name, Mu, Sigma, UMax);
+    public override IMembershipFunction DeepCopy(string name, bool copyState = true)
+    {
+        var copy = new GaussianFunction(name, Mu, Sigma, copyState ? UniverseOfDiscourse : Interval.Default, UMax);
+        copy.CopyMetrics(this, copyState);
+        return copy;
+    }
 
     #endregion
 
@@ -126,9 +139,4 @@ public class GaussianFunction : BellShapedFunction
 
     #endregion
 
-    private static void CheckSigma(double sigma)
-    {
-        if (sigma.IsRoughlyZero())
-            throw new ArgumentException("The value for Sigma cannot be equal to 0");
-    }
 }

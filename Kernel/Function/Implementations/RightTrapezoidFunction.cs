@@ -13,8 +13,15 @@ public class RightTrapezoidFunction : UnilateralFunction
 {
     internal static IMembershipFunction Create(string name, double a, double b, Interval universe, double uMax = 1)
     {
-        CheckValues(a, b);
+        CheckReversed(a, b);
         return new RightTrapezoidFunction(name, a, b, universe, uMax);
+
+        static void CheckReversed(double a, double b)
+        {
+            if (a.IsRoughlyGreaterOrEqualTo(b))
+                throw new ArgumentException(
+                    $"Expected a < b. Received a = {a}, b = {b}.");
+        }
     }
 
     public static IMembershipFunction Create(string name, double a, double b, double uMax = 1) =>
@@ -48,8 +55,8 @@ public class RightTrapezoidFunction : UnilateralFunction
         if (alpha.Value.IsRoughlyZero() || alpha.Value.IsRoughlyGreaterThan(UMax))
             return Option<double>.None();
         if (alpha.Value.RoughlyEquals(UMax))
-            return A;
-        return A + alpha.Value * (B - A);
+            return B;
+        return A + (alpha.Value / UMax) * (B - A);
     }
 
     public override Option<double> AlphaCutRight(FuzzyNumber alpha) =>
@@ -58,25 +65,19 @@ public class RightTrapezoidFunction : UnilateralFunction
     public override Func<double, double> LarsenProduct(FuzzyNumber lambda) => x =>
     {
         if (x > A && x < B)
-            return lambda.Value * ((x - A) / (B - A));
+            return lambda.Value * UMax * ((x - A) / (B - A));
         if (x >= B)
-            return lambda.Value;
+            return lambda.Value * UMax;
         return 0;
     };
 
-    public override IMembershipFunction DeepCopy() =>
-        new RightTrapezoidFunction(Name, A, B, UMax);
+    public override IMembershipFunction DeepCopy(bool copyState = true) =>
+        DeepCopy(Name, copyState);
 
-    public override IMembershipFunction DeepCopy(string name) =>
-        new RightTrapezoidFunction(name, A, B, UMax);
+    public override IMembershipFunction DeepCopy(string name, bool copyState = true) =>
+        Create(name, A, B, copyState ? UniverseOfDiscourse : Interval.Default, UMax);
 
     public override string ToString() =>
         $"Linguistic term: {Name} - Membership Function: Open Right Trapezoidal - Sides: (a: {A}, b: {B}) - μMax: {UMax}";
 
-    private static void CheckValues(double a, double b)
-    {
-        if (a.IsRoughlyGreaterOrEqualTo(b))
-            throw new ArgumentException(
-                $"The following condition has been violated: a < b (Values provides were: {a}, {b})");
-    }
 }

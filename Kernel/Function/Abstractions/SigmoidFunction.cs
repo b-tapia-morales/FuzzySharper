@@ -23,9 +23,9 @@ public abstract class SigmoidFunction(string name, Interval universe, double uMa
     
     public override bool FloorsRight => Steepness < 0;
 
-    public override bool SaturatesLeft => Steepness > 0;
+    public override bool SaturatesLeft => Steepness < 0;
 
-    public override bool SaturatesRight => Steepness < 0;
+    public override bool SaturatesRight => Steepness > 0;
 
     public override bool IsOpenLeft => UMax.IsRoughlyOne() && Steepness < 0;
 
