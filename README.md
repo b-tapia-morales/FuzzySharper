@@ -205,7 +205,7 @@ memory.AddCategoricalFact(Window.Closed);
 Categorical facts can also be added in batches:
 
 ```csharp
-memory.AddCategoricalFacts(Occupancy.Ocupied, Window.Closed);
+memory.AddCategoricalFacts(Occupancy.Occupied, Window.Closed);
 ```
 
 #### Retrieving Facts
@@ -309,7 +309,7 @@ This firing strength is later used in later stages of inference.
 #### Functional Rules (Sugeno-style)
 
 A **Functional rule** defines its consequent as a function of the input variables rather than as a fuzzy set.
-The consequent consists of a coefficients list and a bias.
+The consequent specifies a target, a dictionary of coefficients keyed by input variable name, and a bias.
 
 Coefficients can be provided explicitly:
 
@@ -317,7 +317,11 @@ Coefficients can be provided explicitly:
 BoundedFunctionalRule.Create(linguisticBase)
     .If("Temperature", "Cool")
     .And("Outside Temperature", "Freezing")
-    .Then([1.5, 2.0], 1.0);
+    .Then("Heating Power", new Dictionary<string, double>
+    {
+        ["Temperature"] = 1.5,
+        ["Outside Temperature"] = 2.0
+    }, 1.0);
 ```
 
 The previous rule can be read as:
@@ -333,7 +337,7 @@ Alternatively, coefficients can be initialized using an initialization policy:
 BoundedFunctionalRule.Create(linguisticBase)
     .If("Temperature", "Cool")
     .And("Outside Temperature", "Freezing")
-    .Then(CoefficientInitMethod.Centroid);
+    .Then("Heating Power", CoefficientInitMethod.Centroid);
 ```
 
 ### Rule Base
@@ -466,7 +470,7 @@ It coordinates the evaluation of rule premises, the application of consequents, 
 rules—the production of crisp output values.
 
 At present, the library provides an inference engine for fuzzy-set (**Mamdani-style**) consequents.
-Support for functional (**Sugeno-style**) inference engines is planned and currently underdevelopment.
+Support for functional (**Sugeno-style**) inference engines is planned and currently under development.
 
 #### Inference Model
 
@@ -488,14 +492,14 @@ A minimal example of constructing a **Fuzzy-consequent inference engine** is sho
 
 ```csharp
 var engine =
-    FuzzyConsequentEngineBuilder
+    FuzzyEngineBuilder
         .Create()
         .WithRuleBase(ruleBase)
         .WithWorkingMemory(memory)
-        .WithOperatorFamily(CanonicalType.Godel)
-        .WithImplicationMethod(ImplicationMethod.Mamdani)
-        .WithAggregationMethod(ValueAggregatorMethod.Mean)
-        .WithDefuzzificationMethod(DefuzzificationMethod.CenterOfLargestArea)
+        .WithCanonicalFamily(CanonicalType.Godel)
+        .WithImplication(ImplicationMethod.Mamdani)
+        .WithValueAggregator(ValueAggregatorMethod.Mean)
+        .WithDefuzzification(DefuzzificationMethod.CenterOfLargestArea)
         .Build();
 ```
 
@@ -555,10 +559,10 @@ In addition to the built-in canonical families, FuzzySharper allows users to def
 implication, and negation operators.
 
 ```csharp
-public FuzzyConsequentEngineBuilder WithDisjunction(INorm norm);
-public FuzzyConsequentEngineBuilder WithConjunction(IConorm conorm);
-public FuzzyConsequentEngineBuilder WithResiduum(IResiduum residuum);
-public FuzzyConsequentEngineBuilder WithOperators(INegation negation, INorm norm, IConorm conorm, IResiduum residuum);
+public FuzzyEngineBuilder WithDisjunction(INorm norm);
+public FuzzyEngineBuilder WithConjunction(IConorm conorm);
+public FuzzyEngineBuilder WithResiduum(IResiduum residuum);
+public FuzzyEngineBuilder WithOperators(INegation negation, INorm norm, IConorm conorm, IResiduum residuum);
 ```
 
 This provides a high degree of flexibility, at the cost of stepping outside the well-established behavior of the
@@ -631,7 +635,7 @@ Given the name of an output variable, the engine: evaluates all applicable rules
 consequent membership functions; resolves any ambiguities according to the configured value aggregation strategy;
 produces a single crisp value using the selected defuzzification method.
 
-If no rules contribute to the specified variable, or if inference cannot be completed, the method returns and empty
+If no rules contribute to the specified variable, or if inference cannot be completed, the method returns an empty
 `Option`.
 
 The optional `provideExplanation` flag controls whether explanatory metadata is shown to the user after the inference

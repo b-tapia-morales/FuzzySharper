@@ -5,13 +5,14 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
+        <PackageId>FuzzySharper.Shared</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Ardalis.SmartEnum" Version="8.2.0" />
-      <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-      <PackageReference Include="OneOf" Version="3.0.271" />
-      <PackageReference Include="OneOf.SourceGenerator" Version="3.0.271" />
+        <PackageReference Include="Ardalis.SmartEnum" Version="8.2.0"/>
+        <PackageReference Include="MathNet.Numerics" Version="5.0.0"/>
+        <PackageReference Include="OneOf" Version="3.0.271"/>
+        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.271" PrivateAssets="all"/>
     </ItemGroup>
 
 </Project>

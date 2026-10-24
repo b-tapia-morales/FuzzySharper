@@ -5,16 +5,17 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
+        <PackageId>FuzzySharper.Knowledge</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Kernel\Kernel.csproj" />
-      <ProjectReference Include="..\Shared\Shared.csproj" />
+        <ProjectReference Include="..\Kernel\Kernel.csproj"/>
+        <ProjectReference Include="..\Shared\Shared.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Linguistic\Base\Extensions\" />
-      <Folder Include="Linguistic\Variable\Extensions\" />
+        <Folder Include="Linguistic\Base\Extensions\"/>
+        <Folder Include="Linguistic\Variable\Extensions\"/>
     </ItemGroup>
 
 </Project>

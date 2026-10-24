@@ -5,16 +5,17 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
+        <PackageId>FuzzySharper</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Reasoning\Reasoning.csproj" />
+        <ProjectReference Include="..\Reasoning\Reasoning.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Builder\Functional\" />
-      <Folder Include="Engine\Functional\" />
-      <Folder Include="Tree\Functional\Abstractions\" />
+        <Folder Include="Builder\Functional\"/>
+        <Folder Include="Engine\Functional\"/>
+        <Folder Include="Tree\Functional\Abstractions\"/>
     </ItemGroup>
 
 </Project>

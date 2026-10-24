@@ -1,0 +1,26 @@
+﻿<Project>
+    <PropertyGroup>
+        <Version>0.1.0-alpha.1</Version>
+        <Authors>Bairon Felipe Tapia Morales</Authors>
+        <Description>Fuzzy logic and rule-based inference components for .NET.</Description>
+
+        <PackageProjectUrl>https://github.com/b-tapia-morales/FuzzySharper</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/b-tapia-morales/FuzzySharper</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageTags>fuzzy;fuzzy-logic;inference;expert-system;mamdani;sugeno</PackageTags>
+        <PackageReleaseNotes>Initial public preview release.</PackageReleaseNotes>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)README.md"
+              Pack="true"
+              PackagePath="\" />
+        <None Include="$(MSBuildThisFileDirectory)LICENSE"
+              Pack="true"
+              PackagePath="\" />
+    </ItemGroup>
+</Project>

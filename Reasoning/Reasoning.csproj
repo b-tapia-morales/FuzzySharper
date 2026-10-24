@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
+        <PackageId>FuzzySharper.Reasoning</PackageId>
     </PropertyGroup>
 
     <ItemGroup>
