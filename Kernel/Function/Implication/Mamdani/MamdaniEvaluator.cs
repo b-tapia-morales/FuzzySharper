@@ -8,6 +8,7 @@ using Shared.Intervals.Implementations;
 using Shared.Options.Extensions;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
+using Utils.Shape;
 
 namespace Kernel.Function.Implication.Mamdani;
 
@@ -17,9 +18,11 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
     private FuzzyNumber TopCut { get; init; }
 
     private bool HasLeftRegion { get; init; }
+    private bool HasLeftCut { get; init; }
     private Option<Interval> LeftRegion { get; init; } = Option<Interval>.None();
 
     private bool HasRightRegion { get; init; }
+    private bool HasRightCut { get; init; }
     private Option<Interval> RightRegion { get; init; } = Option<Interval>.None();
 
     private Option<List<(double X, double Y)>> MiddleRegion { get; init; } = Option<List<(double, double)>>.None();
@@ -34,7 +37,7 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
             return new MamdaniEvaluator
             {
                 HasCutTop = false,
-                Outcome = MamdaniOutcome.NoCut
+                Outcome = useUoD && function.IsClippedByUoD ? MamdaniOutcome.ClippedByUoD : MamdaniOutcome.NoCut
             };
 
         var height = Math.Min(implicationParam.Value, function.UMax);
@@ -46,7 +49,7 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
             return new MamdaniEvaluator
             {
                 HasCutTop = false,
-                Outcome = MamdaniOutcome.ClippedByUoD
+                Outcome = useUoD && function.IsClippedByUoD ? MamdaniOutcome.ClippedByUoD : MamdaniOutcome.NoCut
             };
 
         var (a0, a1) = alphaCut.Get.ToTuple();
@@ -72,8 +75,10 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
             HasCutTop = true,
             TopCut = height,
             HasLeftRegion = hasLeftRegion,
+            HasLeftCut = useUoD && hasLeftRegion && fx0.IsRoughlyGreaterThan(function.EffectiveSupportLeft),
             LeftRegion = leftRegion,
             HasRightRegion = hasRightRegion,
+            HasRightCut = useUoD && hasRightRegion && fx1.IsRoughlyLesserThan(function.EffectiveSupportRight),
             RightRegion = rightRegion,
             MiddleRegion = Option<List<(double, double)>>.Some(vertices),
             Outcome = mode,
@@ -82,18 +87,17 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
 
     public double Evaluate(MetricType metricType, MeasurableFunction function, uint precision)
     {
-        var leftInterval = LeftRegion.OrElse(Interval.Default);
+        var totalArea = CalculateTotalArea(metricType, function, precision);
         var leftRegion = HasLeftRegion
-            ? function.CalculateIntegral(metricType, leftInterval.LowerBound, leftInterval.UpperBound, precision)
+            ? CalculateLeft(metricType, function, precision, totalArea)
             : 0D;
 
-        var rightInterval = RightRegion.OrElse(Interval.Default);
         var rightRegion = HasRightRegion
-            ? function.CalculateIntegral(metricType, rightInterval.LowerBound, rightInterval.UpperBound, precision)
+            ? CalculateRight(metricType, function, precision, totalArea)
             : 0D;
 
         var middleRegion = Outcome >= MamdaniOutcome.MiddleOnly
-            ? metricType.CalculateMetric(MiddleRegion.Get)
+            ? CalculateMiddle(metricType, totalArea)
             : 0D;
 
         return Outcome switch
@@ -107,4 +111,55 @@ public class MamdaniEvaluator : IImplicationEvaluator<MamdaniEvaluator>
             _ => throw new ArgumentOutOfRangeException(nameof(metricType), metricType, null)
         };
     }
+
+    private Option<double> CalculateTotalArea(MetricType metricType, MeasurableFunction function, uint precision)
+    {
+        if (metricType is not (MetricType.CentroidX or MetricType.CentroidY) || MiddleRegion.IsNone)
+            return Option<double>.None();
+        var leftArea = HasLeftRegion ? CalculateLeft(MetricType.Area, function, precision, Option<double>.None()) : 0D;
+        var rightArea = HasRightRegion ? CalculateRight(MetricType.Area, function, precision, Option<double>.None()) : 0D;
+        var middleArea = PolygonUtils.CalculateArea(MiddleRegion.Get);
+        return leftArea + middleArea + rightArea;
+    }
+
+    private double CalculateSide(MetricType metricType, MeasurableFunction function, uint precision, bool isLeft, Option<double> totalArea)
+    {
+        var isPiecewise = function is LinearPiecewiseFunction;
+        var isCentroid = metricType is MetricType.CentroidX or MetricType.CentroidY;
+        var axis = metricType == MetricType.CentroidX ? Axis.X : Axis.Y;
+        var region = isLeft ? LeftRegion.Get : RightRegion.Get;
+        var hasCut = isLeft ? HasLeftCut : HasRightCut;
+
+        LinearPiecewiseFunction piecewise;
+        List<(double X, double Y)> vertices;
+        switch (isPiecewise, isCentroid)
+        {
+            case (true, true):
+                piecewise = (LinearPiecewiseFunction) function;
+                vertices = isLeft ? piecewise.AlphaCutLeftRegion(TopCut, hasCut) : piecewise.AlphaCutRightRegion(TopCut, hasCut);
+                return PolygonUtils.CalculateFirstMoment(vertices, axis) / totalArea.Get;
+            case (true, false):
+                piecewise = (LinearPiecewiseFunction) function;
+                vertices = isLeft ? piecewise.AlphaCutLeftRegion(TopCut, hasCut) : piecewise.AlphaCutRightRegion(TopCut, hasCut);
+                return metricType.CalculateMetric(vertices);
+            case (false, true):
+                return function.CalculateFirstMomentAt(axis, region.LowerBound, region.UpperBound, precision) / totalArea.Get;
+            case (false, false):
+                return function.CalculateIntegral(metricType, region.LowerBound, region.UpperBound, precision);
+        }
+    }
+
+    private double CalculateMiddle(MetricType metricType, Option<double> totalArea)
+    {
+        if (metricType is not (MetricType.CentroidX or MetricType.CentroidY))
+            return metricType.CalculateMetric(MiddleRegion.Get);
+        var axis = metricType == MetricType.CentroidX ? Axis.X : Axis.Y;
+        return PolygonUtils.CalculateFirstMoment(MiddleRegion.Get, axis) / totalArea.Get;
+    }
+
+    private double CalculateLeft(MetricType metricType, MeasurableFunction function, uint precision, Option<double> totalArea) =>
+        CalculateSide(metricType, function, precision, true, totalArea);
+
+    private double CalculateRight(MetricType metricType, MeasurableFunction function, uint precision, Option<double> totalArea) =>
+        CalculateSide(metricType, function, precision, false, totalArea);
 }
