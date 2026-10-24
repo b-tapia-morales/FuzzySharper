@@ -37,8 +37,8 @@ public static class CanonicalFactory
         type switch
         {
             CanonicalType.Godel => Godel,
-            CanonicalType.Product => Lukasiewicz,
-            CanonicalType.Lukasiewicz => Product,
+            CanonicalType.Product => Product,
+            CanonicalType.Lukasiewicz => Lukasiewicz,
             CanonicalType.Nilpotent => Nilpotent,
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
