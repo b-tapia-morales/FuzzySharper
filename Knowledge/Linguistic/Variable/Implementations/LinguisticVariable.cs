@@ -25,7 +25,7 @@ public sealed class LinguisticVariable : ILinguisticVariable
         SemanticalMappings.Keys.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     public uint TermCount =>
-        (uint)SemanticalMappings.Count;
+        (uint) SemanticalMappings.Count;
 
     private LinguisticVariable() =>
         throw new InvalidOperationException();
@@ -53,13 +53,13 @@ public sealed class LinguisticVariable : ILinguisticVariable
     }
 
     public static ILinguisticVariable Create(string name, params IEnumerable<IMembershipFunction> functions) =>
-        Create(name, Interval.Default, functions.ToList());
+        Create(name, Interval.Default, [..functions]);
 
     public static ILinguisticVariable Create(string name, ICollection<IMembershipFunction> functions) =>
         Create(name, Interval.Default, functions);
 
     public static ILinguisticVariable Create(string name, Interval universe, params IEnumerable<IMembershipFunction> functions) =>
-        Create(name, universe, functions.ToList());
+        Create(name, universe, [..functions]);
 
     public static ILinguisticVariable Create(string name, Interval universe, ICollection<IMembershipFunction> functions)
     {
@@ -72,15 +72,14 @@ public sealed class LinguisticVariable : ILinguisticVariable
         if (emptyEntry != null)
             throw new EmptyEntryException();
 
-        var collidingEntry = functions.GroupBy(func => func.Name, StringComparer.OrdinalIgnoreCase)
-            .FirstOrDefault(group => group.Count() > 1);
+        var collidingEntry = functions.GroupBy(func => func.Name, StringComparer.OrdinalIgnoreCase).FirstOrDefault(group => group.Count() > 1);
         if (collidingEntry != null)
             throw new DuplicatedEntryException(name, collidingEntry.Key);
 
         var outsideEntry = functions.FirstOrDefault(func => IsOutsideUniverse(func, universe));
         if (outsideEntry != null)
-            throw new VariableRangeException(name, universe, outsideEntry.Name, outsideEntry.RestrictedSupport,
-                nameof(outsideEntry));
+            throw new VariableRangeException(name, universe, outsideEntry.Name, outsideEntry.EffectiveSupport,
+                outsideEntry.GetType().Name);
 
         var variable = new LinguisticVariable(name, universe);
         foreach (var function in functions)
@@ -98,7 +97,7 @@ public sealed class LinguisticVariable : ILinguisticVariable
 
     public ILinguisticVariable AddRightTrapezoidFunction(string name, double a, double b,
         double uMax = 1) =>
-        AddFunction(LeftTrapezoidFunction.Create(name, a, b, UniverseOfDiscourse, uMax));
+        AddFunction(RightTrapezoidFunction.Create(name, a, b, UniverseOfDiscourse, uMax));
 
     public ILinguisticVariable AddTriangularFunction(string name, double a, double b, double c,
         double uMax = 1) =>
@@ -132,10 +131,33 @@ public sealed class LinguisticVariable : ILinguisticVariable
         if (ContainsMapping(function.Name))
             throw new DuplicatedEntryException(Name, function.Name);
         if (IsOutsideUniverse(function, UniverseOfDiscourse))
-            throw new VariableRangeException(Name, UniverseOfDiscourse, function.Name, function.RestrictedSupport,
-                nameof(function));
+            throw new VariableRangeException(Name, UniverseOfDiscourse, function.Name, function.EffectiveSupport,
+                function.GetType().Name);
 
-        SemanticalMappings.Add(function.Name, function);
+        var copy = (MembershipFunction) function.DeepCopy();
+
+        var (prevLeft, prevRight) = copy.RestrictedSupport.ToTuple();
+        var (currLeft, currRight) = UniverseOfDiscourse.ToTuple();
+        var (left, right) = (prevLeft.SnapTo(currLeft), prevRight.SnapTo(currRight));
+        copy.UniverseOfDiscourse = UniverseOfDiscourse;
+
+        UpdateMetrics(copy, left, right);
+
+        SemanticalMappings.Add(copy.Name, copy);
+        return;
+
+        void UpdateMetrics(MembershipFunction mf, double l, double r)
+        {
+            if (mf is not MeasurableFunction measurable)
+                return;
+            if (!measurable.IsClippedByUoD)
+            {
+                measurable.InvalidateClippedMetrics();
+                return;
+            }
+            if (!(l.RoughlyEquals(measurable.RestrictedSupportLeft) && r.RoughlyEquals(measurable.RestrictedSupportRight)))
+                measurable.InitializeClippedMetrics();
+        }
     }
 
     public bool ContainsMapping(string term) =>
@@ -176,7 +198,7 @@ public sealed class LinguisticVariable : ILinguisticVariable
                 return [x0, x1];
         }
 
-        var n = checked((int)points - 1);
+        var n = checked((int) points - 1);
         var step = (x1 - x0) / n;
         return Enumerable.Range(0, n).Select(i => x0 + i * step);
     }
@@ -208,12 +230,7 @@ public sealed class LinguisticVariable : ILinguisticVariable
                                           {string.Join(Environment.NewLine, SemanticalMappings.Values)}
                                           """;
 
-    private static bool IsOutsideUniverse(IMembershipFunction function, Interval universe)
-    {
-        if (!function.IsZeroConvergent)
-            return false;
-        var (lower, upper) = function.RestrictedSupport.ToTuple();
-        var (min, max) = universe.ToTuple();
-        return lower.IsRoughlyGreaterOrEqualTo(max) || upper.IsRoughlyLesserOrEqualTo(min);
-    }
+    private static bool IsOutsideUniverse(IMembershipFunction function, Interval universe) =>
+        function.EffectiveSupportLeft.IsRoughlyGreaterOrEqualTo(universe.UpperBound) || function.EffectiveSupportRight.IsRoughlyLesserOrEqualTo(universe.LowerBound);
+
 }
