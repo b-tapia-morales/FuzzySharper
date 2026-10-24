@@ -26,7 +26,7 @@ public static class PolygonUtils
         if (vertices.Count < 3)
             throw new ArgumentException("A polygon must have at least three vertices", nameof(vertices));
 
-        var sum = 0.0;
+        var sum = 0D;
         var n = vertices.Count;
         for (var i = 0; i < n; i++)
         {
@@ -35,7 +35,7 @@ public static class PolygonUtils
             sum += xi * yj - xj * yi;
         }
 
-        return Math.Abs((1 / 2.0) * sum);
+        return Math.Abs((1 / 2D) * sum);
     }
 
     public static double CalculateFirstMoment(List<(double X, double Y)> vertices, Axis axis)
@@ -50,7 +50,7 @@ public static class PolygonUtils
 
         OrderCounterClockwise(vertices);
 
-        var crossWeightedSum = 0.0;
+        var crossWeightedSum = 0D;
 
         var n = vertices.Count;
         for (var i = 0; i < n; i++)
@@ -63,7 +63,7 @@ public static class PolygonUtils
             crossWeightedSum += sum * cross;
         }
 
-        return (1 / 6.0) * crossWeightedSum;
+        return (1 / 6D) * crossWeightedSum;
     }
 
     public static double CalculateSecondMoment(List<(double X, double Y)> vertices, Axis firstAxis, Axis secondAxis)
@@ -78,7 +78,7 @@ public static class PolygonUtils
 
         OrderCounterClockwise(vertices);
 
-        var crossWeightedSum = 0.0;
+        var crossWeightedSum = 0D;
 
         var n = vertices.Count;
         for (var i = 0; i < n; i++)
@@ -88,15 +88,16 @@ public static class PolygonUtils
 
             var sum = (firstAxis, secondAxis) switch
             {
-                (Axis.X, Axis.X) => Math.Pow(v0.Y, 2) + v0.Y * v1.Y + Math.Pow(v1.Y, 2),
-                (Axis.Y, Axis.Y) => Math.Pow(v0.X, 2) + v0.X * v1.X + Math.Pow(v1.X, 2),
+                (Axis.X, Axis.X) => Math.Pow(v0.X, 2) + v0.X * v1.X + Math.Pow(v1.X, 2),
+                (Axis.Y, Axis.Y) => Math.Pow(v0.Y, 2) + v0.Y * v1.Y + Math.Pow(v1.Y, 2),
                 _ => v0.X * v1.Y + 2 * (v0.X * v0.Y + v1.X * v1.Y) + v1.X * v0.Y
             };
             var cross = v0.X * v1.Y - v1.X * v0.Y;
             crossWeightedSum += sum * cross;
         }
 
-        return (1 / 24.0) * crossWeightedSum;
+        var divisor = (firstAxis, secondAxis) is (Axis.X, Axis.X) or (Axis.Y, Axis.Y) ? 12D : 24D;
+        return crossWeightedSum / divisor;
     }
     
     public static double CalculateCentroid(List<(double X, double Y)> vertices, Axis axis) => 
