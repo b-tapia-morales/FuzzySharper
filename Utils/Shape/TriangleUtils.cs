@@ -13,86 +13,48 @@ public static class TriangleUtils
     public static double CalculateYCentroid(double y0, double y1, double y2) =>
         (y0 + y1 + y2) / 3;
 
-    public static double CalculateSideCutArea(double a, double b, double c, double h, double x0, double x1) =>
-        CalculateLeftCutArea(a, b, h, x0) + CalculateRightCutArea(b, c, h, x1);
+    public static double CalculateSideCutArea(double a, double b, double c, double h, double x0, double x1)
+    {
+        var vertices = ToVertices(a, b, c, h, x0, x1);
+        return vertices.Count < 3 ? 0 : PolygonUtils.CalculateArea(vertices);
+    }
 
     public static List<(double X, double Y)> ToVertices(double a, double b, double c, double h) =>
         ToVertices(a, b, c, h, a, c);
 
     public static List<(double X, double Y)> ToVertices(double a, double b, double c, double h, double x0, double x1)
     {
+        var left = Math.Max(a, x0);
+        var right = Math.Min(c, x1);
+
+        if (left >= right)
+            return [];
+
         var vertices = new List<(double X, double Y)>();
-        AddLeftVertices(vertices, a, b, h, x0);
-        vertices.Add((b, h));
-        AddRightVertices(vertices, b, c, h, x1);
+        
+        AddBoundaryVertices(vertices, a, b, c, h, left);
+        if (left < b && b < right)
+            vertices.Add((b, h));
+        AddBoundaryVertices(vertices, a, b, c, h, right);
+
+        PolygonUtils.OrderCounterClockwise(vertices);
         return vertices;
     }
 
-    private static double CalculateLeftCutArea(double a, double b, double h, double x0)
+    private static void AddBoundaryVertices(List<(double X, double Y)> vertices, double a, double b, double c, double h, double x)
     {
-        // No cut is performed inside => left area kept as is
-        if (x0.IsRoughlyLesserOrEqualTo(a))
-            return CalculateArea(b - a, h);
-        // Cut is performed exactly at the triangle's peak => left area is entirely cut out
-        if (x0.IsRoughlyGreaterOrEqualTo(b))
-            return 0;
-        // Cut is performed inside => the intersection point y0 has to be calculated; the remaining area will be the sum of
-        // rectangle sitting at the base's area, and the area of the triangle sitting above it.
-        var y1 = (x0 - a) / (b - a);
-        var rectangle = (b - x0) * y1;
-        var triangle = CalculateArea(b - x0, h - y1);
-        return rectangle + triangle;
+        vertices.Add((x, 0));
+        var y = HeightAt(a, b, c, h, x);
+        if (y != 0)
+            vertices.Add((x, y));
     }
 
-    private static double CalculateRightCutArea(double b, double c, double h, double x1)
+    private static double HeightAt(double a, double b, double c, double h, double x)
     {
-        // No cut is performed inside => right area kept as is
-        if (x1.IsRoughlyLesserOrEqualTo(b))
-            return CalculateArea(c - b, h);
-        // Cut is performed exactly at the triangle's peak => right area is entirely cut out
-        if (x1.IsRoughlyGreaterOrEqualTo(c))
-            return 0;
-        // Cut is performed inside => the intersection point y1 has to be calculated; the remaining area will be the sum of
-        // rectangle sitting at the base's area, and the area of the triangle sitting above it.
-        var y2 = (c - x1) / (c - b);
-        var rectangleArea = (x1 - b) * y2;
-        var triangleArea = CalculateArea(x1 - b, h - y2);
-        return rectangleArea + triangleArea;
-    }
-
-    private static void AddLeftVertices(List<(double X, double Y)> vertices, double a, double b, double h, double x0)
-    {
-        // Cut is performed exactly at the triangle's peak => no vertices added
-        if (x0.RoughlyEquals(b))
-            return;
-        // No cut is performed inside the triangle => left vertex kept as is
-        if (x0.IsRoughlyLesserOrEqualTo(a))
-        {
-            vertices.Add((b, 0));
-            return;
-        }
-
-        // Cut is performed inside the triangle => left vertices are (x0, 0) and (x0, y), with y = (x0 - a) / (b - a)
-        var y = h * (x0 - a) / (b - a);
-        vertices.Add((x0, 0));
-        vertices.Add((x0, y));
-    }
-
-    private static void AddRightVertices(List<(double X, double Y)> vertices, double b, double c, double h, double x1)
-    {
-        // Cut is performed exactly at the triangle's peak => no vertices added
-        if (x1.RoughlyEquals(b))
-            return;
-        // No cut is performed inside the triangle => right vertex kept as is
-        if (x1.IsRoughlyGreaterOrEqualTo(c))
-        {
-            vertices.Add((b, 0));
-            return;
-        }
-
-        // Cut is performed inside the triangle => right vertices are (x1, 0) and (x1, y), with y = (c - x1) / (c - b)
-        var y = h * (c - x1) / (c - b);
-        vertices.Add((x1, 0));
-        vertices.Add((x1, y));
+        if (x < b)
+            return h * (x - a) / (b - a);
+        if (x > b)
+            return h * (c - x) / (c - b);
+        return h;
     }
 }
