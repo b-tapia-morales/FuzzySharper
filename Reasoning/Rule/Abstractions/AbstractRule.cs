@@ -70,8 +70,8 @@ public abstract class AbstractRule : IRule
     {
         this.Validate();
         return Conditional!.IsEvaluable(memory) &&
-               Connectives.Count == 0 ||
-               Connectives.All(e => e.IsEvaluable(memory));
+               (Connectives.Count == 0 ||
+                Connectives.All(e => e.IsEvaluable(memory)));
     }
 
     public bool PremiseContains(StringOrType identifier)
@@ -102,7 +102,7 @@ public abstract class AbstractRule : IRule
         INegation negation, INorm norm, IConorm conorm)
     {
         this.Validate();
-        var numbers = new Stack<FuzzyNumber>(ApplyUnaryOperators(memory, negation));
+        var numbers = new Stack<FuzzyNumber>(ApplyUnaryOperators(memory, negation).Reverse());
         switch (numbers.Count)
         {
             case 0:
@@ -111,7 +111,7 @@ public abstract class AbstractRule : IRule
                 return numbers.First();
         }
 
-        var connectives = new Stack<Connective>(Connectives.Select(e => e.Connective));
+        var connectives = new Stack<Connective>(Connectives.Select(e => e.Connective).Reverse());
         while (numbers.Count > 1)
         {
             var a = numbers.Pop();
