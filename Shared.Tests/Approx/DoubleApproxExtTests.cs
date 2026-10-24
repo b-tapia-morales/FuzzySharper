@@ -209,6 +209,32 @@ public class DoubleApproxExtTests
     }
 
     [Theory]
+    [InlineData(0.999, 1, false, true, false)]
+    [InlineData(1.001, 1, true, false, false)]
+    [InlineData(-0.999, -1, false, false, true)]
+    [InlineData(-1.001, -1, true, false, false)]
+    public void ComparisonsStayConsistentNearNonzeroToleranceBoundaries(
+        double first, double second, bool isEqual, bool isLess, bool isGreater)
+    {
+        const uint precision = 3;
+
+        Assert.Equal(isEqual, first.RoughlyEquals(second, precision));
+        Assert.Equal(isLess, first.IsRoughlyLesserThan(second, precision));
+        Assert.Equal(isGreater, first.IsRoughlyGreaterThan(second, precision));
+        Assert.Equal(isLess, second.IsRoughlyGreaterThan(first, precision));
+        Assert.Equal(isGreater, second.IsRoughlyLesserThan(first, precision));
+        Assert.Equal(isLess || isEqual, first.IsRoughlyLesserOrEqualTo(second, precision));
+        Assert.Equal(isGreater || isEqual, first.IsRoughlyGreaterOrEqualTo(second, precision));
+    }
+
+    [Fact]
+    public void NonStrictComparisonsPreserveOrderingNearToleranceBoundaries()
+    {
+        Assert.True(0.999.IsRoughlyLesserOrEqualTo(1, 3));
+        Assert.True(1d.IsRoughlyGreaterOrEqualTo(0.999, 3));
+    }
+
+    [Theory]
     [InlineData(0, true)]
     [InlineData(0.5, true)]
     [InlineData(1, true)]
@@ -261,6 +287,25 @@ public class DoubleApproxExtTests
         var interval = new Interval(0, 1);
 
         Assert.Equal(expected, value.IsRoughlyInRange(interval));
+    }
+
+    [Theory]
+    [InlineData(-0.0005, 3u, true)]
+    [InlineData(-0.0005, 4u, false)]
+    [InlineData(1.0005, 3u, true)]
+    [InlineData(1.0005, 4u, false)]
+    public void IsRoughlyInRangeHonorsPrecision(double value, uint precision, bool expected)
+    {
+        Assert.Equal(expected, value.IsRoughlyInRange(new Interval(0, 1), precision));
+    }
+
+    [Theory]
+    [InlineData(0.5, double.NaN, 1)]
+    [InlineData(0.5, 0, double.NaN)]
+    [InlineData(0.5, 1, 0)]
+    public void IsRoughlyBetweenRejectsNaNBoundsAndDisjointReversedBounds(double value, double lower, double upper)
+    {
+        Assert.False(value.IsRoughlyBetween(lower, upper));
     }
 
     [Theory]

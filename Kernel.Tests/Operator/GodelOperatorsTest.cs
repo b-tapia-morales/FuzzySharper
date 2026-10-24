@@ -96,7 +96,7 @@ public class GodelOperatorsTest
     [ClassData(typeof(GodelDataOperators))]
     public void NonCompensationHolds(FuzzyNumber x, FuzzyNumber y, FuzzyNumber z)
     {
-        var (min, max, median) = (NumberUtils.Min<double>(x, y, z), NumberUtils.Median<double>(x, y, z), NumberUtils.Max<double>(x, y, z));
+        var (min, median, max) = (NumberUtils.Min<double>(x, y, z), NumberUtils.Median<double>(x, y, z), NumberUtils.Max<double>(x, y, z));
         var (a, b, c) = (FuzzyNumber.Of(min), FuzzyNumber.Of(median), FuzzyNumber.Of(max));
         Assert.NotEqual(Minimum.Intersection(a, c), Minimum.Intersection(b, b));
         Assert.NotEqual(Maximum.Union(a, c), Maximum.Union(b, b));

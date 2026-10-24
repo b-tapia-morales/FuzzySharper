@@ -3,13 +3,12 @@ using Inference.Defuzzifier.Factory;
 using Inference.Engine.Abstractions;
 using Inference.Engine.Fuzzy.Abstractions;
 using Inference.Tree.Extensions;
-using Inference.Tree.Implementations;
+using Inference.Tree.Fuzzy.Implementations;
 using Kernel.Function.Implication.Factory;
 using Kernel.Operator.Family.Abstractions;
 using Knowledge.Memory.Abstractions;
 using Reasoning.Adaptation.Components;
 using Reasoning.Base.Extensions;
-using Reasoning.Base.FuzzySet.Extensions;
 using Reasoning.Rule.FuzzySet.Abstractions;
 using Reasoning.Rule.FuzzySet.Comparer.Implementations.Deterministic.Factory;
 using Shared.Options.Factory;
@@ -42,7 +41,7 @@ public class FuzzyConsequentEngine : AbstractInferenceEngine<IFuzzySetRule>, IFu
         var ruleComparer = DeterministicFactory.GetInstance(DeterministicMethod, workingMemory, operatorFamily);
         var defuzzifier = DefuzzificationFactory.GetInstance(DefuzzificationMethod);
         var aggregator = ValueAggregatorFactory.GetInstance(AggregatorMethod);
-        var rootNode = DerivationTree.BuildTree(target, rules);
+        var rootNode = MamdaniGoalTree.BuildTree(target, rules);
         var inferredValue = rootNode.InferFact(workingMemory, ruleComparer, defuzzifier, aggregator, operatorFamily,
             ImplicationMethod, CurrentIteration);
         if (IsLearningEnabled)

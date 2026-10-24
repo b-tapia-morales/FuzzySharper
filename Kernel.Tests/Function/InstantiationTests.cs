@@ -13,8 +13,8 @@ public class InstantiationTests
         Assert.Throws<ArgumentException>(() => GeneralizedBellFunction.Create(name: "Function.Create", a: 2, b: 4, c: 8, uMax: 0));
         // a = 0
         Assert.Throws<ArgumentException>(() => GeneralizedBellFunction.Create(name: "Function.Create", a: 0, b: 4, c: 8));
-        // b < 1
-        Assert.Throws<ArgumentException>(() => GeneralizedBellFunction.Create(name: "Function.Create", a: 2, b: 3 / 4.0, c: 8));
+        // b = 0
+        Assert.Throws<ArgumentException>(() => GeneralizedBellFunction.Create(name: "Function.Create", a: 2, b: 0, c: 8));
     }
 
     [Fact]

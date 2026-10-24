@@ -62,20 +62,18 @@ public static class DoubleApproxExt
             a.IsRoughlyZero(Pow(10, -precision));
 
         /// <summary>
-        /// Compares the absolute integer part of the difference from one with the specified tolerance.
+        /// Compares the absolute difference from one with the specified tolerance.
         /// </summary>
         /// <param name="tolerance">Maximum allowed difference. Defaults to <see cref="DefaultTolerance"/>.</param>
-        /// <returns>True when |(int)(a – 1)| ≤ tolerance; otherwise false.</returns>
-        /// <exception cref="OverflowException">The difference converts to <see cref="int.MinValue"/>.</exception>
+        /// <returns>True when |a – 1| ≤ tolerance; otherwise false.</returns>
         private bool IsRoughlyOne(double tolerance = DefaultTolerance) =>
             Abs(a - 1) <= tolerance;
 
         /// <summary>
-        /// Compares the absolute integer part of the difference from one with the tolerance set by the specified precision.
+        /// Compares the absolute difference from one with the tolerance set by the specified precision.
         /// </summary>
         /// <param name="precision">Decimal precision used to set the tolerance. Defaults to <see cref="DefaultPrecision"/>.</param>
-        /// <returns>True if the truncated difference is within tolerance; otherwise false.</returns>
-        /// <exception cref="OverflowException">The difference converts to <see cref="int.MinValue"/>.</exception>
+        /// <returns>True if the difference is within tolerance; otherwise false.</returns>
         public bool IsRoughlyOne(uint precision = DefaultPrecision) =>
             a.IsRoughlyOne(Pow(10, -precision));
 
@@ -118,54 +116,56 @@ public static class DoubleApproxExt
             a.IsRoughlyMaxValue(Pow(10, -precision));
 
         /// <summary>
-        /// A number is roughly less than another if it is below the second value minus the specified tolerance.
+        /// A number is roughly less than another if it is less than the second value and the two are not roughly equal.
         /// </summary>
         /// <param name="b">Second value.</param>
-        /// <param name="tolerance">The margin below the second value. Defaults to <see cref="DefaultTolerance"/>.</param>
-        /// <returns>True when a &lt; b – tolerance; otherwise false.</returns>
+        /// <param name="tolerance">Maximum difference considered roughly equal. Defaults to <see cref="DefaultTolerance"/>.</param>
+        /// <returns>True if a is less than b and the values are not roughly equal; otherwise false.</returns>
         private bool IsRoughlyLesserThan(double b, double tolerance = DefaultTolerance) =>
-            a < b - tolerance;
+            a < b && !a.RoughlyEquals(b, tolerance);
 
         /// <summary>
-        /// A number is roughly less than another if it is below the second value minus the tolerance set by precision.
+        /// A number is roughly less than another if it is less than the second value and the two are not roughly equal
+        /// at the specified precision.
         /// </summary>
         /// <param name="b">Second value.</param>
         /// <param name="precision">Decimal precision used to set the tolerance. Defaults to <see cref="DefaultPrecision"/>.</param>
-        /// <returns>True when a &lt; b – 10^−precision; otherwise false.</returns>
+        /// <returns>True if a is less than b and the values are not roughly equal; otherwise false.</returns>
         public bool IsRoughlyLesserThan(double b, uint precision = DefaultPrecision) =>
             a.IsRoughlyLesserThan(b, Pow(10, -precision));
 
         /// <summary>
-        /// A number is roughly greater than another if it is above the second value plus the specified tolerance.
+        /// A number is roughly greater than another if it is greater than the second value and the two are not roughly equal.
         /// </summary>
         /// <param name="b">Second value.</param>
-        /// <param name="tolerance">The margin above the second value. Defaults to <see cref="DefaultTolerance"/>.</param>
-        /// <returns>True when a &gt; b + tolerance; otherwise false.</returns>
+        /// <param name="tolerance">Maximum difference considered roughly equal. Defaults to <see cref="DefaultTolerance"/>.</param>
+        /// <returns>True if a is greater than b and the values are not roughly equal; otherwise false.</returns>
         private bool IsRoughlyGreaterThan(double b, double tolerance = DefaultTolerance) =>
-            a > b + tolerance;
+            a > b && !a.RoughlyEquals(b, tolerance);
 
         /// <summary>
-        /// A number is roughly greater than another if it is above the second value plus the tolerance set by precision.
+        /// A number is roughly greater than another if it is greater than the second value and the two are not roughly equal
+        /// at the specified precision.
         /// </summary>
         /// <param name="b">Second value.</param>
         /// <param name="precision">Decimal precision used to set the tolerance. Defaults to <see cref="DefaultPrecision"/>.</param>
-        /// <returns>True when a &gt; b + 10^−precision; otherwise false.</returns>
+        /// <returns>True if a is greater than b and the values are not roughly equal; otherwise false.</returns>
         public bool IsRoughlyGreaterThan(double b, uint precision = DefaultPrecision) =>
             a.IsRoughlyGreaterThan(b, Pow(10, -precision));
 
         /// <summary>
         /// A number is roughly less than or equal to another if the two are roughly equal,
-        /// or the first is roughly less than the second, using the specified tolerance.
+        /// or the first is less than the second, using the specified tolerance.
         /// </summary>
         /// <param name="b">Second value.</param>
         /// <param name="tolerance">Tolerance for the comparisons. Defaults to <see cref="DefaultTolerance"/>.</param>
         /// <returns>True if <paramref name="a"/> is roughly less than or equal to <paramref name="b"/>; otherwise false.</returns>
         private bool IsRoughlyLesserOrEqualTo(double b, double tolerance = DefaultTolerance) =>
-            a.RoughlyEquals(b, tolerance) || a.IsRoughlyLesserThan(b, tolerance);
+            a < b || a.RoughlyEquals(b, tolerance);
 
         /// <summary>
         /// A number is roughly less than or equal to another if the two are roughly equal,
-        /// or the first is roughly less than the second, using the specified precision.
+        /// or the first is less than the second, using the specified precision.
         /// </summary>
         /// <param name="b">Second value.</param>
         /// <param name="precision">Decimal precision used to set the tolerance. Defaults to <see cref="DefaultPrecision"/>.</param>
@@ -175,17 +175,17 @@ public static class DoubleApproxExt
 
         /// <summary>
         /// A number is roughly greater than or equal to another if the two are roughly equal,
-        /// or the first is roughly greater than the second, using the specified tolerance.
+        /// or the first is greater than the second, using the specified tolerance.
         /// </summary>
         /// <param name="b">Second value.</param>
         /// <param name="tolerance">Tolerance for the comparisons. Defaults to <see cref="DefaultTolerance"/>.</param>
         /// <returns>True if <paramref name="a"/> is roughly greater than or equal to <paramref name="b"/>; otherwise false.</returns>
         private bool IsRoughlyGreaterOrEqualTo(double b, double tolerance = DefaultTolerance) =>
-            a.RoughlyEquals(b, tolerance) || a.IsRoughlyGreaterThan(b, tolerance);
+            a > b || a.RoughlyEquals(b, tolerance);
 
         /// <summary>
         /// A number is roughly greater than or equal to another if the two are roughly equal,
-        /// or the first is roughly greater than the second, using the specified precision.
+        /// or the first is greater than the second, using the specified precision.
         /// </summary>
         /// <param name="b">Second value.</param>
         /// <param name="precision">Decimal precision used to set the tolerance. Defaults to <see cref="DefaultPrecision"/>.</param>
@@ -193,20 +193,18 @@ public static class DoubleApproxExt
         public bool IsRoughlyGreaterOrEqualTo(double b, uint precision = DefaultPrecision) =>
             a.IsRoughlyGreaterOrEqualTo(b, Pow(10, -precision));
 
-        /// <summary>Returns whether the value is roughly less than or equal to both supplied bounds.</summary>
+        /// <summary>Returns whether the value is roughly greater than or equal to the lower bound and roughly less than or equal to the upper bound.</summary>
         /// <param name="lower">The lower bound.</param>
         /// <param name="upper">The upper bound.</param>
         /// <param name="precision">Decimal precision used to set the tolerance. Defaults to <see cref="DefaultPrecision"/>.</param>
-        /// <returns>True if both comparisons succeed; otherwise false.</returns>
-        /// <remarks>Currently treats both bounds as upper limits, rather than checking containment.</remarks>
+        /// <returns>True if the value lies within the bounds, including values within tolerance of either endpoint; otherwise false.</returns>
         public bool IsRoughlyBetween(double lower, double upper, uint precision = DefaultPrecision) =>
-            a.IsRoughlyLesserOrEqualTo(lower, precision) && a.IsRoughlyGreaterOrEqualTo(upper, precision);
+            a.IsRoughlyGreaterOrEqualTo(lower, precision) && a.IsRoughlyLesserOrEqualTo(upper, precision);
 
-        /// <summary>Applies <c>IsRoughlyBetween</c> to the interval's bounds.</summary>
-        /// <param name="interval">The interval whose bounds are compared.</param>
+        /// <summary>Returns whether the value lies within the interval using approximate comparisons with its bounds.</summary>
+        /// <param name="interval">The interval whose bounds determine containment.</param>
         /// <param name="precision">Decimal precision used to set the tolerance. Defaults to <see cref="DefaultPrecision"/>.</param>
-        /// <returns>True if the value is roughly less than or equal to both bounds; otherwise false.</returns>
-        /// <remarks>Currently treats both interval bounds as upper limits, rather than checking containment.</remarks>
+        /// <returns>True if the value lies within the interval, including values within tolerance of either endpoint; otherwise false.</returns>
         public bool IsRoughlyInRange(Interval interval, uint precision = DefaultPrecision) =>
             a.IsRoughlyBetween(interval.LowerBound, interval.UpperBound, precision);
 

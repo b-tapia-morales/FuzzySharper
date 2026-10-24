@@ -12,16 +12,23 @@ namespace Reasoning.Tests;
 
 public static class ReasoningProvider
 {
-    public static ServiceProvider ConfigureProvider()
+    public static ServiceProvider ConfigureProvider(
+        Func<ILinguisticBase>? linguisticBaseFactory = null,
+        Func<ILinguisticBase, IFuzzySetRuleBase>? ruleBaseFactory = null,
+        Func<IWorkingMemory>? workingMemoryFactory = null)
     {
+        var createLinguisticBase = linguisticBaseFactory ?? InitializeLinguistics;
+        var createRuleBase = ruleBaseFactory ?? InitializeRules;
+        var createWorkingMemory = workingMemoryFactory ?? InitializeMemory;
         var serviceCollection = new ServiceCollection();
-        var linguisticBase = InitializeLinguistics();
-        var workingMemory = InitializeMemory();
-        var ruleBase = InitializeRules(linguisticBase);
-        serviceCollection.AddTransient<ILinguisticBase>(_ => linguisticBase);
-        serviceCollection.AddTransient<IFuzzySetRuleBase>(_ => ruleBase);
-        serviceCollection.AddTransient<IWorkingMemory>(_ => workingMemory);
-        return serviceCollection.BuildServiceProvider();
+        serviceCollection.AddScoped<ILinguisticBase>(_ => createLinguisticBase());
+        serviceCollection.AddScoped<IFuzzySetRuleBase>(provider => createRuleBase(provider.GetRequiredService<ILinguisticBase>()));
+        serviceCollection.AddScoped<IWorkingMemory>(_ => createWorkingMemory());
+        return serviceCollection.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateScopes = true,
+            ValidateOnBuild = true
+        });
     }
 
     private static ILinguisticBase InitializeLinguistics()
