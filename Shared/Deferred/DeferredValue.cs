@@ -7,10 +7,8 @@ public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisite
 {
     private Option<T> _cachedValue = Option<T>.None();
 
-    public DeferredValue(T value) : this(() => value, () => { })
-    {
+    public DeferredValue(T value) : this(() => value, () => { }) =>
         _cachedValue = value;
-    }
 
     public T Value
     {
@@ -35,6 +33,9 @@ public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisite
             return;
 
         resolvePrerequisites();
+        if (_cachedValue.IsSome)
+            return;
+        
         _cachedValue = compute();
     }
 
@@ -47,6 +48,6 @@ public sealed class DeferredValue<T>(Func<T> compute, Action resolvePrerequisite
     public void OverrideValue(T value) =>
         _cachedValue = value;
 
-    public bool TryGetValue(out T value) => 
+    public bool TryGetValue(out T value) =>
         _cachedValue.IsSome(out value);
 }
