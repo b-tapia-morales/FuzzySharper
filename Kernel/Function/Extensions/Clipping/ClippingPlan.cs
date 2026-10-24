@@ -1,4 +1,5 @@
 ﻿using Kernel.Function.Abstractions;
+using Kernel.Function.Extensions.Metric;
 using Shared.Approx;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
@@ -19,21 +20,21 @@ public class ClippingPlan
 
     public static ClippingPlan BuildPlan(MeasurableFunction function)
     {
-        var centroid = function.CentroidX();
-
-        var (fx0, fx1) = function.EffectiveSupport.ToTuple();
-        var (ux0, ux1) = function.UniverseOfDiscourse.ToTuple();
-
-        var hasLeftCut = ux0.IsRoughlyGreaterThan(fx0);
-        var hasRightCut = ux1.IsRoughlyLesserThan(fx1);
-
-        if (!(hasLeftCut || hasRightCut))
+        if (!function.IsClippedByUoD)
             return new ClippingPlan
             {
                 HasLeftCut = false,
                 HasRightCut = false,
                 Mode = ClippingMode.None
             };
+        
+        var centroid = function.CentroidX(MetricScope.Original);
+
+        var (fx0, fx1) = function.EffectiveSupport.ToTuple();
+        var (ux0, ux1) = function.UniverseOfDiscourse.ToTuple();
+
+        var hasLeftCut = ux0.IsRoughlyGreaterThan(fx0);
+        var hasRightCut = ux1.IsRoughlyLesserThan(fx1);
 
         var hasCutPastCentroid = ux0.IsRoughlyGreaterThan(centroid) || ux1.IsRoughlyLesserThan(centroid);
         var outerWidth = fx1 - fx0;
