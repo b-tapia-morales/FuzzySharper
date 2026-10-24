@@ -1,9 +1,9 @@
-﻿using Shared.Approx;
-using Shared.Deferred;
+﻿using Kernel.Function.Extensions.Metric;
+using Kernel.Number;
+using Shared.Approx;
 using Shared.Intervals.Implementations;
 using Shared.Options.Factory;
 using Shared.Options.Implementations;
-using Utils.Shape;
 
 namespace Kernel.Function.Abstractions;
 
@@ -49,15 +49,36 @@ public abstract class LinearPiecewiseFunction(string name, Interval universe, do
 
     public override Option<double> CoreRight => UMax.IsRoughlyOne() ? TopRightCorner : Option<double>.None();
 
-    protected override DeferredValue<double> DeferredArea => new(PolygonUtils.CalculateArea(Vertices));
+    protected override double CalculateOriginalMetric(MetricType metricType) =>
+        metricType.CalculateMetric(Vertices);
 
-    protected override DeferredValue<double> DeferredMomentX => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.X));
+    public List<(double X, double Y)> AlphaCutLeftRegion(FuzzyNumber alpha, bool useUoD = true)
+    {
+        var x0 = useUoD ? RestrictedSupportLeft : EffectiveSupportLeft;
+        var cut = useUoD ? AlphaCutLeftClipped(alpha) : AlphaCutLeft(alpha);
 
-    protected override DeferredValue<double> DeferredMomentY => new(PolygonUtils.CalculateFirstMoment(Vertices, Axis.Y));
+        if (!cut.IsSome(out var a0) || a0.RoughlyEquals(x0))
+            return [];
 
-    protected override DeferredValue<double> DeferredMomentXx => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.X));
+        if (EffectiveSupportLeft.RoughlyEquals(x0))
+            return [(x0, 0), (a0, 0), (a0, alpha)];
 
-    protected override DeferredValue<double> DeferredMomentXy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.X, Axis.Y));
+        var h0 = PureFunction(x0);
+        return [(x0, 0), (a0, 0), (a0, alpha), (x0, h0)];
+    }
 
-    protected override DeferredValue<double> DeferredMomentYy => new(PolygonUtils.CalculateSecondMoment(Vertices, Axis.Y, Axis.Y));
+    public List<(double X, double Y)> AlphaCutRightRegion(FuzzyNumber alpha, bool useUoD = true)
+    {
+        var x1 = useUoD ? RestrictedSupportRight : EffectiveSupportRight;
+        var cut = useUoD ? AlphaCutRightClipped(alpha) : AlphaCutRight(alpha);
+
+        if (!cut.IsSome(out var a1) || a1.RoughlyEquals(x1))
+            return [];
+
+        if (EffectiveSupportRight.RoughlyEquals(x1))
+            return [(a1, 0), (x1, 0), (a1, alpha)];
+
+        var h1 = PureFunction(x1);
+        return [(a1, 0), (x1, 0), (x1, h1), (a1, alpha)];
+    }
 }
