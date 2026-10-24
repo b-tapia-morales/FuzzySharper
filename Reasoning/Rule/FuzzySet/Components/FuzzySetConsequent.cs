@@ -11,7 +11,7 @@ public class FuzzySetConsequent(FuzzyProposition proposition) : IRuleOutput
     public string Identifier { get; } = proposition.Identifier.AsString;
 
     public override bool Equals(object? obj) =>
-        Proposition.Equals(obj);
+        obj is FuzzySetConsequent other && Proposition.Equals(other.Proposition);
 
     public override int GetHashCode() =>
         Proposition.GetHashCode();

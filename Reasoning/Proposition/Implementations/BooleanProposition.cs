@@ -21,7 +21,7 @@ public sealed class BooleanProposition<T>(T value, Connective connective, Litera
 
     public bool Equals(BooleanProposition<T>? other) =>
         other != null &&
-        EqualityComparer<T>.Equals(this, other) &&
+        EqualityComparer<T>.Default.Equals(Value, other.Value) &&
         Connective == other.Connective &&
         Literal == other.Literal &&
         string.Equals(Label, other.Label, StringComparison.OrdinalIgnoreCase);

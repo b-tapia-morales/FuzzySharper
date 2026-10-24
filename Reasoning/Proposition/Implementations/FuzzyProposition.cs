@@ -26,7 +26,7 @@ public sealed class FuzzyProposition(string variable, Connective connective, Lit
 
     public bool Equals(FuzzyProposition? other) =>
         other != null &&
-        string.Equals(Variable, Variable, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(Variable, other.Variable, StringComparison.OrdinalIgnoreCase) &&
         Connective == other.Connective &&
         Literal == other.Literal &&
         LinguisticHedge == other.LinguisticHedge &&
