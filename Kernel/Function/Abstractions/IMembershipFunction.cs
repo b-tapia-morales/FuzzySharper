@@ -163,6 +163,8 @@ public interface IMembershipFunction
     /// <i>x</i> value that reaches full membership.
     /// </summary>
     bool IsPrototypical { get; }
+    
+    bool IsClippedByUoD { get; }
 
     #endregion
 
@@ -219,14 +221,16 @@ public interface IMembershipFunction
     /// <summary>
     /// Returns the leftmost <i>x</i> value of the <b>Clipped Peak interval</b>.
     /// The clipping behavior is defined as follows:
-    /// If <c>PeakLeft &lt; UoD.LowerBound</c>, then <c>x₀ = UoD.LowerBound</c>; otherwise, <c>x₀ = PeakLeft</c>.
+    /// The original <see cref="PeakLeft"/> is clamped to both bounds of the Universe of Discourse.
+    /// If the entire peak interval lies outside the universe, both clipped endpoints equal the nearest universe bound.
     /// </summary>
     Option<double> PeakLeftClipped { get; }
 
     /// <summary>
     /// Returns the rightmost <i>x</i> value of the <b>Clipped Peak interval</b>.
     /// The clipping behavior is defined as follows:
-    /// If <c>PeakRight &gt; UoD.UpperBound</c>, then <c>x₁ = UoD.UpperBound</c>; otherwise, <c>x₁ = PeakRight</c>.
+    /// The original <see cref="PeakRight"/> is clamped to both bounds of the Universe of Discourse.
+    /// If the entire peak interval lies outside the universe, both clipped endpoints equal the nearest universe bound.
     /// </summary>
     /// <seealso cref="UniverseOfDiscourse"/>
     /// <seealso cref="PeakRight"/>
@@ -235,6 +239,7 @@ public interface IMembershipFunction
     /// <summary>
     /// Returns the <b>Clipped Peak interval</b>, obtained by clipping the <see cref="Peak">Peak interval</see>
     /// to the bounds of the <see cref="UniverseOfDiscourse">Universe of Discourse</see>.
+    /// If the entire peak interval lies outside the universe, the result is a single point at the nearest universe bound.
     /// </summary>
     /// <seealso cref="PeakLeftClipped"/>
     /// <seealso cref="PeakRightClipped"/>
@@ -546,7 +551,7 @@ public interface IMembershipFunction
     /// </item>
     /// <item>
     /// <description>
-    /// If <c>λ ≥ μMax</c> ⇒ the original membership function, unmodified.
+    /// If <c>λ = 1</c> ⇒ the original membership function, unmodified.
     /// </description>
     /// </item>
     /// </list>
@@ -682,24 +687,34 @@ public interface IMembershipFunction
     /// <para>
     /// Returns a deep copy of the current membership function.
     /// </para>
-    /// The returned instance is structurally independent of the original and preserves all of its properties and behavior.
+    /// The returned instance is structurally independent of the original. Shape parameters and original metric caches are preserved.
+    /// When <paramref name="copyState"/> is <see langword="true"/>, the Universe of Discourse and clipped metric
+    /// caches are also preserved. Otherwise, the Universe of Discourse is unbounded and clipped metric caches are discarded.
     /// </summary>
+    /// <param name="copyState">
+    /// Whether to preserve the Universe of Discourse and clipped metric caches. Defaults to <see langword="true"/>.
+    /// </param>
     /// <returns>
     /// A deep copy of the membership function.
     /// </returns>
-    IMembershipFunction DeepCopy();
+    IMembershipFunction DeepCopy(bool copyState = true);
 
     /// <summary>
     /// <para>
     /// Returns a deep copy of the current membership function with its name replaced by the specified value.
     /// </para>
-    /// All other properties and behavior remain identical to the original.
+    /// Shape parameters and original metric caches are preserved. When <paramref name="copyState"/> is <see langword="true"/>,
+    /// the Universe of Discourse and clipped metric caches are also preserved. Otherwise, the Universe of Discourse
+    /// is unbounded and clipped metric caches are discarded.
     /// </summary>
     /// <param name="name">
     /// The name to assign to the copied membership function.
     /// </param>
+    /// <param name="copyState">
+    /// Whether to preserve the Universe of Discourse and clipped metric caches. Defaults to <see langword="true"/>.
+    /// </param>
     /// <returns>
     /// A deep copy of the membership function with the specified name.
     /// </returns>
-    IMembershipFunction DeepCopy(string name);
+    IMembershipFunction DeepCopy(string name, bool copyState = true);
 }
